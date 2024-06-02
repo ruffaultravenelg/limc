@@ -54,6 +54,10 @@ Module Program
             SubMain(args)
         Catch ex As CompilerException
             ex.Print()
+#If DEBUG = False Then
+        Catch ex As Exception
+            HandleSelfError()
+#End If
         End Try
     End Sub
     Sub SubMain(args As String())
@@ -90,6 +94,21 @@ Module Program
 
         'Start to compile
         Compiler.Compile()
+
+    End Sub
+
+    '===================================
+    '======== HANDLE SELF ERROR ========
+    '===================================
+    Private Sub HandleSelfError()
+
+        'Write error titl
+        Console.ForegroundColor = ConsoleColor.DarkRed
+        Console.WriteLine("INTERNAL ERROR: It seems that an unexpected error has occurred")
+
+        'Write message
+        Console.ResetColor()
+        Console.WriteLine("It's likely that this is due to your configuration. In any case, it's very likely that it's a compiler bug and not an error on your behalf.")
 
     End Sub
 

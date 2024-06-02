@@ -2,6 +2,11 @@
 
 Public Class LimSource
 
+    '===========================
+    '======== FILE PATH ========
+    '===========================
+    Public ReadOnly Filepath As String
+
     '=============================
     '======== CONSTRUCTOR ========
     '=============================
@@ -9,6 +14,7 @@ Public Class LimSource
 
         'Get full path
         filepath = Path.GetFullPath(filepath)
+        Me.Filepath = filepath
 
         'File doesn't exist
         If Not File.Exists(filepath) Then
@@ -17,10 +23,6 @@ Public Class LimSource
 
         'Get lines
         Dim Lines As List(Of LimSourceLine) = LineParser.Parse(filepath)
-
-        For Each line As LimSourceLine In Lines
-            Console.WriteLine($"{line.LinePosition} | {line.Tab}> {line.Content}")
-        Next
 
     End Sub
 
