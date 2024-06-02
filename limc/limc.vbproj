@@ -14,4 +14,9 @@
     <OutputPath>C:\Users\gemin\Documents\Projets\Lim\limc\bin</OutputPath>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="CNode\" />
+    <Folder Include="LimNode\Construct\" />
+  </ItemGroup>
+
 </Project>

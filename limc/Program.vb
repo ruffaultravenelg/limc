@@ -36,6 +36,15 @@ Module Program
         End Get
     End Property
 
+    '=============================
+    '======== CUSTOM TAGS ========
+    '=============================
+    Private _DefinedFlag As New List(Of String)
+    Public ReadOnly Property DefinedFlag As List(Of String)
+        Get
+            Return _DefinedFlag
+        End Get
+    End Property
 
     '=============================
     '======== ENTRY POINT ========
@@ -75,6 +84,12 @@ Module Program
         If _OutputFile = "" Then
             _OutputFile = Path.GetFileNameWithoutExtension(_InputFile)
         End If
+
+        'Add current platform flag
+        _DefinedFlag.Add(Platform.Current.ToString())
+
+        'Start to compile
+        Compiler.Compile()
 
     End Sub
 
@@ -122,6 +137,12 @@ Module Program
                 Continue While
             End If
 
+            'Custom flag
+            If arg = "-f" OrElse arg = "--add-flag" Then
+                i += 1
+                _DefinedFlag.Add(args(i))
+            End If
+
             'Not found
             Throw New ArgumentException("The """ & arg & """ flag is unknown or unexpected at this location.")
 
@@ -149,6 +170,7 @@ Module Program
         Console.WriteLine(vbTab & "--icon [icon_path]" & vbTab & "-i [icon_path]" & vbTab & vbTab & ": Set the executable icon")
         Console.WriteLine(vbTab & "--gcc-bin [gcc_bin_dir]" & vbTab & "-gcc [gcc_bin_dir]" & vbTab & ": Set a custom gcc bin directory. Just the parent folder.")
         Console.WriteLine(vbTab & "--target [bin/c]" & vbTab & "-t [bin/c]" & vbTab & vbTab & ": Set file type to be compiled.")
+        Console.WriteLine(vbTab & "--add-flag [flag]" & vbTab & "-f [flag]" & vbTab & vbTab & ": Add a custom flag.")
 
     End Sub
 

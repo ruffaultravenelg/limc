@@ -8,7 +8,16 @@
         Me.Name = Name
     End Sub
 
-    Public Overridable Sub Print()
+    Public Sub Print()
+
+        'Print content
+        PrintContent()
+
+        'Reset console color
+        Console.ResetColor()
+
+    End Sub
+    Protected Overridable Sub PrintContent()
 
         'Print title
         Console.ForegroundColor = ConsoleColor.DarkRed
