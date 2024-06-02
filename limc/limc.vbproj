@@ -15,8 +15,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="CNode\" />
-    <Folder Include="LimNode\Construct\" />
+    <Folder Include="Modelization\CNode\" />
+    <Folder Include="Modelization\LimNode\Construct\" />
   </ItemGroup>
 
 </Project>

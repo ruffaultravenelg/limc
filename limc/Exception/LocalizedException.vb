@@ -1,6 +1,6 @@
 ﻿Imports System.IO
 
-Public Class LocatedException
+Public Class LocalizedException
     Inherits CompilerException
 
     Private Location As Location

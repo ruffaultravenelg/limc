@@ -1,7 +1,10 @@
-﻿Module Platform
+﻿Imports System.IO
+
+Module Platform
 
     Public ReadOnly Current As Platform = GetCurrentPlatform()
     Public ReadOnly ExecutabeDirectory As String = AppDomain.CurrentDomain.BaseDirectory
+    Public ReadOnly LibDirectory As String = Path.Combine(ExecutabeDirectory, "libs")
 
     Public Enum Platform
         WIN

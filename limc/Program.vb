@@ -8,6 +8,8 @@ Module Program
     Public Enum CompilationType
         Binary
         C
+        Tokens
+        Libs
     End Enum
     Private _CompilationTarget As CompilationType = CompilationType.Binary
     Public ReadOnly Property CompilationTarget As CompilationType
@@ -66,10 +68,11 @@ Module Program
         If args.Count = 1 Then
             If args(0) = "-v" OrElse args(0) = "--version" Then
                 ShowVersion()
+                Return
             ElseIf args(0) = "-h" OrElse args(0) = "--help" Then
                 ShowHelp()
+                Return
             End If
-            Return
         End If
 
         'Get arguments
@@ -89,8 +92,21 @@ Module Program
             _OutputFile = Path.GetFileNameWithoutExtension(_InputFile)
         End If
 
+        'Get full path of final file
+        _OutputFile = Path.GetFullPath(_OutputFile)
+
+        'Flags but compiles a lib
+        If DefinedFlag.Count > 0 AndAlso (CompilationTarget = CompilationType.Libs OrElse CompilationTarget = CompilationType.Tokens) Then
+            Throw New InvalidCompileTargetException("You are compiling to a library file while limiting the contents of the file with flags. When you want to compile to this kind of file, no compilation flag can be set.")
+        End If
+
         'Add current platform flag
         _DefinedFlag.Add(Platform.Current.ToString())
+
+        'Compile to .limtok
+        If CompilationTarget = CompilationType.Tokens Then
+            TokenSerializer.ParseFileAndSaveTokens(InputFile, OutputFile)
+        End If
 
         'Start to compile
         Compiler.Compile()
@@ -150,6 +166,10 @@ Module Program
                         _CompilationTarget = CompilationType.Binary
                     Case "c"
                         _CompilationTarget = CompilationType.C
+                    Case "tok"
+                        _CompilationTarget = CompilationType.Tokens
+                    Case "lib"
+                        _CompilationTarget = CompilationType.Libs
                     Case Else
                         Throw New ArgumentException("Unknown compilation target """ & args(i) & """")
                 End Select
@@ -188,8 +208,14 @@ Module Program
         Console.WriteLine("")
         Console.WriteLine(vbTab & "--icon [icon_path]" & vbTab & "-i [icon_path]" & vbTab & vbTab & ": Set the executable icon")
         Console.WriteLine(vbTab & "--gcc-bin [gcc_bin_dir]" & vbTab & "-gcc [gcc_bin_dir]" & vbTab & ": Set a custom gcc bin directory. Just the parent folder.")
-        Console.WriteLine(vbTab & "--target [bin/c]" & vbTab & "-t [bin/c]" & vbTab & vbTab & ": Set file type to be compiled.")
+        Console.WriteLine(vbTab & "--target [<com_type>]" & vbTab & "-t [<com_type>]" & vbTab & vbTab & ": Set file type to be compiled.")
         Console.WriteLine(vbTab & "--add-flag [flag]" & vbTab & "-f [flag]" & vbTab & vbTab & ": Add a custom flag.")
+        Console.WriteLine("")
+        Console.WriteLine("<com_type>:")
+        Console.WriteLine(vbTab & "bin" & vbTab & ": Compiles the project to an executable")
+        Console.WriteLine(vbTab & "c" & vbTab & ": Compiles the project to a single .c source file")
+        Console.WriteLine(vbTab & "tok" & vbTab & ": Compiles the file to a .limtok file, containing all tokens")
+        Console.WriteLine(vbTab & "lib" & vbTab & ": Compiles the file to a .limlib file, containing all the code")
 
     End Sub
 
