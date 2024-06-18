@@ -17,6 +17,11 @@ Public Class LimSource
     '===========================
     Public ReadOnly Filepath As String
 
+    '============================
+    '======== EXCEPTIONS ========
+    '============================
+    Public ReadOnly Exceptions As New List(Of Node)
+
     '=========================
     '======== IMPORTS ========
     '=========================
@@ -43,9 +48,25 @@ Public Class LimSource
         Select Case Path.GetExtension(Filepath)
             Case ".lim"
                 ParseFromText()
-            Case ".limtok"
-                ParseFromTok()
+            Case ".limlib"
+                ParseFromNode()
+            Case ".json"
+                ParseFromJson()
         End Select
+
+        'Import std.lim if the current file is not std.lim
+        If Not (HasTheSamePathAs(Path.Combine(Platform.LibDirectory, "std.lim"))) Then
+            ImportedFiles.Add(LimSource.STD)
+        End If
+
+        'Compilation target
+        If Program.CompilationTarget = CompilationType.Libs Then
+            NodeSerializer.SaveSourceToFile(Me, Program.OutputFile & ".limlib")
+            End
+        ElseIf Program.CompilationTarget = CompilationType.Json Then
+            NodeSerializer.SaveSourceToJsonFile(Me, Program.OutputFile & ".json")
+            End
+        End If
 
     End Sub
 
@@ -60,48 +81,25 @@ Public Class LimSource
         'Convert to tokens
         Dim Tokens As List(Of Token) = TokenParser.Parse(Me, Lines)
 
-        For Each tok In Tokens
-            Console.WriteLine(tok.ToString())
-        Next
-
-        'Finish loading
-        WhenLoaded()
+        'Parse nodes
+        NodeParser.Parse(Me, Tokens)
 
     End Sub
 
-    '================================
-    '======== PARSE FROM TOK ========
-    '================================
-    Private Sub ParseFromTok()
-
-        'Convert to tokens
-        Dim Tokens As List(Of Token) = TokenSerializer.LoadTokensFromFile(Me)
-
-        'Finish loading
-        WhenLoaded()
-
-        For Each tok In Tokens
-            Console.WriteLine(tok.ToString())
-        Next
-
+    '=================================
+    '======== PARSE FROM NODE ========
+    '=================================
+    Private Sub ParseFromNode()
+        NodeSerializer.LoadSourceFile(Me, Filepath)
     End Sub
 
-
-    '=============================
-    '======== WHEN LOADED ========
-    '=============================
-    Private Sub WhenLoaded()
-
-        'Handle precompilation flags
-
-        'Import std.lim if the current file is not std.lim
-        If Not (HasTheSamePathAs(Path.Combine(Platform.LibDirectory, "std.lim"))) Then
-            ImportedFiles.Add(LimSource.STD)
-        End If
-
-        'Handle imports
-
+    '=================================
+    '======== PARSE FROM JSON ========
+    '=================================
+    Private Sub ParseFromJson()
+        NodeSerializer.LoadSourceJsonFile(Me, Filepath)
     End Sub
+
 
     '===============================
     '======== IMPORT A FILE ========

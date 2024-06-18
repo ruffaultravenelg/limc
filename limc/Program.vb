@@ -6,12 +6,12 @@ Module Program
     '======== COMPILATION TYPE ========
     '==================================
     Public Enum CompilationType
-        Binary
+        Executable
         C
-        Tokens
         Libs
+        Json
     End Enum
-    Private _CompilationTarget As CompilationType = CompilationType.Binary
+    Private _CompilationTarget As CompilationType = CompilationType.Executable
     Public ReadOnly Property CompilationTarget As CompilationType
         Get
             Return _CompilationTarget
@@ -96,17 +96,12 @@ Module Program
         _OutputFile = Path.GetFullPath(_OutputFile)
 
         'Flags but compiles a lib
-        If DefinedFlag.Count > 0 AndAlso (CompilationTarget = CompilationType.Libs OrElse CompilationTarget = CompilationType.Tokens) Then
+        If DefinedFlag.Count > 0 AndAlso (CompilationTarget = CompilationType.Libs OrElse CompilationTarget = CompilationType.Json) Then
             Throw New InvalidCompileTargetException("You are compiling to a library file while limiting the contents of the file with flags. When you want to compile to this kind of file, no compilation flag can be set.")
         End If
 
         'Add current platform flag
         _DefinedFlag.Add(Platform.Current.ToString())
-
-        'Compile to .limtok
-        If CompilationTarget = CompilationType.Tokens Then
-            TokenSerializer.ParseFileAndSaveTokens(InputFile, OutputFile)
-        End If
 
         'Start to compile
         Compiler.Compile()
@@ -163,13 +158,13 @@ Module Program
                 i += 1
                 Select Case args(i)
                     Case "bin"
-                        _CompilationTarget = CompilationType.Binary
+                        _CompilationTarget = CompilationType.Executable
                     Case "c"
                         _CompilationTarget = CompilationType.C
-                    Case "tok"
-                        _CompilationTarget = CompilationType.Tokens
                     Case "lib"
                         _CompilationTarget = CompilationType.Libs
+                    Case "json"
+                        _CompilationTarget = CompilationType.Json
                     Case Else
                         Throw New ArgumentException("Unknown compilation target """ & args(i) & """")
                 End Select
@@ -214,8 +209,8 @@ Module Program
         Console.WriteLine("<com_type>:")
         Console.WriteLine(vbTab & "bin" & vbTab & ": Compiles the project to an executable")
         Console.WriteLine(vbTab & "c" & vbTab & ": Compiles the project to a single .c source file")
-        Console.WriteLine(vbTab & "tok" & vbTab & ": Compiles the file to a .limtok file, containing all tokens")
         Console.WriteLine(vbTab & "lib" & vbTab & ": Compiles the file to a .limlib file, containing all the code")
+        Console.WriteLine(vbTab & "json" & vbTab & ": Compiles the file to a .json file, containing all the node (for debuging)")
 
     End Sub
 

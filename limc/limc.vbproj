@@ -15,8 +15,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Modelization\CNode\" />
+    <Folder Include="Modelization\CNode\Expression\" />
     <Folder Include="Modelization\LimNode\Construct\" />
+    <Folder Include="Modelization\LimNode\Expression\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MessagePack" Version="2.5.140" />
   </ItemGroup>
 
 </Project>
