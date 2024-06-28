@@ -224,4 +224,28 @@ Module Program
 
     End Sub
 
+    '====================================
+    '======== ARGUMENT EXCEPTION ========
+    '====================================
+    Public Class ArgumentException
+        Inherits CompilerException
+
+        Public Sub New(Message As String)
+            MyBase.New("Argument Exception", Message)
+        End Sub
+
+    End Class
+
+    '========================================
+    '======== INVALID COMPILE TARGET ========
+    '========================================
+    Public Class InvalidCompileTargetException
+        Inherits CompilerException
+
+        Public Sub New(Message As String)
+            MyBase.New("Invalid compile target", Message)
+        End Sub
+
+    End Class
+
 End Module

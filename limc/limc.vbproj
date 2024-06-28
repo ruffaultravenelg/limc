@@ -15,9 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Modelization\CNode\Expression\" />
     <Folder Include="Modelization\LimNode\Construct\" />
-    <Folder Include="Modelization\LimNode\Expression\" />
   </ItemGroup>
 
   <ItemGroup>
