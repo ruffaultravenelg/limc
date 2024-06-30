@@ -16,4 +16,8 @@
         Me.ToCharIndex = ToCharIndex
     End Sub
 
+    Public Shared Operator &(A As Location, B As Location) As Location
+        Return New Location(A.File, Math.Min(A.FromLineNumber, B.FromLineNumber), Math.Min(A.FromCharIndex, B.FromCharIndex), Math.Max(A.ToLineNumber, B.ToLineNumber), Math.Max(A.ToCharIndex, B.ToCharIndex))
+    End Operator
+
 End Class

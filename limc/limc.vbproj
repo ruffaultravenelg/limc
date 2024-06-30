@@ -15,10 +15,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Modelization\LimNode\Construct\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="MessagePack" Version="2.5.140" />
   </ItemGroup>
 

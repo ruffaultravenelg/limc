@@ -20,7 +20,12 @@ Public Class LimSource
     '============================
     '======== EXCEPTIONS ========
     '============================
-    Public ReadOnly Exceptions As New List(Of Node)
+    Public ReadOnly Exceptions As New List(Of ExceptionConstructNode)
+
+    '===========================
+    '======== FUNCTIONS ========
+    '===========================
+    Public ReadOnly Functions As New List(Of FunctionConstructNode)
 
     '=========================
     '======== IMPORTS ========
@@ -44,37 +49,6 @@ Public Class LimSource
             Throw New FileDoNotExistException("File """ & Path.GetRelativePath(".", Filepath) & """ doesn't exist.")
         End If
 
-        'File format
-        Select Case Path.GetExtension(Filepath)
-            Case ".lim"
-                ParseFromText()
-            Case ".limlib"
-                ParseFromNode()
-            Case ".json"
-                ParseFromJson()
-        End Select
-
-        'Import std.lim if the current file is not std.lim
-        If Not (HasTheSamePathAs(Path.Combine(Platform.LibDirectory, "std.lim"))) Then
-            ImportedFiles.Add(LimSource.STD)
-        End If
-
-        'Compilation target
-        If Program.CompilationTarget = CompilationType.Libs Then
-            NodeSerializer.SaveSourceToFile(Me, Program.OutputFile & ".limlib")
-            End
-        ElseIf Program.CompilationTarget = CompilationType.Json Then
-            NodeSerializer.SaveSourceToJsonFile(Me, Program.OutputFile & ".json")
-            End
-        End If
-
-    End Sub
-
-    '=================================
-    '======== PARSE FROM TEXT ========
-    '=================================
-    Private Sub ParseFromText()
-
         'Get lines
         Dim Lines As List(Of LimSourceLine) = LineParser.Parse(Filepath)
 
@@ -84,22 +58,44 @@ Public Class LimSource
         'Parse nodes
         NodeParser.Parse(Me, Tokens)
 
-    End Sub
+        'Export all constructs if no one is exported
+        Dim ExportedConstructFound As Boolean = False
+        For Each elm As ConstructNode In Constructs
+            If elm.Exported Then
+                ExportedConstructFound = True
+                Exit For
+            End If
+        Next
+        If Not ExportedConstructFound Then
+            For Each elm As ConstructNode In Constructs
+                elm.Exported = True
+            Next
+        End If
 
-    '=================================
-    '======== PARSE FROM NODE ========
-    '=================================
-    Private Sub ParseFromNode()
-        NodeSerializer.LoadSourceFile(Me, Filepath)
-    End Sub
+        'Import std.lim if the current file is not std.lim
+        If Not (HasTheSamePathAs(Path.Combine(Platform.LibDirectory, "std.lim"))) Then
+            ImportedFiles.Add(LimSource.STD)
+        End If
 
-    '=================================
-    '======== PARSE FROM JSON ========
-    '=================================
-    Private Sub ParseFromJson()
-        NodeSerializer.LoadSourceJsonFile(Me, Filepath)
-    End Sub
+        'Compilation target
+        If Program.CompilationTarget = CompilationType.Libs Then
+            Throw New NotImplementedException
+            End
+        ElseIf Program.CompilationTarget = CompilationType.Json Then
+            Throw New NotImplementedException
+            End
+        End If
 
+        ' Tests
+        For Each fun As FunctionConstructNode In Functions
+            Console.WriteLine(fun.Name & " : " & fun.Exported.ToString)
+        Next
+        For Each exception As ExceptionConstructNode In Exceptions
+            Console.WriteLine(exception.Name & " : " & exception.Exported.ToString)
+        Next
+
+
+    End Sub
 
     '===============================
     '======== IMPORT A FILE ========
@@ -148,5 +144,18 @@ Public Class LimSource
 
     End Class
 
+    '====================================
+    '======== CONSTRUCT ITERATOR ========
+    '====================================
+    Private ReadOnly Iterator Property Constructs As IEnumerable(Of ConstructNode)
+        Get
+            For Each elm In Exceptions
+                Yield elm
+            Next
+            For Each elm In Functions
+                Yield elm
+            Next
+        End Get
+    End Property
 
 End Class

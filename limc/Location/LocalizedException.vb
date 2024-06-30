@@ -15,16 +15,27 @@ Public Class LocalizedException
         'Print name & message
         MyBase.PrintContent()
 
-        'Print trace
-        If Location.ToLineNumber = Location.FromLineNumber Then
-            PrintOneLine()
-        Else
-            PrintMultipleLine()
-        End If
+        'File location or character location
+        If TypeOf Location Is FileLocation Then
 
-        'Print location
-        Console.ForegroundColor = ConsoleColor.DarkRed
-        Console.WriteLine($"<{Path.GetRelativePath(".", Location.File.Filepath)}> at line ${Location.FromLineNumber}")
+            'Print location
+            Console.ForegroundColor = ConsoleColor.DarkRed
+            Console.WriteLine($"<{Path.GetRelativePath(".", Location.File.Filepath)}>")
+
+        Else
+
+            'Print trace
+            If Location.ToLineNumber = Location.FromLineNumber Then
+                PrintOneLine()
+            Else
+                PrintMultipleLine()
+            End If
+
+            'Print location
+            Console.ForegroundColor = ConsoleColor.DarkRed
+            Console.WriteLine($"<{Path.GetRelativePath(".", Location.File.Filepath)}> at line {Location.FromLineNumber}")
+
+        End If
 
     End Sub
 
@@ -70,11 +81,15 @@ Public Class LocalizedException
             RemoveTabulation += 1
             Line = Line.Substring(1)
         End While
+        Dim From As Integer = Location.FromCharIndex
+        If From < RemoveTabulation Then
+            From = RemoveTabulation
+        End If
 
         Console.ForegroundColor = ConsoleColor.DarkGray
         Console.WriteLine($"{i.ToString("D4")} | {Line}")
         Console.ResetColor()
-        Console.WriteLine($"       {StrDup(Location.FromCharIndex - RemoveTabulation, " ")}{StrDup(Location.ToCharIndex - Location.FromCharIndex, "^")}")
+        Console.WriteLine($"       {StrDup(From - RemoveTabulation, " ")}{StrDup(Location.ToCharIndex - From, "^")}")
 
         'Close reader
         reader.Close()

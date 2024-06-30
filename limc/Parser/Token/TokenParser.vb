@@ -32,7 +32,7 @@
             Dim Tokens As List(Of Token) = ParseLine(Line)
 
             'Add tokens
-            If Tokens.Count > 1 Then
+            If Tokens.Count > 0 Then
                 Result.Add(New Token(New Location(ParsingFile, Line.LinePosition, 0, Line.LinePosition, Line.FirstContentCharPosition), TokenType.SYNTAX_LINESTART, Line.Tab)) 'Add a startline token with the indentation count
                 Result.AddRange(Tokens)
             End If
@@ -227,6 +227,7 @@
         Else
             Return CreateToken(TokenType.WORD, word)
         End If
+
     End Function
 
     '
