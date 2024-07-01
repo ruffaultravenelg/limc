@@ -17,15 +17,12 @@ Public Class LimSource
     '===========================
     Public ReadOnly Filepath As String
 
-    '============================
-    '======== EXCEPTIONS ========
-    '============================
+    '=========================
+    '======== CONTENT ========
+    '=========================
     Public ReadOnly Exceptions As New List(Of ExceptionConstructNode)
-
-    '===========================
-    '======== FUNCTIONS ========
-    '===========================
     Public ReadOnly Functions As New List(Of FunctionConstructNode)
+    Public ReadOnly Classs As New List(Of ClassConstructNode)
 
     '=========================
     '======== IMPORTS ========
@@ -86,15 +83,6 @@ Public Class LimSource
             End
         End If
 
-        ' Tests
-        For Each fun As FunctionConstructNode In Functions
-            Console.WriteLine(fun.Name & " : " & fun.Exported.ToString)
-        Next
-        For Each exception As ExceptionConstructNode In Exceptions
-            Console.WriteLine(exception.Name & " : " & exception.Exported.ToString)
-        Next
-
-
     End Sub
 
     '===============================
@@ -153,6 +141,9 @@ Public Class LimSource
                 Yield elm
             Next
             For Each elm In Functions
+                Yield elm
+            Next
+            For Each elm In Classs
                 Yield elm
             Next
         End Get

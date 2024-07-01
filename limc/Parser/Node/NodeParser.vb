@@ -1,8 +1,4 @@
-﻿Imports System.Collections.Immutable
-Imports System.Diagnostics.CodeAnalysis
-Imports System.Reflection
-
-Public Module NodeParser
+﻿Public Module NodeParser
 
     '
     ' Parse a list of token into differents nodes
@@ -31,13 +27,23 @@ Public Module NodeParser
         ' All the constructs functions
         Private ReadOnly GetConstructs As IEnumerable(Of Func(Of ConstructNode)) = { 'IMPORTANT: Add all ConstructNode parsing functions here so that they are taken into account.
             AddressOf GetException,
-            AddressOf GetFunction
+            AddressOf GetFunction,
+            AddressOf GetClass
         }
 
         ' All the statements
         Private ReadOnly GetStatements As IEnumerable(Of Func(Of Integer, StatementNode)) = { 'IMPORTANT: Add all StatementNode parsing functions here so that they are taken into account.
             AddressOf GetBreakStatement,
-            AddressOf GetContinueStatement
+            AddressOf GetContinueStatement,
+            AddressOf GetDeclareVariableStatement
+        }
+
+        ' Class content
+        Private ReadOnly GetClassContents As IEnumerable(Of Func(Of Node)) = { 'IMPORTANT: Add all parsing functions here so that they are taken into account.
+            AddressOf GetDelcareVariableStatementForScope1,
+            AddressOf GetGetter,
+            AddressOf GetSetter,
+            AddressOf GetMethod
         }
 
         '=========================
@@ -136,6 +142,44 @@ Public Module NodeParser
             End While
 
         End Sub
+
+        '============================
+        '======== GET FACTOR ========
+        '============================
+        Private Function GetFactor() As ExpressionNode
+
+            'Save start
+            Dim Start As Location = CurrentToken.Location
+            Dim Tok As Token = CurrentToken
+
+            'Integer
+            If CurrentToken.Type = TokenType.INT Then
+                Advance()
+                Return New IntegerNode(Tok)
+            End If
+
+            'Parenthesis
+            If CurrentToken.Type = TokenType.SYNTAX_LEFT_PARENTHESIS Then
+                Advance()
+                Dim Expression As ExpressionNode = GetExpression()
+                If Not CurrentToken.Type = TokenType.SYNTAX_RIGHT_PARENTHESIS Then
+                    Throw New SyntaxErrorException("As the expression was finished, a closing parenthesis was expected.", LocationFrom(Start))
+                End If
+                Advance()
+                Return Expression
+            End If
+
+            'No factor found
+            Throw New SyntaxErrorException("An expression was expected here.", CurrentToken.Location)
+
+        End Function
+
+        '================================
+        '======== GET EXPRESSION ========
+        '================================
+        Private Function GetExpression() As ExpressionNode
+            Return GetFactor()
+        End Function
 
         '===============================
         '======== GET TYPE NODE ========
@@ -376,6 +420,55 @@ Public Module NodeParser
 
         End Function
 
+        '======================================
+        '======== GET DECLARE VARIABLE ========
+        '======================================
+        Private Function GetDelcareVariableStatementForScope1() As DeclareVariableStatementNode
+            Return GetDeclareVariableStatement(1)
+        End Function
+        Private Function GetDeclareVariableStatement(StatementIndentationLevel As Integer) As DeclareVariableStatementNode
+
+            'Save location
+            Dim Start As Location = CurrentToken.Location
+
+            'No break keyword
+            If Not CurrentToken.Type = TokenType.KEYWORD_LET Then
+                Return Nothing
+            End If
+            Advance()
+
+            'Get variable name
+            Dim VariableName As String
+            If Not CurrentToken.Type = TokenType.WORD Then
+                Throw New SyntaxErrorException("A variable name was expected here", CurrentToken.Location)
+            End If
+            VariableName = CurrentToken.Value
+            Advance()
+
+            'Get variable type
+            Dim VariableType As TypeNode = Nothing
+            If CurrentToken.Type = TokenType.SYNTAX_COLON Then
+                Advance()
+                VariableType = GetTypeNode()
+            End If
+
+            'Get value
+            Dim VariableValue As ExpressionNode = Nothing
+            If CurrentToken.Type = TokenType.OPERATOR_EQUAL Then
+                Advance()
+                VariableValue = GetExpression()
+            End If
+
+            'No value & no type = error
+            If VariableType Is Nothing AndAlso VariableValue Is Nothing Then
+                Throw New SyntaxErrorException("To declare a variable, you must at least specify its type or a default value, or both.", LocationFrom(Start))
+            End If
+
+            ' Return
+            Return New DeclareVariableStatementNode(LocationFrom(Start), VariableName, VariableType, VariableValue)
+
+        End Function
+
         '===============================
         '======== GET STATEMENT ========
         '===============================
@@ -450,6 +543,220 @@ Public Module NodeParser
 
             'Return result
             Return Result
+
+        End Function
+
+        '============================
+        '======== GET SETTER ========
+        '============================
+        Private Function GetSetter() As SetterConstructNode
+
+            ' Save location
+            Dim Start As Location = CurrentToken.Location
+
+            ' Exception keyword
+            If Not CurrentToken.Type = TokenType.KEYWORD_SET Then
+                Return Nothing
+            End If
+            Advance()
+
+            ' Get name
+            If Not CurrentToken.Type = TokenType.WORD Then
+                Throw New SyntaxErrorException("The name of a property was expected here", CurrentToken.Location)
+            End If
+            Dim Name As String = CurrentToken.Value
+            Advance()
+
+            ' Return type here
+            If CurrentToken.Type = TokenType.SYNTAX_COLON Then
+                Throw New SyntaxErrorException("A setter has no type as such. The type to be entered is defined by the argument variable. Use the following syntax: ""set " & Name & " to newValue:type"".", CurrentToken.Location)
+            End If
+
+            ' To keyword
+            If Not CurrentToken.Type = TokenType.KEYWORD_TO Then
+                Throw New SyntaxErrorException("The ""to"" keyword was expected. Use the following syntax: ""set " & Name & " to newValue:type"".", CurrentToken.Location)
+            End If
+            Advance()
+
+            ' New value name
+            Dim NewValue As FunctionArgumentNode = GetArgumentNode()
+
+            ' Get logic
+            Dim Logic As List(Of StatementNode) = GetLogic(2) '2 because it's a method.
+
+            ' Return result
+            Return New SetterConstructNode(LocationFrom(Start), Logic, Name, NewValue)
+
+        End Function
+
+        '============================
+        '======== GET GETTER ========
+        '============================
+        Private Function GetGetter() As GetterConstructNode
+
+            ' Save location
+            Dim Start As Location = CurrentToken.Location
+
+            ' Exception keyword
+            If Not CurrentToken.Type = TokenType.KEYWORD_GET Then
+                Return Nothing
+            End If
+            Advance()
+
+            ' Get name
+            If Not CurrentToken.Type = TokenType.WORD Then
+                Throw New SyntaxErrorException("The name of a property was expected here", CurrentToken.Location)
+            End If
+            Dim Name As String = CurrentToken.Value
+            Advance()
+
+            ' Return type
+            Dim ReturnType As TypeNode = Nothing
+            If CurrentToken.Type = TokenType.SYNTAX_COLON Then
+                Advance()
+                ReturnType = GetTypeNode()
+            End If
+
+            ' Get logic
+            Dim Logic As List(Of StatementNode) = GetLogic(2) '2 because it's a method.
+
+            ' Return result
+            Return New GetterConstructNode(LocationFrom(Start), Logic, Name, ReturnType)
+
+        End Function
+
+        '============================
+        '======== GET METHOD ========
+        '============================
+        Private Function GetMethod() As MethodConstructNode
+
+            ' Save location
+            Dim Start As Location = CurrentToken.Location
+
+            ' Exception keyword
+            If Not CurrentToken.Type = TokenType.KEYWORD_FUNC Then
+                Return Nothing
+            End If
+            Advance()
+
+            ' Get name
+            If Not CurrentToken.Type = TokenType.WORD Then
+                Throw New SyntaxErrorException("The name of a method was expected", CurrentToken.Location)
+            End If
+            Dim Name As String = CurrentToken.Value
+            Advance()
+
+            ' There is generic types
+            If CurrentToken.Type = TokenType.OPERATOR_LESSTHAN Then
+                Throw New SyntaxErrorException("A class method cannot have generic types. Please use the generic types of the class itself or an independent function.", CurrentToken.Location)
+            End If
+
+            ' Get arguments
+            Dim Arguments As List(Of FunctionArgumentNode) = GetArgumentNodes()
+
+            ' Return type
+            Dim ReturnType As TypeNode = Nothing
+            If CurrentToken.Type = TokenType.SYNTAX_COLON Then
+                Advance()
+                ReturnType = GetTypeNode()
+            End If
+
+            ' Get logic
+            Dim Logic As List(Of StatementNode) = GetLogic(2) '2 because it's a method.
+
+            ' Return result
+            Return New MethodConstructNode(LocationFrom(Start), Logic, Name, Arguments, ReturnType)
+
+        End Function
+
+        '===========================
+        '======== GET CLASS ========
+        '===========================
+        Private Function GetClass() As ClassConstructNode
+
+            ' Save location
+            Dim Start As Location = CurrentToken.Location
+
+            ' Primitive
+            Dim Primitive As Boolean = False
+            If CurrentToken.Type = TokenType.KEYWORD_PRIMITIVE Then
+                Primitive = True
+                Advance()
+            End If
+
+            ' Exception keyword
+            If Not CurrentToken.Type = TokenType.KEYWORD_CLASS Then
+                Return Nothing
+            End If
+            Advance()
+
+            ' Get name
+            If Not CurrentToken.Type = TokenType.WORD Then
+                Throw New SyntaxErrorException("The name of a class was expected here.", CurrentToken.Location)
+            End If
+            Dim Name As String = CurrentToken.Value
+            Advance()
+
+            ' Get generic types
+            Dim GenericTypes As List(Of GenericTypeNode) = GetGenericTypeNodes()
+
+            ' Get content
+            Dim Content As New List(Of Node)
+            While True
+
+                'No new line
+                If Not CurrentToken.Type = TokenType.SYNTAX_LINESTART Then
+                    Throw New SyntaxErrorException("A new line was expected here.", CurrentToken.Location)
+                End If
+
+                'Get current line indentation
+                Dim LineIndentation As Integer = Integer.Parse(CurrentToken.Value)
+
+                'Not in this scope
+                If LineIndentation < 1 Then
+                    Exit While
+                End If
+                Advance()
+
+                'Not the right indentation
+                If Not LineIndentation = 1 Then
+                    Throw New LocalizedException("Indentation too high", "This scope only requires 1 indentation (instead of " & LineIndentation.ToString() & ").", CurrentToken.Location)
+                End If
+
+                'Get statement
+                Dim Result As Node = Nothing
+
+                ' Try searching for all constructs
+                For Each ParsingStatement In GetClassContents
+
+                    ' Save state
+                    NotSureIfItIsWhatIWant()
+
+                    ' Try parsing
+                    Result = ParsingStatement()
+
+                    ' If it worked, stop
+                    If Result IsNot Nothing Then
+                        JustWhatIWanted()
+                        Exit For
+                    Else
+                        NotWhatIAmSearchingFor()
+                    End If
+
+                Next
+
+                ' Nothing found
+                If Result Is Nothing Then
+                    Throw New SyntaxErrorException("No class statement could be found here.", CurrentToken.Location)
+                End If
+
+                ' Return result
+                Content.Add(Result)
+
+            End While
+
+            ' Return result
+            Return New ClassConstructNode(LocationFrom(Start), Primitive, Name, GenericTypes, Content)
 
         End Function
 
