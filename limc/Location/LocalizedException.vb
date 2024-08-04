@@ -74,6 +74,9 @@ Public Class LocalizedException
             i += 1
         End While
 
+        'Length
+        Dim Length = Location.ToCharIndex - Location.FromCharIndex + 1
+
         'Write line
         Dim Line As String = reader.ReadLine()
         Dim RemoveTabulation As Integer = 0
@@ -89,7 +92,7 @@ Public Class LocalizedException
         Console.ForegroundColor = ConsoleColor.DarkGray
         Console.WriteLine($"{i.ToString("D4")} | {Line}")
         Console.ResetColor()
-        Console.WriteLine($"       {StrDup(From - RemoveTabulation, " ")}{StrDup(Location.ToCharIndex - From, "^")}")
+        Console.WriteLine($"       {StrDup(From - RemoveTabulation, " ")}{StrDup(Length, "^")}")
 
         'Close reader
         reader.Close()

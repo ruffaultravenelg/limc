@@ -22,4 +22,15 @@ Public Class GenericType
         Me.Type = Type
     End Sub
 
+    '==================================
+    '======== GET LIST OF TYPE ========
+    '==================================
+    Public Shared Function GetTypes(GenericTypes As IEnumerable(Of GenericType)) As List(Of Type)
+        Dim Result As New List(Of Type)
+        For Each GenericType As GenericType In GenericTypes
+            Result.Add(GenericType.Type)
+        Next
+        Return Result
+    End Function
+
 End Class

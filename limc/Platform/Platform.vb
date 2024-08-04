@@ -14,7 +14,7 @@ Module Platform
         MACOS
     End Enum
 
-    Function GetCurrentPlatform() As Platform
+    Private Function GetCurrentPlatform() As Platform
         If Runtime.InteropServices.RuntimeInformation.IsOSPlatform(Runtime.InteropServices.OSPlatform.Windows) Then
             If Runtime.InteropServices.RuntimeInformation.OSArchitecture = Runtime.InteropServices.Architecture.X64 OrElse Runtime.InteropServices.RuntimeInformation.OSArchitecture = Runtime.InteropServices.Architecture.X86 Then
                 Return Platform.WIN

@@ -1,5 +1,4 @@
 ﻿Imports System.IO
-
 Public Class LimSource
 
     '====================================
@@ -15,14 +14,28 @@ Public Class LimSource
     '===========================
     '======== FILE PATH ========
     '===========================
-    Public ReadOnly Filepath As String
+    Public ReadOnly Property Filepath As String
+
+    '===============================
+    '======== RELATIVE PATH ========
+    '===============================
+    Public ReadOnly Property RelativePath As String
+        Get
+            Return Path.GetRelativePath(".", Me.Filepath)
+        End Get
+    End Property
+
+    '=======================
+    '======== SCOPE ========
+    '=======================
+    Public ReadOnly Property Scope As Scope = New Scope()
 
     '=========================
     '======== CONTENT ========
     '=========================
-    Public ReadOnly Exceptions As New List(Of ExceptionConstructNode)
-    Public ReadOnly Functions As New List(Of FunctionConstructNode)
-    Public ReadOnly Classs As New List(Of ClassConstructNode)
+    Private ReadOnly Exceptions As New List(Of ExceptionConstructNode)
+    Private ReadOnly Functions As New List(Of FunctionConstructNode)
+    Private ReadOnly Classs As New List(Of ClassConstructNode)
 
     '=========================
     '======== IMPORTS ========
@@ -53,7 +66,7 @@ Public Class LimSource
         Dim Tokens As List(Of Token) = TokenParser.Parse(Me, Lines)
 
         'Parse nodes
-        NodeParser.Parse(Me, Tokens)
+        NodeParser.Parse(Me, Tokens, Exceptions, Functions, Classs)
 
         'Export all constructs if no one is exported
         Dim ExportedConstructFound As Boolean = False
@@ -148,5 +161,207 @@ Public Class LimSource
             Next
         End Get
     End Property
+
+    '==============================
+    '======== GET FUNCTION ========
+    '==============================
+
+    'Search function by Name, Generic Types and Argument types
+    Public ReadOnly Property [Function](Name As String, GenericTypes As IEnumerable(Of Type), ArgumentsTypes As IEnumerable(Of Type)) As CFunction
+        Get
+
+            ' Search compiled function in current file
+            For Each Fn As CFunction In CompiledFunctions
+                If Fn.LooksLike(Name, GenericTypes, ArgumentsTypes) Then
+                    Return Fn
+                End If
+            Next
+
+            ' Search in current file
+            For Each Fn As FunctionConstructNode In Me.Functions
+                If Fn.CouldBe(Name, GenericTypes, ArgumentsTypes) Then
+                    Return New CFunction(Fn, GenericTypes)
+                End If
+            Next
+
+            ' Cannot find function
+            Throw New CannotFindFunctionException(Name, Me)
+
+        End Get
+    End Property
+    Public ReadOnly Property FunctionExist(Name As String, GenericTypes As IEnumerable(Of Type), ArgumentsTypes As IEnumerable(Of Type)) As Boolean
+        Get
+            Try
+                Dim Temp As CFunction = [Function](Name, GenericTypes, ArgumentsTypes)
+                Return True
+            Catch ex As CannotFindFunctionException
+                Return False
+            End Try
+        End Get
+    End Property
+
+    'Search function by Name and Generic Types
+    Public ReadOnly Property [Function](Name As String, GenericTypes As IEnumerable(Of Type)) As CFunction
+        Get
+
+            ' Search compiled function in current file
+            For Each Fn As CFunction In CompiledFunctions
+                If Fn.LooksLike(Name, GenericTypes) Then
+                    Return Fn
+                End If
+            Next
+
+            ' Search in current file
+            For Each Fn As FunctionConstructNode In Me.Functions
+                If Fn.CouldBe(Name, GenericTypes) Then
+                    Return New CFunction(Fn, GenericTypes)
+                End If
+            Next
+
+            ' Cannot find function
+            Throw New CannotFindFunctionException(Name, Me)
+
+        End Get
+    End Property
+    Public ReadOnly Property FunctionExist(Name As String, GenericTypes As IEnumerable(Of Type)) As Boolean
+        Get
+            Try
+                Dim Temp As CFunction = [Function](Name, GenericTypes)
+                Return True
+            Catch ex As CannotFindFunctionException
+                Return False
+            End Try
+        End Get
+    End Property
+
+    'Search function by Name, Generic Types and Signature
+    Public ReadOnly Property [Function](Name As String, GenericTypes As IEnumerable(Of Type), Signature As FunctionSignatureType) As CFunction
+        Get
+
+            ' Search compiled function in current file
+            For Each Fn As CFunction In CompiledFunctions
+                If Fn.LooksLike(Name, GenericTypes, Signature.ArgumentsTypes) AndAlso Fn.ReturnType = Signature.ReturnType Then
+                    Return Fn
+                End If
+            Next
+
+            ' Search in current file
+            For Each Fn As FunctionConstructNode In Me.Functions
+                If Fn.CouldBe(Name, GenericTypes, Signature.ArgumentsTypes) Then
+                    Dim GeneretedFunction As New CFunction(Fn, GenericTypes)
+                    If GeneretedFunction.ReturnType = Signature.ReturnType Then
+                        Return GeneretedFunction
+                    End If
+                End If
+            Next
+
+            ' Cannot find function
+            Throw New CannotFindFunctionException(Name, Me)
+
+        End Get
+    End Property
+    Public ReadOnly Property FunctionExist(Name As String, GenericTypes As IEnumerable(Of Type), Signature As FunctionSignatureType) As Boolean
+        Get
+            Try
+                Dim Temp As CFunction = [Function](Name, GenericTypes, Signature)
+                Return True
+            Catch ex As CannotFindFunctionException
+                Return False
+            End Try
+        End Get
+    End Property
+
+
+    ' Already compiled functions
+    Private CompiledFunctions As New List(Of CFunction)
+
+    ' Notice a new compiled type
+    Public Sub NoticeNewCompiledFunction(Fun As CFunction)
+        CompiledFunctions.Add(Fun)
+    End Sub
+
+    ' Function not found exception
+    Public Class CannotFindFunctionException
+        Inherits CompilerException
+        Public Sub New(FunctionName As String, File As LimSource)
+            MyBase.New("Cannot find function", "Cannot find """ & FunctionName & """ function in """ & File.Filepath & """.")
+        End Sub
+    End Class
+
+    '==========================
+    '======== GET TYPE ========
+    '==========================
+    Private Function LocalType(Name As String, GenericTypes As IEnumerable(Of Type)) As Type
+
+        ' Search compiled types in cu   rrent file
+        For Each CT As Type In CompiledTypes
+            If CT.LooksLike(Name, GenericTypes) Then
+                Return CT
+            End If
+        Next
+
+        ' Search in current file
+        For Each CL As ClassConstructNode In Me.Classs
+            If CL.CouldBe(Name, GenericTypes) Then
+                If CL.Primitive Then
+                    Return New PrimitiveClassType(CL, GenericTypes)
+                Else
+                    Throw New NotImplementedException
+                    'Return New ClassType(Me)
+                End If
+            End If
+        Next
+
+        'Not found
+        Return Nothing
+
+    End Function
+    Public ReadOnly Property Type(Name As String, GenericTypes As IEnumerable(Of Type)) As Type
+        Get
+
+            ' Search locally
+            Dim Result As Type = LocalType(Name, GenericTypes)
+            If Result IsNot Nothing Then
+                Return Result
+            End If
+
+            ' Search in imported files
+            For Each ImportedFile As LimSource In Me.ImportedFiles
+                Result = ImportedFile.LocalType(Name, GenericTypes)
+                If Result IsNot Nothing Then
+                    Return Result
+                End If
+            Next
+
+            ' Cannot find function
+            Throw New CannotFindTypeException(Name, GenericTypes, Me)
+
+        End Get
+    End Property
+
+    ' Already compiled functions
+    Private CompiledTypes As New List(Of Type)
+
+    ' Notice a new compiled type
+    Public Sub NoticeNewCompiledType(Type As Type)
+        CompiledTypes.Add(Type)
+    End Sub
+
+    'Types
+    Public ReadOnly Iterator Property Types As IEnumerable(Of Type)
+        Get
+            For Each Type As Type In CompiledTypes
+                Yield Type
+            Next
+        End Get
+    End Property
+
+    ' Type not found exception
+    Public Class CannotFindTypeException
+        Inherits CompilerException
+        Public Sub New(TypeName As String, GenericArguments As IEnumerable(Of Type), File As LimSource)
+            MyBase.New("Cannot find type", "Cannot find """ & TypeName & If(GenericArguments.Count > 0, limc.Type.StringifyListOfType(GenericArguments), "") & """ type in """ & File.Filepath & """.")
+        End Sub
+    End Class
 
 End Class

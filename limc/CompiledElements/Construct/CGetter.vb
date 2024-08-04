@@ -1,5 +1,4 @@
 ﻿Public Class CGetter
-    Inherits Context
 
     '======================
     '======== NAME ========
@@ -17,9 +16,15 @@
     '==========================
     '======== ASSEMBLE ========
     '==========================
-    Protected Overrides Sub Assemble(Result As List(Of String))
+    Private Function Build() As List(Of String)
 
-    End Sub
+        'Create result
+        Dim Result As New List(Of String)
+
+        'Return result
+        Return Result
+
+    End Function
 
     '============================
     '======== CORRESPOND ========

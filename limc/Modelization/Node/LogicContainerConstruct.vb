@@ -1,6 +1,16 @@
 ﻿Public MustInherit Class LogicContainerConstruct
     Inherits ConstructNode
 
+    '============================
+    '======== HAS RETURN ========
+    '============================
+    Public ReadOnly Property HasReturn As Boolean
+
+    '===========================
+    '======== HAS RAISE ========
+    '===========================
+    Public ReadOnly Property HasRaise As Boolean
+
     '=======================
     '======== LOGIC ========
     '=======================
@@ -14,6 +24,12 @@
 
         'Set logic
         Me.Logic = Logic
+
+        'Check return
+        HasReturn = StatementNode.ListContains(Of ReturnStatementNode)(Logic)
+
+        'Check raise
+        HasReturn = StatementNode.ListContains(Of RaiseStatementNode)(Logic)
 
     End Sub
 

@@ -8,12 +8,12 @@ Public Class FunctionArgumentNode
     '======================
     '======== NAME ========
     '======================
-    Private ReadOnly Property Name As String
+    Public ReadOnly Property Name As String
 
     '======================
     '======== TYPE ========
     '======================
-    Private ReadOnly Property Type As TypeNode
+    Public ReadOnly Property Type As TypeNode
 
     '=============================
     '======== CONSTRUCTOR ========

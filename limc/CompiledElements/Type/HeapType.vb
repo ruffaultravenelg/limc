@@ -1,4 +1,4 @@
-﻿Public Class HeapType
+﻿Public MustInherit Class HeapType
     Inherits Type
 
     '==================================
@@ -24,12 +24,16 @@
         End Get
     End Property
 
+    '=========================
+    '======== DEFAULT ========
+    '=========================
+    Public Overrides ReadOnly Property DefaultValue As String = "NULL"
+
     '=============================
     '======== CONSTRUCTOR ========
     '=============================
-    Public Sub New()
-        MyBase.New()
-
+    Public Sub New(Owner As LimSource)
+        MyBase.New(Owner)
     End Sub
 
 End Class

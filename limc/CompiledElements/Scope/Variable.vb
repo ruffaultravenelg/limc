@@ -35,5 +35,17 @@ Public Class Variable
         Me.Type = Type
 
     End Sub
+    Public Sub New(Name As String, Type As Type, CompiledName As String)
+
+        'Set compiled name
+        Me.CompiledName = CompiledName
+
+        'Set name
+        Me.Name = Name
+
+        'Set type
+        Me.Type = Type
+
+    End Sub
 
 End Class

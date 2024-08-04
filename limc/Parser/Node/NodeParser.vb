@@ -3,9 +3,9 @@
     '
     ' Parse a list of token into differents nodes
     '
-    Public Sub Parse(File As LimSource, Tokens As List(Of Token))
+    Public Sub Parse(File As LimSource, Tokens As List(Of Token), Exceptions As List(Of ExceptionConstructNode), Functions As List(Of FunctionConstructNode), Classs As List(Of ClassConstructNode))
         If Tokens.Count > 1 Then
-            Dim Parser As New Parser(Tokens, File)
+            Dim Parser As New Parser(Tokens, File, Exceptions, Functions, Classs)
         End If
     End Sub
 
@@ -35,7 +35,11 @@
         Private ReadOnly GetStatements As IEnumerable(Of Func(Of Integer, StatementNode)) = { 'IMPORTANT: Add all StatementNode parsing functions here so that they are taken into account.
             AddressOf GetBreakStatement,
             AddressOf GetContinueStatement,
-            AddressOf GetDeclareVariableStatement
+            AddressOf GetDeclareVariableStatement,
+            AddressOf GetReturnStatement,
+            AddressOf GetRaiseStatement,
+            AddressOf GetCall,
+            AddressOf GetAsignVaraible
         }
 
         ' Class content
@@ -114,7 +118,7 @@
         '=============================
         '======== CONSTRUCTOR ========
         '=============================
-        Public Sub New(Tokens As List(Of Token), File As LimSource)
+        Public Sub New(Tokens As List(Of Token), File As LimSource, Exceptions As List(Of ExceptionConstructNode), Functions As List(Of FunctionConstructNode), Classs As List(Of ClassConstructNode))
 
             ' Get tokens
             Me.Tokens = Tokens
@@ -134,9 +138,11 @@
 
                 ' Sort
                 If TypeOf Construct Is ExceptionConstructNode Then
-                    File.Exceptions.Add(Construct)
+                    Exceptions.Add(Construct)
                 ElseIf TypeOf Construct Is FunctionConstructNode Then
-                    File.Functions.Add(Construct)
+                    Functions.Add(Construct)
+                ElseIf TypeOf Construct Is ClassConstructNode Then
+                    Classs.Add(Construct)
                 End If
 
             End While
@@ -158,6 +164,21 @@
                 Return New IntegerNode(Tok)
             End If
 
+            'Variable node
+            If CurrentToken.Type = TokenType.WORD Then
+                Advance()
+
+                'Function reference (passed generic types)
+                If CurrentToken.Type = TokenType.OPERATOR_LESSTHAN Then
+                    Dim PassedGenericTypes As List(Of TypeNode) = GetPassedGenericTypes()
+                    Return New FunctionReferenceNode(LocationFrom(Start), Tok.Value, PassedGenericTypes)
+                End If
+
+                'Just a variable name
+                Return New VariableNode(Tok)
+
+            End If
+
             'Parenthesis
             If CurrentToken.Type = TokenType.SYNTAX_LEFT_PARENTHESIS Then
                 Advance()
@@ -174,45 +195,206 @@
 
         End Function
 
+        '=========================
+        '======== GET NEW ========
+        '=========================
+        Private Function GetNew() As ExpressionNode
+
+            'New keyword
+            If CurrentToken.Type = TokenType.KEYWORD_NEW Then
+
+                'Save position
+                Dim Start As Location = CurrentToken.Location
+                Advance()
+
+                'Get targeted type
+                Dim TargetedType As TypeNode = GetTypeNode()
+
+                'Get arguments
+                Dim PassedArguments As List(Of ExpressionNode) = GetPassedArguments()
+
+                'Create & return node
+                Return New NewNode(LocationFrom(Start), TargetedType, PassedArguments)
+
+            End If
+
+            'Return factor
+            Return GetFactor()
+
+        End Function
+
+        '==========================
+        '======== GET CALL ========
+        '==========================
+        Private Function GetCall() As ExpressionNode
+
+            'Get left
+            Dim Left As ExpressionNode = GetNew()
+
+            'Check functioncall() | tab[idx] | parent.child
+            While True
+
+                'Function call
+                If CurrentToken.Type = TokenType.SYNTAX_LEFT_PARENTHESIS Then
+
+                    'Get call arguments
+                    Dim Arguments As List(Of ExpressionNode) = GetPassedArguments()
+
+                    'Create node
+                    Left = New FunctionCallNode(LocationFrom(Left.Location), Left, Arguments)
+
+                ElseIf CurrentToken.Type = TokenType.SYNTAX_LEFT_BRACKET Then
+
+                    'TODO
+
+                ElseIf CurrentToken.Type = TokenType.SYNTAX_DOT Then
+
+                    'TODO
+
+                Else
+
+                    'Something else
+                    Exit While
+
+                End If
+
+            End While
+
+            'Return
+            Return Left
+
+        End Function
+
+        '==========================
+        '======== GET MULT ========
+        '==========================
+        Private Shared ReadOnly MultOperators As IEnumerable(Of TokenType) = {TokenType.OPERATOR_DIVISION, TokenType.OPERATOR_MULTIPLICATION, TokenType.OPERATOR_MODULO}
+        Private Function GetMult() As ExpressionNode
+
+            'Get left
+            Dim Left As ExpressionNode = GetCall()
+
+            'Get operator & right
+            While MultOperators.Contains(CurrentToken.Type)
+
+                Dim Op As TokenType = CurrentToken.Type
+                Advance()
+                Dim Right As ExpressionNode = GetCall()
+
+                Left = New OperationNode(Left, Op, Right)
+
+            End While
+
+            'Return
+            Return Left
+
+        End Function
+
+        '==========================
+        '======== GET PLUS ========
+        '==========================
+        Private Shared ReadOnly PlusOperators As IEnumerable(Of TokenType) = {TokenType.OPERATOR_PLUS, TokenType.OPERATOR_MINUS}
+        Private Function GetPlus() As ExpressionNode
+
+            'Get left
+            Dim Left As ExpressionNode = GetMult()
+
+            'Get operator & right
+            While PlusOperators.Contains(CurrentToken.Type)
+
+                Dim Op As TokenType = CurrentToken.Type
+                Advance()
+                Dim Right As ExpressionNode = GetMult()
+
+                Left = New OperationNode(Left, Op, Right)
+
+            End While
+
+            'Return
+            Return Left
+
+        End Function
+
         '================================
         '======== GET EXPRESSION ========
         '================================
         Private Function GetExpression() As ExpressionNode
-            Return GetFactor()
+            Return GetPlus()
         End Function
 
-        '===============================
-        '======== GET TYPE NODE ========
-        '===============================
-        Private Function GetTypeNode() As TypeNode
+        '======================================
+        '======== GET PASSED ARGUMENTS ========
+        '======================================
+        Private Function GetPassedArguments() As List(Of ExpressionNode)
 
-            ' Save location
-            Dim Start As Location = CurrentToken.Location
+            'Create result
+            Dim Result As New List(Of ExpressionNode)
 
-            ' Type name
-            If Not CurrentToken.Type = TokenType.WORD Then
-                Throw New LocalizedException("A type was expected here.", "The name of a type was expected here.", CurrentToken.Location)
-            End If
-            Dim Name As String = CurrentToken.Value
-            Advance()
-
-            ' Passed Generic Types
-            Dim PassedGenericType As New List(Of TypeNode)
-
-            ' No passed generic types
-            If Not CurrentToken.Type = TokenType.OPERATOR_LESSTHAN Then
-                Return New TypeNode(LocationFrom(Start), Name, PassedGenericType)
+            'No list
+            If Not CurrentToken.Type = TokenType.SYNTAX_LEFT_PARENTHESIS Then
+                Return Result
             End If
             Advance()
-            If CurrentToken.Type = TokenType.OPERATOR_MORETHAN Then
-                Return New TypeNode(LocationFrom(Start), Name, PassedGenericType)
+
+            'Empty list
+            If CurrentToken.Type = TokenType.SYNTAX_RIGHT_PARENTHESIS Then
+                Advance()
+                Return Result
             End If
 
-            ' Get each type
+            'Get passed types
             While True
 
                 ' Get type
-                Dim Type As TypeNode = GetTypeNode()
+                Result.Add(GetExpression())
+
+                ' Comma -> continue
+                If CurrentToken.Type = TokenType.SYNTAX_COMMA Then
+                    Advance()
+                    Continue While
+                End If
+
+                ' '>' -> end
+                If CurrentToken.Type = TokenType.SYNTAX_RIGHT_PARENTHESIS Then
+                    Advance()
+                    Exit While
+                End If
+
+                ' Error
+                Throw New LocalizedException("Unexpected character", "Only the characters "","" and "")"" were expected here.", CurrentToken.Location)
+
+            End While
+
+            'Return result
+            Return Result
+
+        End Function
+
+        '==========================================
+        '======== GET PASSED GENERIC TYPES ========
+        '==========================================
+        Private Function GetPassedGenericTypes() As List(Of TypeNode)
+
+            'Create result
+            Dim Result As New List(Of TypeNode)
+
+            'No list
+            If Not CurrentToken.Type = TokenType.OPERATOR_LESSTHAN Then
+                Return Result
+            End If
+            Advance()
+
+            'Empty list
+            If CurrentToken.Type = TokenType.OPERATOR_MORETHAN Then
+                Advance()
+                Return Result
+            End If
+
+            'Get passed types
+            While True
+
+                ' Get type
+                Result.Add(GetTypeNode())
 
                 ' Comma -> continue
                 If CurrentToken.Type = TokenType.SYNTAX_COMMA Then
@@ -231,8 +413,56 @@
 
             End While
 
+            'Return result
+            Return Result
+
+        End Function
+
+        '===============================
+        '======== GET TYPE NODE ========
+        '===============================
+        Private Function GetTypeNode() As TypeNode
+
+            ' Save location
+            Dim Start As Location = CurrentToken.Location
+
+            ' Type name
+            If Not CurrentToken.Type = TokenType.WORD Then
+                Throw New LocalizedException("A type was expected here.", "The name of a type was expected here.", CurrentToken.Location)
+            End If
+            Dim Name As String = CurrentToken.Value
+            Advance()
+
+            ' Passed Generic Types
+            Dim PassedGenericType As List(Of TypeNode) = GetPassedGenericTypes()
+
+            ' Function return type
+            Dim FunctionReturnType As TypeNode = Nothing
+            If Name = "fun" AndAlso CurrentToken.Type = TokenType.OPERATOR_LESSTHAN Then
+
+                'Advance
+                Advance()
+
+                'There is a type
+                If Not CurrentToken.Type = TokenType.OPERATOR_MORETHAN Then
+
+                    'Get the type
+                    FunctionReturnType = GetTypeNode()
+
+                    'Throw error if not ending by '>'
+                    If Not CurrentToken.Type = TokenType.OPERATOR_MORETHAN Then
+                        Throw New SyntaxErrorException("a '>' was expected after the function return type.", CurrentToken.Location)
+                    End If
+
+                End If
+
+                'Pass '>'
+                Advance()
+
+            End If
+
             ' Return result
-            Return New TypeNode(LocationFrom(Start), Name, PassedGenericType)
+            Return New TypeNode(LocationFrom(Start), Name, PassedGenericType, FunctionReturnType)
 
         End Function
 
@@ -288,7 +518,7 @@
             While True
 
                 ' Get generic type
-                Dim GenericType As GenericTypeNode = GetGenericTypeNode()
+                Result.Add(GetGenericTypeNode())
 
                 ' Comma -> continue to the next
                 If CurrentToken.Type = TokenType.SYNTAX_COMMA Then
@@ -364,7 +594,7 @@
             While True
 
                 ' Get generic type
-                Dim GenericType As FunctionArgumentNode = GetArgumentNode()
+                Result.Add(GetArgumentNode())
 
                 ' Comma -> continue to the next
                 If CurrentToken.Type = TokenType.SYNTAX_COMMA Then
@@ -385,6 +615,96 @@
 
             'Return result
             Return Result
+
+        End Function
+
+        '============================
+        '======== GET RETURN ========
+        '============================
+        Private Function GetReturnStatement(StatementIndentationLevel As Integer) As ReturnStatementNode
+
+            'No break keyword
+            If Not CurrentToken.Type = TokenType.KEYWORD_RETURN Then
+                Return Nothing
+            End If
+            Advance()
+
+            'Get value
+            Dim Value As ExpressionNode = GetExpression()
+
+            ' Return
+            Return New ReturnStatementNode(CurrentToken.Location, Value)
+
+        End Function
+
+        '==============================
+        '======== GET CONTINUE ========
+        '==============================
+        Private Function GetRaiseStatement(StatementIndentationLevel As Integer) As RaiseStatementNode
+
+            'No break keyword
+            If Not CurrentToken.Type = TokenType.KEYWORD_RAISE Then
+                Return Nothing
+            End If
+            Advance()
+
+            'Get exception name
+            If Not CurrentToken.Type = TokenType.WORD Then
+                Throw New SyntaxErrorException("A exception name was excpected here.", CurrentToken.Location)
+            End If
+            Dim ExceptionName As String = CurrentToken.Value
+            Advance()
+
+            ' Return
+            Return New RaiseStatementNode(CurrentToken.Location, ExceptionName)
+
+        End Function
+
+        '====================================
+        '======== GET ASIGN VARIABLE ========
+        '====================================
+        Private Function GetAsignVaraible(StatementIndentationLevel As Integer) As VariableAssignationStatementNode
+
+            'Save location
+            Dim StartLocation As Location = CurrentToken.Location
+
+            'Get variable name
+            If Not CurrentToken.Type = TokenType.WORD Then
+                Return Nothing
+            End If
+            Dim VariableName As String = CurrentToken.Value
+            Advance()
+
+            'Get equal sign
+            If Not CurrentToken.Type = TokenType.OPERATOR_EQUAL Then
+                Return Nothing
+            End If
+            Advance()
+
+            'Get new value
+            Dim NewValue As ExpressionNode = GetExpression()
+
+            'Create node
+            Return New VariableAssignationStatementNode(LocationFrom(StartLocation), VariableName, NewValue)
+
+        End Function
+
+        '==========================
+        '======== GET CALL ========
+        '==========================
+        Private Function GetCall(StatementIndentationLevel As Integer) As CallStatementNode
+
+            'Try getting a expression
+            Try
+                Dim Expression As ExpressionNode = GetExpression()
+                If TypeOf Expression Is FunctionCallNode Then
+                    Return New CallStatementNode(Expression)
+                End If
+            Catch ex As CompilerException
+            End Try
+
+            'No function call
+            Return Nothing
 
         End Function
 
@@ -640,10 +960,15 @@
             Advance()
 
             ' Get name
-            If Not CurrentToken.Type = TokenType.WORD Then
-                Throw New SyntaxErrorException("The name of a method was expected", CurrentToken.Location)
+            Dim Name As String
+            If CurrentToken.Type = TokenType.KEYWORD_NEW Then
+                Name = "new"
+            Else
+                If Not CurrentToken.Type = TokenType.WORD Then
+                    Throw New SyntaxErrorException("The name of a method was expected", CurrentToken.Location)
+                End If
+                Name = CurrentToken.Value
             End If
-            Dim Name As String = CurrentToken.Value
             Advance()
 
             ' There is generic types
@@ -651,21 +976,43 @@
                 Throw New SyntaxErrorException("A class method cannot have generic types. Please use the generic types of the class itself or an independent function.", CurrentToken.Location)
             End If
 
+            ' Get generic types
+            If Name = "new" AndAlso CurrentToken.Type = TokenType.OPERATOR_LESSTHAN Then
+                Throw New SyntaxErrorException("A constructor cannot take generic types. Please use those of the class.", CurrentToken.Location)
+            ElseIf Name = "default" Then
+                If CurrentToken.Type = TokenType.OPERATOR_LESSTHAN Then
+                    Throw New SyntaxErrorException("The default method cannot take generic types.", CurrentToken.Location)
+                ElseIf CurrentToken.Type = TokenType.SYNTAX_LEFT_PARENTHESIS Then
+                    Throw New SyntaxErrorException("The default method cannot take arguments.", CurrentToken.Location)
+                End If
+            End If
+            Dim GenericTypes As List(Of GenericTypeNode) = GetGenericTypeNodes()
+
             ' Get arguments
             Dim Arguments As List(Of FunctionArgumentNode) = GetArgumentNodes()
 
             ' Return type
             Dim ReturnType As TypeNode = Nothing
             If CurrentToken.Type = TokenType.SYNTAX_COLON Then
+
+                'Get return type
                 Advance()
                 ReturnType = GetTypeNode()
+
+                'Constructor cannot have a return type
+                If Name = "new" Then
+                    Throw New SyntaxErrorException("A constructor cannot return a value", ReturnType.Location)
+                ElseIf Name = "default" Then
+                    Throw New SyntaxErrorException("The default method cannot return a value", ReturnType.Location)
+                End If
+
             End If
 
             ' Get logic
             Dim Logic As List(Of StatementNode) = GetLogic(2) '2 because it's a method.
 
             ' Return result
-            Return New MethodConstructNode(LocationFrom(Start), Logic, Name, Arguments, ReturnType)
+            Return New MethodConstructNode(LocationFrom(Start), Logic, Name, GenericTypes, Arguments, ReturnType)
 
         End Function
 
@@ -695,6 +1042,9 @@
                 Throw New SyntaxErrorException("The name of a class was expected here.", CurrentToken.Location)
             End If
             Dim Name As String = CurrentToken.Value
+            If Name.ToLower() = "fun" Then
+                Throw New SyntaxErrorException("The class name ""fun"" is reserved. Please use another name.", CurrentToken.Location)
+            End If
             Advance()
 
             ' Get generic types

@@ -10,7 +10,7 @@
         TokenType.SYNTAX_COMMA,
         TokenType.SYNTAX_LEFT_PARENTHESIS,
         TokenType.SYNTAX_LEFT_BRACKET,
-        TokenType.SYNTAX_POINT
+        TokenType.SYNTAX_DOT
     }
 
     '
@@ -110,7 +110,7 @@
             End If
 
             ' Handle words and keywords
-            If Char.IsLetter(CurrentChar) Then
+            If Char.IsLetter(CurrentChar) OrElse CurrentChar = "_"c Then
                 Tokens.Add(ParseWord())
                 Continue While
             End If
@@ -168,7 +168,7 @@
                 Case "]"c
                     Tokens.Add(CreateToken(TokenType.SYNTAX_RIGHT_BRACKET))
                 Case "."c
-                    Tokens.Add(CreateToken(TokenType.SYNTAX_POINT))
+                    Tokens.Add(CreateToken(TokenType.SYNTAX_DOT))
                 Case ","c
                     Tokens.Add(CreateToken(TokenType.SYNTAX_COMMA))
                 Case ":"c
