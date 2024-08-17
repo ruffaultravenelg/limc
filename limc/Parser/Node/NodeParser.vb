@@ -190,6 +190,12 @@
                 Return Expression
             End If
 
+            'True
+            If CurrentToken.Type = TokenType.BOOL Then
+                Advance()
+                Return New BooleanNode(Tok)
+            End If
+
             'No factor found
             Throw New SyntaxErrorException("An expression was expected here.", CurrentToken.Location)
 

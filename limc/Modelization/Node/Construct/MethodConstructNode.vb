@@ -19,7 +19,7 @@
     '=============================
     '======== RETURN TYPE ========
     '=============================
-    Private ReadOnly ReturnType As TypeNode
+    Public ReadOnly ReturnType As TypeNode
 
     '=============================
     '======== CONSTRUCTOR ========

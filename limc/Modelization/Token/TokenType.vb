@@ -4,6 +4,7 @@
     INT
     FLOAT
     STR
+    BOOL
 
     OPERATOR_PLUS
     OPERATOR_MINUS

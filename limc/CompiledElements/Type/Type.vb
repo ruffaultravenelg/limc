@@ -8,6 +8,7 @@ Public MustInherit Class Type
     '======== COMMON TYPES ========
     '==============================
     Public Shared int As PrimitiveClassType
+    Public Shared bool As PrimitiveClassType
 
     '============================
     '======== TYPE SCOPE ========
@@ -185,37 +186,48 @@ Public MustInherit Class Type
     End Function
 
     '========================
-    '======== GETTER ========
+    '======== METHOD ========
     '========================
-    Public ReadOnly Property Getter(Name As String) As CGetter
+    Public ReadOnly Property Method(Name As String, GenericTypes As IEnumerable(Of Type), ArgumentTypes As IEnumerable(Of Type)) As CMethod
         Get
 
-            'Search if there is a compiled getter that correspond
-            For Each CompiledGetter As CGetter In CompiledGetters
-                If CompiledGetter.Correspond(Name) Then
-                    Return CompiledGetter
+            'Search if there is a compiled method that correspond
+            For Each CompiledMethod As CMethod In CompiledMethods
+                If CompiledMethod.LooksLike(Name, GenericTypes, ArgumentTypes) Then
+                    Return CompiledMethod
                 End If
             Next
 
-            'Search if there is a non-compiled getter that correspond
-            Return SearchGetter(Name)
+            'Search if there is a non-compiled method that correspond
+            Dim NonCompiledMethod As CMethod = SearchMethod(Name, GenericTypes, ArgumentTypes)
+            If NonCompiledMethod IsNot Nothing Then
+                Return NonCompiledMethod
+            End If
+
+            'Not found
+            Throw New MethodNotFoundException(Name)
 
         End Get
     End Property
 
-    'List of all already compiled getters
-    Private CompiledGetters As New List(Of CGetter)
+    'List of all already compiled methods
+    Private CompiledMethods As New List(Of CMethod)
 
-    'Allow for sub-classes to indicate non-compiled Getter
-    Protected Overridable Function SearchGetter(Name As String) As CGetter
-        Throw New GetterNotFoundException(Name)
+    'Notify the type that a new method has be compiled
+    Public Sub NotifyNewCompiledMethod(Method As CMethod)
+        Me.CompiledMethods.Add(Method)
+    End Sub
+
+    'Allow for sub-classes to indicate non-compiled methods
+    Protected Overridable Function SearchMethod(Name As String, GenericTypes As IEnumerable(Of Type), ArgumentTypes As IEnumerable(Of Type)) As CMethod
+        Return Nothing
     End Function
 
     'When a getter is not found
-    Public Class GetterNotFoundException
+    Public Class MethodNotFoundException
         Inherits CompilerException
         Public Sub New(Name As String)
-            MyBase.New("Getter not found", $"Getter ""{Name}"" not found")
+            MyBase.New("Method not found", $"Method ""{Name}"" not found.")
         End Sub
     End Class
 

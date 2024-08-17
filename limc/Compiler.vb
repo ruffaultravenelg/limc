@@ -25,6 +25,7 @@ Public Module Compiler
 
         'Init main types
         Type.int = LimSource.STD.Type("int", {})
+        Type.bool = LimSource.STD.Type("bool", {})
 
         'Parse main file
         _MainFile = New LimSource(Program.InputFile)

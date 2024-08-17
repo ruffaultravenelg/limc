@@ -1,62 +1,39 @@
-﻿Imports System.Diagnostics.CodeAnalysis
+﻿Imports System.Runtime.InteropServices
 
-Public Class CFunction
+Public Class CMethod
     Implements BuildableFunction
-    Implements Procedure.CompiledProcedure
 
     '================================
     '======== FUNCTION SCOPE ========
     '================================
-    Private Node As FunctionConstructNode
-    Private ReadOnly Property Name As String Implements CompiledProcedure.Name
-        Get
-            Return Node.Name
-        End Get
-    End Property
+    Private Node As MethodConstructNode
 
-    '================================
-    '======== FUNCTION SCOPE ========
-    '================================
+    '==============================
+    '======== METHOD SCOPE ========
+    '==============================
     Private Scope As Scope 'Only for arguments, use deeper scope for content
-    Private ReadOnly Property GenericTypes As IEnumerable(Of Type) Implements CompiledProcedure.GenericTypes
-        Get
-            Dim Result As New List(Of Type)
-            For Each GT As GenericType In Scope.GenericTypes
-                Result.Add(GT.Type)
-            Next
-            Return Result
-        End Get
-    End Property
 
-    '===========================
-    '======== ARGUMENTS ========
-    '===========================
-    Private ReadOnly Property ArgumentsTypes As IEnumerable(Of Type) Implements CompiledProcedure.Arguments
-        Get
-            Dim Result As New List(Of Type)
-            For Each Var As Variable In Scope.Variables
-                Result.Add(Var.Type)
-            Next
-            Return Result
-        End Get
-    End Property
-
-    '================================
-    '======== COMPILED LOGIC ========
-    '================================
+    '===============================
+    '======== COMPIED LOGIC ========
+    '===============================
     Private CompiledLogic As IEnumerable(Of String)
 
     '===============================
     '======== COMPILED NAME ========
     '===============================
     Public ReadOnly Property CompiledName As String
-    Private Shared FunctionCount As Integer = 0
+    Private Shared MethodCount As Integer = 0
+
+    '==============================
+    '======== PARENT CLASS ========
+    '==============================
+    Private ParentClass As ClassType
 
     '=============================
     '======== RETURN TYPE ========
     '=============================
     Private _ReturnType As Type = Nothing
-    Public ReadOnly Property ReturnType As Type Implements CompiledProcedure.ReturnType
+    Public ReadOnly Property ReturnType As Type
         Get
 
             'There is a return type
@@ -117,10 +94,10 @@ Public Class CFunction
     '=============================
     '======== CONSTRUCTOR ========
     '=============================
-    Public Sub New(Node As FunctionConstructNode, GenericTypes As IEnumerable(Of Type))
+    Public Sub New(ParentClass As ClassType, Node As MethodConstructNode, GenericTypes As IEnumerable(Of Type))
 
         'Notice parent file that this function is compiled
-        Node.Location.File.NoticeNewCompiledFunction(Me)
+        DirectCast(ParentClass, Type).NotifyNewCompiledMethod(Me)
 
         'Notify ourself
         FileBuilder.NotifyNewFunction(Me)
@@ -128,15 +105,18 @@ Public Class CFunction
         'Set node
         Me.Node = Node
 
+        'Set parent class
+        Me.ParentClass = ParentClass
+
         'Create name
-        CFunction.FunctionCount += 1
-        CompiledName = $"Function{CFunction.FunctionCount.ToString()}"
+        MethodCount += 1
+        CompiledName = $"Method{MethodCount.ToString()}"
 
         'Create scope
-        Me.Scope = New Scope(Me.Node.Location.File.Scope, AddressOf SetReturnType)
+        Me.Scope = New Scope(ParentClass, AddressOf SetReturnType)
 
         'Add generic type
-        Node.AddGenericTypeToScope(Scope, GenericTypes)
+        Node.GenerateGenericTypes(Scope, GenericTypes)
 
         'Get arguments varaibles (here for looksLike())
         Node.GenerateArgumentsVariables(Scope)
@@ -146,11 +126,19 @@ Public Class CFunction
             _ReturnType = Node.ReturnType.AssociatedType(Scope)
         End If
 
-        'Function content
+        'Create content scope
         Dim ContentScope As New Scope(Scope)
+
+        'Check null self
+        ContentScope.WriteLine("if (self == NULL) panic(""The \""" & Node.Name & "\"" method has been called on a null object of type \""" & ParentClass.ToString() & "\""."");")
+        ContentScope.WriteLine("")
+
+        'Compile method's statements
         For Each Statement As StatementNode In Me.Node.Logic
             Statement.Compile(ContentScope)
         Next
+
+        'Set logic
         CompiledLogic = ContentScope.Result
 
     End Sub
@@ -165,17 +153,12 @@ Public Class CFunction
         For Each Variable As Variable In Scope.Variables
             Arguments &= $", {Variable.Type.CompiledName} {Variable.CompiledName}"
         Next
-        If Arguments.StartsWith(", ") Then
-            Arguments = Arguments.Substring(2)
-        Else
-            Arguments = "void"
-        End If
 
         'Assemble and return result
         If ReturnType Is Nothing Then
-            Return $"void {CompiledName}({Arguments})"
+            Return $"void {CompiledName}({DirectCast(ParentClass, Type).CompiledName} self{Arguments})"
         Else
-            Return $"{ReturnType.CompiledName} {CompiledName}({Arguments})"
+            Return $"{ReturnType.CompiledName} {CompiledName}({DirectCast(ParentClass, Type).CompiledName} self{Arguments})"
         End If
 
     End Function
@@ -185,6 +168,68 @@ Public Class CFunction
     '=============================
     Private Function BuildLogic() As IEnumerable(Of String) Implements BuildableFunction.BuildLogic
         Return CompiledLogic
+    End Function
+
+    '============================
+    '======== LOOKS LIKE ========
+    '============================
+    Public Function LooksLike(Name As String, PassedGenericTypes As IEnumerable(Of Type), ArgumentsTypes As IEnumerable(Of Type)) As Boolean
+
+        'Name
+        If Not Me.Node.Name = Name Then
+            Return False
+        End If
+
+        'Passed generic types count
+        If Not Scope.GenericTypes.Count = PassedGenericTypes.Count Then
+            Return False
+        End If
+
+        'Passed generic types
+        For i As Integer = 0 To PassedGenericTypes.Count - 1
+            If Not Scope.GenericTypes(i).Type = PassedGenericTypes Then
+                Return False
+            End If
+        Next
+
+        'Passed arguments types count
+        If Not Scope.Variables.Count = ArgumentsTypes.Count Then
+            Return False
+        End If
+
+        'Passed arguments types
+        For i As Integer = 0 To ArgumentsTypes.Count - 1
+            If Not Scope.Variables(i).Type = ArgumentsTypes(i) Then 'TODO: Check type compatibility instead of equality
+                Return False
+            End If
+        Next
+
+        'Everything looks ok
+        Return True
+
+    End Function
+    Public Function LooksLike(Name As String, PassedGenericTypes As IEnumerable(Of Type)) As Boolean
+
+        'Name
+        If Not Me.Node.Name = Name Then
+            Return False
+        End If
+
+        'Passed generic types count
+        If Not Scope.GenericTypes.Count = PassedGenericTypes.Count Then
+            Return False
+        End If
+
+        'Passed generic types
+        For i As Integer = 0 To PassedGenericTypes.Count - 1
+            If Not Scope.GenericTypes(i).Type = PassedGenericTypes(i) Then
+                Return False
+            End If
+        Next
+
+        'Everything looks ok
+        Return True
+
     End Function
 
 End Class

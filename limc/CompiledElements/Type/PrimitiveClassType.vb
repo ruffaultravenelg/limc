@@ -151,4 +151,19 @@ Public Class PrimitiveClassType
     '=========================
     Public Overrides ReadOnly Property DefaultValue As String = $"{Name}__default()"
 
+    '=========================
+    '======== DEFAULT ========
+    '=========================
+    Protected Overrides Function SearchMethod(Name As String, GenericTypes As IEnumerable(Of Type), ArgumentTypes As IEnumerable(Of Type)) As CMethod
+
+        For Each Method As MethodConstructNode In FromClass.Methods
+            If Method.CouldBe(Name, GenericTypes, ArgumentTypes) Then
+                Return New CMethod(Me, Method, GenericTypes)
+            End If
+        Next
+
+        Return Nothing
+
+    End Function
+
 End Class

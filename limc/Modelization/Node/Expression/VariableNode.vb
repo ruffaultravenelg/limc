@@ -1,8 +1,4 @@
-﻿Imports System.Formats
-Imports limc.LimSource
-Imports MessagePack.Formatters
-
-Public Class VariableNode
+﻿Public Class VariableNode
     Inherits ExpressionNode
 
     '===============================
@@ -47,8 +43,10 @@ Public Class VariableNode
         'Search function just by name
         Try
             Return Me.Location.File.Function(VariableName, {}).SignatureType
-        Catch ex As CannotFindFunctionException
+        Catch ex As UnableToFindProcedure
             Throw New LocalizedException("The """ & VariableName & """ element cannot be found in this scope.", "No variable or function is named """ & VariableName & """. Check that the element is accessible.", Me.Location)
+        Catch ex As UnableToChooseProcedure
+            Throw New LocalizedException("There are several """ & VariableName & """ procedures.", "The name is ambiguous because it can refer to multiple functions. Specify with an explicit type.", Me.Location)
         End Try
 
     End Function
@@ -74,7 +72,7 @@ Public Class VariableNode
         End If
 
         'Search function
-        If TypeOf Request Is FunctionSignatureType AndAlso Me.Location.File.FunctionExist(VariableName, {}, DirectCast(Request, FunctionSignatureType)) Then
+        If TypeOf Request Is FunctionSignatureType AndAlso Me.Location.File.HasFunction(VariableName, {}, DirectCast(Request, FunctionSignatureType)) Then
             Return True
         End If
 
@@ -115,7 +113,7 @@ Public Class VariableNode
             'Return variable
             Return TargetedFunction.SignatureType.NewFuncCompiledName & "(" & TargetedFunction.CompiledName & ")"
 
-        Catch ex As CannotFindFunctionException
+        Catch ex As SearchProcedureException
             Throw New LocalizedException("The """ & VariableName & """ element cannot be found in this scope.", "No variable or function is named """ & VariableName & """. Check that the element is accessible.", Me.Location)
         End Try
 
@@ -146,7 +144,7 @@ Public Class VariableNode
             Try
                 Dim Result As CFunction = Me.Location.File.Function(VariableName, {}, DirectCast(RequestedType, FunctionSignatureType))
                 Return DirectCast(RequestedType, FunctionSignatureType).NewFuncCompiledName & "(" & Result.CompiledName & ")"
-            Catch ex As CannotFindFunctionException
+            Catch ex As SearchProcedureException
             End Try
         End If
 

@@ -220,7 +220,9 @@
 
         ' Check if the word is a keyword or operator
         Dim tokenType As TokenType
-        If [Enum].TryParse(TOKENTYPE_KEYWORD_PREFIX & word.ToUpper(), tokenType) Then
+        If word.ToLower() = "true" OrElse word.ToLower() = "false" Then
+            Return CreateToken(TokenType.BOOL, word.ToLower())
+        ElseIf [Enum].TryParse(TOKENTYPE_KEYWORD_PREFIX & word.ToUpper(), tokenType) Then
             Return CreateToken(tokenType)
         ElseIf [Enum].TryParse(TOKENTYPE_OPERATOR_PREFIX & word.ToUpper(), tokenType) Then
             Return CreateToken(tokenType)

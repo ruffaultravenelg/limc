@@ -54,7 +54,7 @@ Public Class FunctionReferenceNode
         'Search function
         Try
             Return Me.Location.File.Function(FunctionName, GenericTypes).SignatureType
-        Catch ex As CannotFindFunctionException
+        Catch ex As SearchProcedureException
             Throw New LocalizedException($"The ""{FunctionName}{Type.StringifyListOfType(GenericTypes)}"" function/method cannot be found in this scope.", $"No function or method named ""{FunctionName}"" exist or have {GenericTypes.Count} generic types.", Me.Location)
         End Try
 
@@ -66,7 +66,7 @@ Public Class FunctionReferenceNode
         Dim GenericTypes As List(Of Type) = CompilePassedGenericTypes(Scope)
 
         'Search function
-        If TypeOf Request Is FunctionSignatureType AndAlso Me.Location.File.FunctionExist(FunctionName, GenericTypes, DirectCast(Request, FunctionSignatureType)) Then
+        If TypeOf Request Is FunctionSignatureType AndAlso Me.Location.File.HasFunction(FunctionName, GenericTypes, DirectCast(Request, FunctionSignatureType)) Then
             Return True
         End If
 
@@ -92,7 +92,7 @@ Public Class FunctionReferenceNode
             'Return variable
             Return TargetedFunction.SignatureType.NewFuncCompiledName & "(" & TargetedFunction.CompiledName & ")"
 
-        Catch ex As CannotFindFunctionException
+        Catch ex As SearchProcedureException
             Throw New LocalizedException($"The ""{FunctionName}{Type.StringifyListOfType(GenericTypes)}"" function/method cannot be found in this scope.", $"No function or method named ""{FunctionName}"" exist or have {GenericTypes.Count} generic types.", Me.Location)
         End Try
 
@@ -108,7 +108,7 @@ Public Class FunctionReferenceNode
             Try
                 Dim Result As CFunction = Me.Location.File.Function(FunctionName, GenericTypes, DirectCast(RequestedType, FunctionSignatureType))
                 Return DirectCast(RequestedType, FunctionSignatureType).NewFuncCompiledName & "(" & Result.CompiledName & ")"
-            Catch ex As CannotFindFunctionException
+            Catch ex As SearchProcedureException
             End Try
         End If
 

@@ -165,112 +165,94 @@ Public Class LimSource
     '==============================
     '======== GET FUNCTION ========
     '==============================
-
-    'Search function by Name, Generic Types and Argument types
-    Public ReadOnly Property [Function](Name As String, GenericTypes As IEnumerable(Of Type), ArgumentsTypes As IEnumerable(Of Type)) As CFunction
-        Get
-
-            ' Search compiled function in current file
-            For Each Fn As CFunction In CompiledFunctions
-                If Fn.LooksLike(Name, GenericTypes, ArgumentsTypes) Then
-                    Return Fn
-                End If
-            Next
-
-            ' Search in current file
-            For Each Fn As FunctionConstructNode In Me.Functions
-                If Fn.CouldBe(Name, GenericTypes, ArgumentsTypes) Then
-                    Return New CFunction(Fn, GenericTypes)
-                End If
-            Next
-
-            ' Cannot find function
-            Throw New CannotFindFunctionException(Name, Me)
-
-        End Get
-    End Property
-    Public ReadOnly Property FunctionExist(Name As String, GenericTypes As IEnumerable(Of Type), ArgumentsTypes As IEnumerable(Of Type)) As Boolean
-        Get
-            Try
-                Dim Temp As CFunction = [Function](Name, GenericTypes, ArgumentsTypes)
-                Return True
-            Catch ex As CannotFindFunctionException
-                Return False
-            End Try
-        End Get
-    End Property
-
-    'Search function by Name and Generic Types
     Public ReadOnly Property [Function](Name As String, GenericTypes As IEnumerable(Of Type)) As CFunction
         Get
 
-            ' Search compiled function in current file
-            For Each Fn As CFunction In CompiledFunctions
-                If Fn.LooksLike(Name, GenericTypes) Then
-                    Return Fn
-                End If
-            Next
-
-            ' Search in current file
-            For Each Fn As FunctionConstructNode In Me.Functions
-                If Fn.CouldBe(Name, GenericTypes) Then
-                    Return New CFunction(Fn, GenericTypes)
-                End If
-            Next
-
-            ' Cannot find function
-            Throw New CannotFindFunctionException(Name, Me)
-
-        End Get
-    End Property
-    Public ReadOnly Property FunctionExist(Name As String, GenericTypes As IEnumerable(Of Type)) As Boolean
-        Get
+            'Search best function in current file
             Try
-                Dim Temp As CFunction = [Function](Name, GenericTypes)
-                Return True
-            Catch ex As CannotFindFunctionException
-                Return False
+                Return Procedure.SearchBestProcedure(Of CFunction)(Me.CompiledFunctions, Me.Functions, Name, GenericTypes, Function(X, Y) New CFunction(X, Y))
+            Catch ex As UnableToFindProcedure
             End Try
+
+            'Search best function in all files
+            For Each ImportedFile As LimSource In Me.ImportedFiles
+                Try
+                    Return Procedure.SearchBestProcedure(Of CFunction)(ImportedFile.CompiledFunctions, ImportedFile.Functions, Name, GenericTypes, Function(X, Y) New CFunction(X, Y))
+                Catch ex As UnableToFindProcedure
+                End Try
+            Next
+
+            'Error
+            Throw New UnableToFindProcedure()
+
         End Get
     End Property
+    Public ReadOnly Property [Function](Name As String, GenericTypes As IEnumerable(Of Type), ArgumentsTypes As IEnumerable(Of Type)) As CFunction
+        Get
 
-    'Search function by Name, Generic Types and Signature
+            'Search best function in current file
+            Try
+                Return Procedure.SearchBestProcedure(Of CFunction)(Me.CompiledFunctions, Me.Functions, Name, GenericTypes, ArgumentsTypes, Function(X, Y) New CFunction(X, Y))
+            Catch ex As UnableToFindProcedure
+            End Try
+
+            'Search best function in all files
+            For Each ImportedFile As LimSource In Me.ImportedFiles
+                Try
+                    Return Procedure.SearchBestProcedure(Of CFunction)(ImportedFile.CompiledFunctions, ImportedFile.Functions, Name, GenericTypes, ArgumentsTypes, Function(X, Y) New CFunction(X, Y))
+                Catch ex As UnableToFindProcedure
+                End Try
+            Next
+
+            'Error
+            Throw New UnableToFindProcedure()
+
+        End Get
+    End Property
     Public ReadOnly Property [Function](Name As String, GenericTypes As IEnumerable(Of Type), Signature As FunctionSignatureType) As CFunction
         Get
 
-            ' Search compiled function in current file
-            For Each Fn As CFunction In CompiledFunctions
-                If Fn.LooksLike(Name, GenericTypes, Signature.ArgumentsTypes) AndAlso Fn.ReturnType = Signature.ReturnType Then
-                    Return Fn
-                End If
-            Next
-
-            ' Search in current file
-            For Each Fn As FunctionConstructNode In Me.Functions
-                If Fn.CouldBe(Name, GenericTypes, Signature.ArgumentsTypes) Then
-                    Dim GeneretedFunction As New CFunction(Fn, GenericTypes)
-                    If GeneretedFunction.ReturnType = Signature.ReturnType Then
-                        Return GeneretedFunction
-                    End If
-                End If
-            Next
-
-            ' Cannot find function
-            Throw New CannotFindFunctionException(Name, Me)
-
-        End Get
-    End Property
-    Public ReadOnly Property FunctionExist(Name As String, GenericTypes As IEnumerable(Of Type), Signature As FunctionSignatureType) As Boolean
-        Get
+            'Search best function in current file
             Try
-                Dim Temp As CFunction = [Function](Name, GenericTypes, Signature)
-                Return True
-            Catch ex As CannotFindFunctionException
-                Return False
+                Return Procedure.SearchBestProcedure(Of CFunction)(Me.CompiledFunctions, Me.Functions, Name, GenericTypes, Signature, Function(X, Y) New CFunction(X, Y))
+            Catch ex As UnableToFindProcedure
             End Try
+
+            'Search best function in all files
+            For Each ImportedFile As LimSource In Me.ImportedFiles
+                Try
+                    Return Procedure.SearchBestProcedure(Of CFunction)(ImportedFile.CompiledFunctions, ImportedFile.Functions, Name, GenericTypes, Signature, Function(X, Y) New CFunction(X, Y))
+                Catch ex As UnableToFindProcedure
+                End Try
+            Next
+
+            'Error
+            Throw New UnableToFindProcedure()
+
         End Get
     End Property
+    Public Function HasFunction(Name As String, GenericTypes As IEnumerable(Of Type), Signature As FunctionSignatureType) As Boolean
 
+        'Search best function in current file
+        Try
+            Procedure.SearchBestProcedure(Of CFunction)(Me.CompiledFunctions, Me.Functions, Name, GenericTypes, Signature, Function(X, Y) New CFunction(X, Y))
+            Return True
+        Catch ex As UnableToFindProcedure
+        End Try
+
+        'Search best function in all files
+        For Each ImportedFile As LimSource In Me.ImportedFiles
+            Try
+                Procedure.SearchBestProcedure(Of CFunction)(ImportedFile.CompiledFunctions, ImportedFile.Functions, Name, GenericTypes, Signature, Function(X, Y) New CFunction(X, Y))
+                Return True
+            Catch ex As UnableToFindProcedure
+            End Try
+        Next
+
+        'Error
+        Return False
+
+    End Function
 
     ' Already compiled functions
     Private CompiledFunctions As New List(Of CFunction)
@@ -279,14 +261,6 @@ Public Class LimSource
     Public Sub NoticeNewCompiledFunction(Fun As CFunction)
         CompiledFunctions.Add(Fun)
     End Sub
-
-    ' Function not found exception
-    Public Class CannotFindFunctionException
-        Inherits CompilerException
-        Public Sub New(FunctionName As String, File As LimSource)
-            MyBase.New("Cannot find function", "Cannot find """ & FunctionName & """ function in """ & File.Filepath & """.")
-        End Sub
-    End Class
 
     '==========================
     '======== GET TYPE ========
