@@ -1,7 +1,6 @@
-﻿Imports limc.LimSource
-
-Public Class FunctionReferenceNode
+﻿Public Class FunctionReferenceNode
     Inherits ExpressionNode
+    Implements ProcedureSelectorNode
 
     '===============================
     '======== FUNCTION NAME ========
@@ -114,6 +113,88 @@ Public Class FunctionReferenceNode
 
         'Cannot
         Return Nothing
+
+    End Function
+
+    '=============================
+    '======== DIRECT CALL ========
+    '=============================
+
+    ' Allows you to search for a procedure without using the given arguments, returns Nothing if no unique function is found.
+    Private Function GetProcedureByYourself(Scope As Scope) As CompiledProcedure Implements ProcedureSelectorNode.GetProcedureByYourself
+
+        'Compile types
+        Dim PassedGenericTypes As New List(Of Type)
+        For Each PassedGenericType As TypeNode In PassedGenericArguments
+            PassedGenericTypes.Add(PassedGenericType.AssociatedType(Scope))
+        Next
+
+        'Search function
+        Try
+            Return Me.Location.File.Function(FunctionName, PassedGenericTypes)
+        Catch ex As SearchProcedureException
+            Return Nothing
+        End Try
+
+    End Function
+
+    ' Searches for a procedure using the given arguments, returns Nothing if no function is found.
+    Private Function GetProcedureWithHelpOfArgs(Scope As Scope, ProvidedArguments As IEnumerable(Of ExpressionNode)) As CompiledProcedure Implements ProcedureSelectorNode.GetProcedureWithHelpOfArgs
+
+        'Compile types
+        Dim PassedGenericTypes As New List(Of Type)
+        For Each PassedGenericType As TypeNode In PassedGenericArguments
+            PassedGenericTypes.Add(PassedGenericType.AssociatedType(Scope))
+        Next
+
+        'Search function
+        Try
+            Return Me.Location.File.Function(Scope, FunctionName, PassedGenericTypes, ProvidedArguments)
+        Catch ex As SearchProcedureException
+            Return Nothing
+        End Try
+
+    End Function
+
+    ' Compiles a call to the targeted procedure
+    Function CompileCallTo(Procedure As CompiledProcedure, Scope As Scope, ProvidedArguments As IEnumerable(Of ExpressionNode)) As String Implements ProcedureSelectorNode.CompileCallTo
+
+        'Argument count
+        If Procedure.Arguments.Count > ProvidedArguments.Count Then
+            Throw New LocalizedException("Not enough arguments", Procedure.Arguments.Count & " arguments were expected instead of " & ProvidedArguments.Count & ".", Me.Location)
+        ElseIf Procedure.Arguments.Count < ProvidedArguments.Count Then
+            Throw New LocalizedException("Too many arguments", Procedure.Arguments.Count & " arguments were expected instead of " & ProvidedArguments.Count & ".", Me.Location)
+        End If
+
+        'Compile args
+        Dim Arguments As String = ""
+        For i As Integer = 0 To Procedure.Arguments.Count - 1
+
+            Dim WantedType As Type = Procedure.Arguments(i)
+            Dim PassedArgument As ExpressionNode = ProvidedArguments(i)
+
+            If Not PassedArgument.CanReturn(WantedType, Scope) Then
+                Throw New LocalizedException("The expected type was """ & WantedType.ToString() & """", "This argument cannot return the """ & WantedType.ToString() & """ type desired by the procedure.", ProvidedArguments(i).Location)
+            End If
+
+            Arguments &= ", " & PassedArgument.Compile(Scope, WantedType)
+
+        Next
+        If Arguments.StartsWith(", ") Then
+            Arguments = Arguments.Substring(2)
+        End If
+
+        'If Fn is a Method then it's a method call in a class
+        If TypeOf Procedure Is CMethod Then
+            If Arguments = "" Then
+                Arguments = "self"
+            Else
+                Arguments = "self, "
+            End If
+        End If
+
+        'Compile call
+        Return Procedure.CompiledName & "(" & Arguments & ")"
 
     End Function
 

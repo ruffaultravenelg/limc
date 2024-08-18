@@ -31,7 +31,7 @@ Public Module Compiler
         _MainFile = New LimSource(Program.InputFile)
 
         'Start compiling from main()
-        Dim MainFunction As CFunction = MainFile.Function("main", {}, {})
+        Dim MainFunction As CFunction = MainFile.Function(MainFile.Scope, "main", {}, {})
 
         'Create panic function
         CSourceFunction.GenerateSourceFunction(PanicFunctionPrototype, PanicFunctionContent)

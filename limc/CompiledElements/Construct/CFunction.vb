@@ -49,7 +49,7 @@ Public Class CFunction
     '===============================
     '======== COMPILED NAME ========
     '===============================
-    Public ReadOnly Property CompiledName As String
+    Public ReadOnly Property CompiledName As String Implements CompiledProcedure.CompiledName
     Private Shared FunctionCount As Integer = 0
 
     '=============================

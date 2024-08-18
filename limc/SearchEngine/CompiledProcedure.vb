@@ -2,12 +2,13 @@
 
     'Procedure interfaces
     Public Interface Procedure
+        ReadOnly Property Name As String
 
     End Interface
     Public Interface CompiledProcedure
         Inherits Procedure
 
-        ReadOnly Property Name As String
+        ReadOnly Property CompiledName As String
         ReadOnly Property GenericTypes As IEnumerable(Of Type)
         ReadOnly Property Arguments As IEnumerable(Of Type)
         ReadOnly Property ReturnType As Type
@@ -16,7 +17,6 @@
     Public Interface UnCompiledProcedure
         Inherits Procedure
 
-        ReadOnly Property Name As String
         ReadOnly Property GenericTypes As List(Of GenericTypeNode)
         ReadOnly Property Arguments As List(Of FunctionArgumentNode)
 
@@ -25,18 +25,18 @@
     End Interface
 
     'Search [name] <generic_types...> (args...)
-    Public Function SearchBestProcedure(Of T As Procedure)(CompiledProcedures As IEnumerable(Of CompiledProcedure), UncompiledProcedures As IEnumerable(Of UnCompiledProcedure), ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type), ProvidedArgumentsTypes As IEnumerable(Of Type), CompileUncompiledFunction As Func(Of UnCompiledProcedure, IEnumerable(Of Type), CompiledProcedure)) As T
+    Public Function SearchBestProcedure(Of T As Procedure)(Scope As Scope, CompiledProcedures As IEnumerable(Of CompiledProcedure), UncompiledProcedures As IEnumerable(Of UnCompiledProcedure), ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type), ProvidedArguments As IEnumerable(Of ExpressionNode), CompileUncompiledFunction As Func(Of UnCompiledProcedure, IEnumerable(Of Type), CompiledProcedure)) As T
 
         'Search if there is a compiled procedure that already exist
         For Each Procedure As CompiledProcedure In CompiledProcedures
-            If CompiledProcedureCorrespond(Procedure, ProvidedName, ProvidedGenericType, ProvidedArgumentsTypes) Then
+            If CompiledProcedureCorrespond(Scope, Procedure, ProvidedName, ProvidedGenericType, ProvidedArguments) Then
                 Return Procedure
             End If
         Next
 
         'Search if there is a uncompiled procedure that match
         For Each Procedure As UnCompiledProcedure In UncompiledProcedures
-            If UncompiledProcedureCorrespond(Procedure, ProvidedName, ProvidedGenericType, ProvidedArgumentsTypes) Then
+            If UncompiledProcedureCorrespond(Scope, Procedure, ProvidedName, ProvidedGenericType, ProvidedArguments) Then
                 Return CompileUncompiledFunction(Procedure, ProvidedGenericType)
             End If
         Next
@@ -45,7 +45,7 @@
         Throw New UnableToFindProcedure()
 
     End Function
-    Public Function CompiledProcedureCorrespond(Procedure As CompiledProcedure, ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type), ProvidedArgumentsTypes As IEnumerable(Of Type)) As Boolean
+    Public Function CompiledProcedureCorrespond(Scope As Scope, Procedure As CompiledProcedure, ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type), ProvidedArguments As IEnumerable(Of ExpressionNode)) As Boolean
 
         'Name
         If Not Procedure.Name = ProvidedName Then
@@ -65,13 +65,13 @@
         Next
 
         'Passed arguments types count
-        If Not Procedure.Arguments.Count = ProvidedArgumentsTypes.Count Then
+        If Not Procedure.Arguments.Count = ProvidedArguments.Count Then
             Return False
         End If
 
         'Passed arguments types
-        For i As Integer = 0 To ProvidedArgumentsTypes.Count - 1
-            If Not Procedure.Arguments(i) = ProvidedArgumentsTypes(i) Then 'TODO: Check type compatibility instead of equality
+        For i As Integer = 0 To ProvidedArguments.Count - 1
+            If Not ProvidedArguments(i).CanReturn(Procedure.Arguments(i), Scope) Then
                 Return False
             End If
         Next
@@ -80,7 +80,7 @@
         Return True
 
     End Function
-    Public Function UncompiledProcedureCorrespond(Procedure As UnCompiledProcedure, ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type), ProvidedArgumentsTypes As IEnumerable(Of Type)) As Boolean
+    Public Function UncompiledProcedureCorrespond(Scope As Scope, Procedure As UnCompiledProcedure, ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type), ProvidedArguments As IEnumerable(Of ExpressionNode)) As Boolean
 
         'Name
         If Not Procedure.Name = ProvidedName Then
@@ -100,7 +100,7 @@
         Next
 
         'Passed arguments types count
-        If Not Procedure.Arguments.Count = ProvidedArgumentsTypes.Count Then
+        If Not Procedure.Arguments.Count = ProvidedArguments.Count Then
             Return False
         End If
 
@@ -108,12 +108,11 @@
         Dim ProcedureScope As Scope = Procedure.GenerateScope(ProvidedGenericType)
 
         'Passed arguments types
-        For i As Integer = 0 To ProvidedArgumentsTypes.Count - 1
+        For i As Integer = 0 To ProvidedArguments.Count - 1
 
             Dim WantedArgumentType As Type = Procedure.Arguments(i).Type.AssociatedType(ProcedureScope)
-            Dim PassedArgumentType As Type = ProvidedArgumentsTypes(i)
 
-            If Not PassedArgumentType = WantedArgumentType Then 'TODO: Check type compatibility instead of equality
+            If Not ProvidedArguments(i).CanReturn(WantedArgumentType, Scope) Then
                 Return False
             End If
 
@@ -177,7 +176,7 @@
 
         'Passed generic types
         For i As Integer = 0 To ProvidedGenericType.Count - 1
-            If Not Procedure.GenericTypes(i) = ProvidedGenericType Then
+            If Not Procedure.GenericTypes(i) = ProvidedGenericType(i) Then
                 Return False
             End If
         Next
@@ -322,7 +321,6 @@
         Return True
 
     End Function
-
 
     'Errors
     Public Class SearchProcedureException

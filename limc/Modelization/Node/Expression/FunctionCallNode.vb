@@ -19,24 +19,43 @@
 
     End Sub
 
+    '
+    ' WAY TO DETERMINE WICH PROCEDURE TO CALL :
+    ' 
+    ' If the Node is a ProcedureExplicitName
+    '     If there is only one procedure that match this name
+    '         -> call it will trying to convert provided arguments
+    '     Elseif there is multiple matchs
+    '         -> Choose the procedure that have the sames arguments types
+    '
+    ' If the return type of the node is a FunctionSignatureType
+    '     -> Return the return type of the FunctionSignatureType
+    ' Else
+    '     -> Error
+    '
+
     '=============================
     '======== RETURN TYPE ========
     '=============================
     Protected Overrides Function CalculateReturnType(Scope As Scope) As Type
 
-        'Get arguments tpes
-        Dim ArgumentsTypes As New List(Of Type)
-        For Each Argument As ExpressionNode In PassedArguments
-            ArgumentsTypes.Add(Argument.ReturnType(Scope))
-        Next
+        'If procedure
+        If TypeOf TargetedFunction Is ProcedureSelectorNode Then
 
-        'Variable -> test direct function call
-        If TypeOf TargetedFunction Is VariableNode Then
+            'cast ExplicitName
+            Dim ExplicitName As ProcedureSelectorNode = TargetedFunction
 
-        End If
+            'Get procedure return type
+            Dim Procedure As CompiledProcedure = ExplicitName.GetProcedureByYourself(Scope)
+            If Procedure IsNot Nothing Then
+                Return Procedure.ReturnType
+            End If
 
-        'FunctionReference -> test direct function call
-        If TypeOf TargetedFunction Is FunctionReferenceNode Then
+            'Choose by argument
+            Procedure = ExplicitName.GetProcedureWithHelpOfArgs(Scope, PassedArguments)
+            If Procedure IsNot Nothing Then
+                Return Procedure.ReturnType
+            End If
 
         End If
 
@@ -56,13 +75,23 @@
     '==========================
     Protected Overrides Function Assemble(Scope As Scope) As String
 
-        'Variable -> test direct function call
-        If TypeOf TargetedFunction Is VariableNode Then
+        'If procedure
+        If TypeOf TargetedFunction Is ProcedureSelectorNode Then
 
-        End If
+            'cast ExplicitName
+            Dim ExplicitName As ProcedureSelectorNode = TargetedFunction
 
-        'FunctionReference -> test direct function call
-        If TypeOf TargetedFunction Is FunctionReferenceNode Then
+            'Get procedure return type
+            Dim Procedure As CompiledProcedure = ExplicitName.GetProcedureByYourself(Scope)
+            If Procedure IsNot Nothing Then
+                Return ExplicitName.CompileCallTo(Procedure, Scope, PassedArguments)
+            End If
+
+            'Choose by argument
+            Procedure = ExplicitName.GetProcedureWithHelpOfArgs(Scope, PassedArguments)
+            If Procedure IsNot Nothing Then
+                Return ExplicitName.CompileCallTo(Procedure, Scope, PassedArguments)
+            End If
 
         End If
 

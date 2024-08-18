@@ -187,19 +187,19 @@ Public Class LimSource
 
         End Get
     End Property
-    Public ReadOnly Property [Function](Name As String, GenericTypes As IEnumerable(Of Type), ArgumentsTypes As IEnumerable(Of Type)) As CFunction
+    Public ReadOnly Property [Function](Scope As Scope, Name As String, GenericTypes As IEnumerable(Of Type), Arguments As IEnumerable(Of ExpressionNode)) As CFunction
         Get
 
             'Search best function in current file
             Try
-                Return Procedure.SearchBestProcedure(Of CFunction)(Me.CompiledFunctions, Me.Functions, Name, GenericTypes, ArgumentsTypes, Function(X, Y) New CFunction(X, Y))
+                Return Procedure.SearchBestProcedure(Of CFunction)(Scope, Me.CompiledFunctions, Me.Functions, Name, GenericTypes, Arguments, Function(X, Y) New CFunction(X, Y))
             Catch ex As UnableToFindProcedure
             End Try
 
             'Search best function in all files
             For Each ImportedFile As LimSource In Me.ImportedFiles
                 Try
-                    Return Procedure.SearchBestProcedure(Of CFunction)(ImportedFile.CompiledFunctions, ImportedFile.Functions, Name, GenericTypes, ArgumentsTypes, Function(X, Y) New CFunction(X, Y))
+                    Return Procedure.SearchBestProcedure(Of CFunction)(Scope, ImportedFile.CompiledFunctions, ImportedFile.Functions, Name, GenericTypes, Arguments, Function(X, Y) New CFunction(X, Y))
                 Catch ex As UnableToFindProcedure
                 End Try
             Next

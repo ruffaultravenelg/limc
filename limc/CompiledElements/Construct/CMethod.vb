@@ -1,6 +1,4 @@
-﻿Imports System.Runtime.InteropServices
-
-Public Class CMethod
+﻿Public Class CMethod
     Implements BuildableFunction
 
     '================================
