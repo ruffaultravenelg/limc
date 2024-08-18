@@ -75,7 +75,10 @@ Public Class LocalizedException
         End While
 
         'Length
-        Dim Length = Location.ToCharIndex - Location.FromCharIndex + 1
+        Dim Length = Location.ToCharIndex - Location.FromCharIndex
+        If Length <= 0 Then
+            Length = 1
+        End If
 
         'Write line
         Dim Line As String = reader.ReadLine()
