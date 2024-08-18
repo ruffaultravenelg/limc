@@ -1,4 +1,7 @@
-﻿Public Module Procedure
+﻿'
+' Represents a procedure from lim's point of view, in other words a function or method
+'
+Public Module Procedure
 
     'Procedure interfaces
     Public Interface Procedure
@@ -270,7 +273,7 @@
         Next
 
         'Return type
-        If Not WantedSignature.ReturnType = Procedure.returnType Then
+        If Not WantedSignature.ReturnType = Procedure.ReturnType Then
             Return False
         End If
 

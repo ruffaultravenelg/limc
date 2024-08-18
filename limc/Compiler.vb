@@ -5,8 +5,8 @@ Public Module Compiler
     '===============================
     '======== COMPILE PATHS ========
     '===============================
-    Private ReadOnly TempFolderPath As String = Path.Combine(Path.GetTempPath(), "limc")
-    Private ReadOnly SourcePath As String = Path.Combine(TempFolderPath, "source.c")
+    Public ReadOnly TempFolderPath As String = Path.Combine(Path.GetTempPath(), "limc")
+    Public ReadOnly SourcePath As String = Path.Combine(TempFolderPath, "source.c")
 
     '===========================
     '======== MAIN FILE ========
@@ -22,6 +22,12 @@ Public Module Compiler
     '======== COMPILE INPUT FILE ========
     '====================================
     Public Sub Compile()
+
+        'Add basics includes
+        Include.Add(New StandardInclude("stdio.h"))
+        Include.Add(New StandardInclude("stdlib.h"))
+        Include.Add(New StandardInclude("stdarg.h"))
+        Include.Add(New StandardInclude("stdbool.h"))
 
         'Init main types
         Type.int = LimSource.STD.Type("int", {})
