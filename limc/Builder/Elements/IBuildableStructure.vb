@@ -1,7 +1,7 @@
 ﻿'
 ' Represents a C structure
 '
-Public Interface BuildableStructure
+Public Interface IBuildableStructure
 
     Function BuildTypeForward() As String
     Function BuildStructureDefinition() As IEnumerable(Of String)

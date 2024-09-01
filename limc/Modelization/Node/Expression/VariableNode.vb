@@ -1,4 +1,6 @@
-﻿Public Class VariableNode
+﻿Imports System.Runtime.InteropServices
+
+Public Class VariableNode
     Inherits ExpressionNode
     Implements ProcedureSelectorNode
 
@@ -32,22 +34,36 @@
             Next
         Next
 
-        'Search for properties
+        'Search for properties/method
         If Scope.HasAttachedClass Then
-            For Each Propertie As Propertie In Scope.AttachedClass.Properties
+
+            'Get type
+            Dim Type As ClassType = Scope.AttachedClass
+
+            ' Propertie
+            For Each Propertie As Propertie In Type.Properties
                 If Propertie.Name = VariableName Then
                     Return Propertie.Type
                 End If
             Next
+
+            'Method
+            Try
+                Return DirectCast(Type, Type).Method(VariableName, {}).SignatureType
+            Catch ex As UnableToChooseProcedure
+                Throw New LocalizedException("There are several """ & VariableName & """ methods.", "The name is ambiguous because it can refer to multiple methods. Specify with an explicit type.", Me.Location)
+            Catch ex As UnableToFindProcedure
+            End Try
+
         End If
 
         'Search function just by name
         Try
             Return Me.Location.File.Function(VariableName, {}).SignatureType
+        Catch ex As UnableToChooseProcedure
+            Throw New LocalizedException("There are several """ & VariableName & """ functions.", "The name is ambiguous because it can refer to multiple functions. Specify with an explicit type.", Me.Location)
         Catch ex As UnableToFindProcedure
             Throw New LocalizedException("The """ & VariableName & """ element cannot be found in this scope.", "No variable or function is named """ & VariableName & """. Check that the element is accessible.", Me.Location)
-        Catch ex As UnableToChooseProcedure
-            Throw New LocalizedException("There are several """ & VariableName & """ procedures.", "The name is ambiguous because it can refer to multiple functions. Specify with an explicit type.", Me.Location)
         End Try
 
     End Function
@@ -63,13 +79,25 @@
             Next
         Next
 
-        'Search for properties
+
+        'Search for properties/method
         If Scope.HasAttachedClass Then
-            For Each Propertie As Propertie In Scope.AttachedClass.Properties
+
+            'Get type
+            Dim Type As ClassType = Scope.AttachedClass
+
+            ' Propertie
+            For Each Propertie As Propertie In Type.Properties
                 If Propertie.Name = VariableName AndAlso Propertie.Type = Request Then
                     Return True
                 End If
             Next
+
+            'Method
+            If TypeOf Request Is FunctionSignatureType AndAlso DirectCast(Type, Type).HasMethod(VariableName, {}, DirectCast(Request, FunctionSignatureType)) Then
+                Return True
+            End If
+
         End If
 
         'Search function
@@ -96,13 +124,33 @@
             Next
         Next
 
-        'Search for properties
+        'Search for properties/method
         If Scope.HasAttachedClass Then
-            For Each Propertie As Propertie In Scope.AttachedClass.Properties
+
+            'Get type
+            Dim Type As ClassType = Scope.AttachedClass
+
+            ' Propertie
+            For Each Propertie As Propertie In Type.Properties
                 If Propertie.Name = VariableName Then
-                    Return Propertie.Getter
+                    Return Propertie.AcessName
                 End If
             Next
+
+            'Method
+            Try
+
+                'Get targeted function
+                Dim TargetedMethod As CMethod = DirectCast(Type, Type).Method(VariableName, {})
+
+                'Return variable
+                Return TargetedMethod.SignatureType.NewMethodCompiledName & "(self, " & TargetedMethod.CompiledName & ")"
+
+            Catch ex As UnableToChooseProcedure
+                Throw New LocalizedException("There are several """ & VariableName & """ methods.", "The name is ambiguous because it can refer to multiple methods. Specify with an explicit type.", Me.Location)
+            Catch ex As UnableToFindProcedure
+            End Try
+
         End If
 
         'Search function just by name
@@ -114,7 +162,9 @@
             'Return variable
             Return TargetedFunction.SignatureType.NewFuncCompiledName & "(" & TargetedFunction.CompiledName & ")"
 
-        Catch ex As SearchProcedureException
+        Catch ex As UnableToChooseProcedure
+            Throw New LocalizedException("There are several """ & VariableName & """ functions.", "The name is ambiguous because it can refer to multiple functions. Specify with an explicit type.", Me.Location)
+        Catch ex As UnableToFindProcedure
             Throw New LocalizedException("The """ & VariableName & """ element cannot be found in this scope.", "No variable or function is named """ & VariableName & """. Check that the element is accessible.", Me.Location)
         End Try
 
@@ -131,25 +181,57 @@
             Next
         Next
 
-        'Search for properties
+        'Search for properties/method
         If Scope.HasAttachedClass Then
-            For Each Propertie As Propertie In Scope.AttachedClass.Properties
+
+            'Get type
+            Dim Type As ClassType = Scope.AttachedClass
+
+            ' Propertie
+            For Each Propertie As Propertie In Type.Properties
                 If Propertie.Name = VariableName AndAlso Propertie.Type = RequestedType Then
-                    Return Propertie.Getter
+                    Return Propertie.AcessName
                 End If
             Next
+
+            'Method
+            If TypeOf RequestedType Is FunctionSignatureType Then
+                Try
+
+                    'Get targeted function
+                    Dim TargetedMethod As CMethod = DirectCast(Type, Type).Method(VariableName, {})
+
+                    'Return variable
+                    Return TargetedMethod.SignatureType.NewMethodCompiledName & "(self, " & TargetedMethod.CompiledName & ")"
+
+                Catch ex As UnableToChooseProcedure
+                    Throw New LocalizedException("There are several """ & VariableName & """ methods.", "The name is ambiguous because it can refer to multiple methods. Specify with an explicit type.", Me.Location)
+                Catch ex As UnableToFindProcedure
+                End Try
+
+            End If
+
         End If
 
-        'Search function
-        If TypeOf RequestedType Is FunctionSignatureType Then
+
+            'Search function just by name
+            If TypeOf RequestedType Is FunctionSignatureType Then
             Try
-                Dim Result As CFunction = Me.Location.File.Function(VariableName, {}, DirectCast(RequestedType, FunctionSignatureType))
-                Return DirectCast(RequestedType, FunctionSignatureType).NewFuncCompiledName & "(" & Result.CompiledName & ")"
-            Catch ex As SearchProcedureException
+
+                'Get targeted function
+                Dim TargetedFunction As CFunction = Me.Location.File.Function(VariableName, {}, DirectCast(RequestedType, FunctionSignatureType))
+
+                'Return variable
+                Return TargetedFunction.SignatureType.NewFuncCompiledName & "(" & TargetedFunction.CompiledName & ")"
+
+            Catch ex As UnableToChooseProcedure
+                Throw New LocalizedException("There are several """ & VariableName & """ functions.", "The name is ambiguous because it can refer to multiple functions. Specify with an explicit type.", Me.Location)
+            Catch ex As UnableToFindProcedure
+                Throw New LocalizedException("The """ & VariableName & """ element cannot be found in this scope.", "No variable or function is named """ & VariableName & """. Check that the element is accessible.", Me.Location)
             End Try
         End If
 
-        'Cannot
+        'Return nothing
         Return Nothing
 
     End Function
@@ -159,31 +241,51 @@
     '=============================
 
     ' Allows you to search for a procedure without using the given arguments, returns Nothing if no unique function is found.
-    Private Function GetProcedureByYourself(Scope As Scope) As CompiledProcedure Implements ProcedureSelectorNode.GetProcedureByYourself
+    Private Function GetProcedureByYourself(Scope As Scope) As ICompiledProcedure Implements ProcedureSelectorNode.GetProcedureByYourself
 
         'Search function
         Try
             Return Me.Location.File.Function(VariableName, {})
         Catch ex As SearchProcedureException
-            Return Nothing
         End Try
+
+        'Search method
+        If Scope.HasAttachedClass Then
+            Try
+                Return DirectCast(Scope.AttachedClass, Type).Method(VariableName, {})
+            Catch ex As SearchProcedureException
+            End Try
+        End If
+
+        'Nothing found
+        Return Nothing
 
     End Function
 
     ' Searches for a procedure using the given arguments, returns Nothing if no function is found.
-    Private Function GetProcedureWithHelpOfArgs(Scope As Scope, ProvidedArguments As IEnumerable(Of ExpressionNode)) As CompiledProcedure Implements ProcedureSelectorNode.GetProcedureWithHelpOfArgs
+    Private Function GetProcedureWithHelpOfArgs(Scope As Scope, ProvidedArguments As IEnumerable(Of ExpressionNode)) As ICompiledProcedure Implements ProcedureSelectorNode.GetProcedureWithHelpOfArgs
 
         'Search function
         Try
             Return Me.Location.File.Function(Scope, VariableName, {}, ProvidedArguments)
         Catch ex As SearchProcedureException
-            Return Nothing
         End Try
+
+        'Search method
+        If Scope.HasAttachedClass Then
+            Try
+                Return DirectCast(Scope.AttachedClass, Type).Method(Scope, VariableName, {}, ProvidedArguments)
+            Catch ex As SearchProcedureException
+            End Try
+        End If
+
+        'Nothing found
+        Return Nothing
 
     End Function
 
     ' Compiles a call to the targeted procedure
-    Function CompileCallTo(Procedure As CompiledProcedure, Scope As Scope, ProvidedArguments As IEnumerable(Of ExpressionNode)) As String Implements ProcedureSelectorNode.CompileCallTo
+    Function CompileCallTo(Procedure As ICompiledProcedure, Scope As Scope, ProvidedArguments As IEnumerable(Of ExpressionNode)) As String Implements ProcedureSelectorNode.CompileCallTo
 
         'Argument count
         If Procedure.Arguments.Count > ProvidedArguments.Count Then

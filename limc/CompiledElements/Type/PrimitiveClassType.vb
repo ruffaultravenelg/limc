@@ -2,8 +2,8 @@
 ' Represent a primitive class type
 '
 Public Class PrimitiveClassType
-    Inherits Type
-    Implements BuildableStructure, ClassType
+    Inherits ClassType
+    Implements IBuildableStructure
 
     '===============================
     '======== EPONYME TYPES ========
@@ -75,22 +75,17 @@ Public Class PrimitiveClassType
 
     End Sub
 
-    '============================
-    '======== PROPERTIES ========
-    '============================
-    Private ReadOnly Property Properties As New List(Of Propertie) Implements ClassType.Properties
-
     '=====================================
     '======== BUILD: FORWARD TYPE ========
     '=====================================
-    Private Function BuildTypeForward() As String Implements BuildableStructure.BuildTypeForward
+    Private Function BuildTypeForward() As String Implements IBuildableStructure.BuildTypeForward
         Return $"typedef struct {Name} {Name};"
     End Function
 
     '=============================================
     '======== BUILD: STRUCTURE DEFINITION ========
     '=============================================
-    Private Function BuildStructureDefinition() As IEnumerable(Of String) Implements BuildableStructure.BuildStructureDefinition
+    Private Function BuildStructureDefinition() As IEnumerable(Of String) Implements IBuildableStructure.BuildStructureDefinition
 
         'Create result
         Dim Result As New List(Of String)
@@ -112,58 +107,40 @@ Public Class PrimitiveClassType
 
     End Function
 
-    '==============================
-    '======== CONSTRUCTORS ========
-    '==============================
-    Public ReadOnly Property Constructor(ArgumentsTypes As IEnumerable(Of Type)) As CConstructor Implements ClassType.Constructor
+    '=========================
+    '======== DEFAULT ========
+    '=========================
+    Public Overrides ReadOnly Property DefaultValue As String = $"{Name}_default()"
+
+    '====================================
+    '======== UNCOMPILED METHODS ========
+    '====================================
+    Protected Overrides ReadOnly Property UncompiledMethods As IEnumerable(Of MethodConstructNode)
         Get
-
-            'Search if there is a compiled getter that correspond
-            For Each CompiledConstructor As CConstructor In CompiledConstructors
-                If CompiledConstructor.LooksLike(ArgumentsTypes) Then
-                    Return CompiledConstructor
-                End If
-            Next
-
-            'Search if there is a non-compiled constructor that correspond
-            For Each ConstructorMethod As MethodConstructNode In Me.FromClass.Constructors
-                If ConstructorMethod.CouldBe("new", {}, ArgumentsTypes) Then
-                    Return New CPrimitiveClassConstructor(Me, ConstructorMethod)
-                End If
-            Next
-
-            'Not found
-            Throw New ClassType.ConstructorNotFoundException(Me.ToString())
-
+            Return FromClass.Methods
         End Get
     End Property
 
-    'List of all already compiled constructors
-    Private CompiledConstructors As New List(Of CConstructor)
+    '==============================
+    '======== CONSTRUCTORS ========
+    '==============================
+    Protected Overrides ReadOnly Property UncompiledConstructors As IEnumerable(Of MethodConstructNode)
+        Get
+            Return FromClass.Constructors
+        End Get
+    End Property
+    Protected Overrides ReadOnly Property CompiledConstructor(UncompiledConstructor As IUnCompiledProcedure) As CConstructor
+        Get
+            Return New CPrimitiveClassConstructor(Me, UncompiledConstructor)
+        End Get
+    End Property
 
-    'Notify
-    Private Sub NotifyNewCompiledConstructor(Constructor As CConstructor) Implements ClassType.NotifyNewCompiledConstructor
-        Me.CompiledConstructors.Add(Constructor)
-    End Sub
-
-    '=========================
-    '======== DEFAULT ========
-    '=========================
-    Public Overrides ReadOnly Property DefaultValue As String = $"{Name}__default()"
-
-    '=========================
-    '======== DEFAULT ========
-    '=========================
-    Protected Overrides Function SearchMethod(Name As String, GenericTypes As IEnumerable(Of Type), ArgumentTypes As IEnumerable(Of Type)) As CMethod
-
-        For Each Method As MethodConstructNode In FromClass.Methods
-            If Method.CouldBe(Name, GenericTypes, ArgumentTypes) Then
-                Return New CMethod(Me, Method, GenericTypes)
-            End If
-        Next
-
-        Return Nothing
-
+    '==============================
+    '======== SET VARIABLE ========
+    '==============================
+    'Variable = NewValue
+    Public Overrides Function SetVariable(Variable As String, NewValue As String) As String
+        Return Variable & " = " & NewValue & ";"
     End Function
 
 End Class

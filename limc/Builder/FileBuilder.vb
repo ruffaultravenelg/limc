@@ -14,7 +14,7 @@ Public Module FileBuilder
         Writer.WriteLine(vbTab & "Compiler created by Gémino Ruffault--Ravenel")
         Writer.WriteLine(vbTab)
         Writer.WriteLine(vbTab & "Compile using :")
-        Writer.WriteLine(vbTab & "`" & CommandBuilder.Command & "`")
+        Writer.WriteLine(vbTab & CommandBuilder.Command)
         Writer.WriteLine(vbTab)
         Writer.WriteLine("*/")
 
@@ -30,7 +30,7 @@ Public Module FileBuilder
 
         ' Build type declarations
         WriteHeaderComment(Writer, "types declarations")
-        For Each Struct As BuildableStructure In Structures
+        For Each Struct As IBuildableStructure In Structures
             Writer.WriteLine(Struct.BuildTypeForward())
         Next
 
@@ -39,7 +39,7 @@ Public Module FileBuilder
 
         ' Build structure definition
         WriteHeaderComment(Writer, "structure definition")
-        For Each Struct As BuildableStructure In Structures
+        For Each Struct As IBuildableStructure In Structures
 
             ' Write structure definition
             For Each Line As String In Struct.BuildStructureDefinition()
@@ -56,7 +56,7 @@ Public Module FileBuilder
 
         ' Build functions prototypes
         WriteHeaderComment(Writer, "functions prototypes")
-        For Each Fn As BuildableFunction In Functions
+        For Each Fn As IBuildableFunction In Functions
             Writer.WriteLine(Fn.BuildPrototypeWithoutSemiColon() & ";")
         Next
 
@@ -65,7 +65,7 @@ Public Module FileBuilder
 
         ' Build functions
         WriteHeaderComment(Writer, "functions")
-        For Each Fn As BuildableFunction In Functions
+        For Each Fn As IBuildableFunction In Functions
 
             'Write function signature
             Writer.WriteLine(Fn.BuildPrototypeWithoutSemiColon() & "{")
@@ -112,16 +112,16 @@ Public Module FileBuilder
     '============================
     '======== STRUCTURES ========
     '============================
-    Private Structures As New List(Of BuildableStructure)
-    Public Sub NotifyNewStructure(Elm As BuildableStructure)
+    Private Structures As New List(Of IBuildableStructure)
+    Public Sub NotifyNewStructure(Elm As IBuildableStructure)
         Structures.Add(Elm)
     End Sub
 
     '===========================
     '======== FUNCTIONS ========
     '===========================
-    Private Functions As New List(Of BuildableFunction)
-    Public Sub NotifyNewFunction(Elm As BuildableFunction)
+    Private Functions As New List(Of IBuildableFunction)
+    Public Sub NotifyNewFunction(Elm As IBuildableFunction)
         Functions.Add(Elm)
     End Sub
 

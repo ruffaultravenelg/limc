@@ -31,6 +31,7 @@ Public Module Compiler
 
         'Init main types
         Type.int = LimSource.STD.Type("int", {})
+        Type.float = LimSource.STD.Type("float", {})
         Type.bool = LimSource.STD.Type("bool", {})
 
         'Parse main file

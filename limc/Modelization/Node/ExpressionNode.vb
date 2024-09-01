@@ -1,6 +1,4 @@
-﻿Imports System.Diagnostics.CodeAnalysis
-
-Public MustInherit Class ExpressionNode
+﻿Public MustInherit Class ExpressionNode
     Inherits Node
 
     '=============================

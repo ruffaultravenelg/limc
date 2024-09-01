@@ -4,12 +4,12 @@
 Public Module Procedure
 
     'Procedure interfaces
-    Public Interface Procedure
+    Public Interface IProcedure
         ReadOnly Property Name As String
 
     End Interface
-    Public Interface CompiledProcedure
-        Inherits Procedure
+    Public Interface ICompiledProcedure
+        Inherits IProcedure
 
         ReadOnly Property CompiledName As String
         ReadOnly Property GenericTypes As IEnumerable(Of Type)
@@ -17,29 +17,29 @@ Public Module Procedure
         ReadOnly Property ReturnType As Type
 
     End Interface
-    Public Interface UnCompiledProcedure
-        Inherits Procedure
+    Public Interface IUnCompiledProcedure
+        Inherits IProcedure
 
         ReadOnly Property GenericTypes As List(Of GenericTypeNode)
         ReadOnly Property Arguments As List(Of FunctionArgumentNode)
 
-        Function GenerateScope(GenericType As IEnumerable(Of Type)) As Scope
+        Function GenerateScope(GenericType As IEnumerable(Of Type), ParentClass As Scope) As Scope
 
     End Interface
 
     'Search [name] <generic_types...> (args...)
-    Public Function SearchBestProcedure(Of T As Procedure)(Scope As Scope, CompiledProcedures As IEnumerable(Of CompiledProcedure), UncompiledProcedures As IEnumerable(Of UnCompiledProcedure), ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type), ProvidedArguments As IEnumerable(Of ExpressionNode), CompileUncompiledFunction As Func(Of UnCompiledProcedure, IEnumerable(Of Type), CompiledProcedure)) As T
+    Public Function SearchBestProcedure(Scope As Scope, CompiledProcedures As IEnumerable(Of ICompiledProcedure), UncompiledProcedures As IEnumerable(Of IUnCompiledProcedure), ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type), ProvidedArguments As IEnumerable(Of ExpressionNode), CompileUncompiledFunction As Func(Of IUnCompiledProcedure, IEnumerable(Of Type), ICompiledProcedure), Optional CompiledScope As Scope = Nothing) As ICompiledProcedure
 
         'Search if there is a compiled procedure that already exist
-        For Each Procedure As CompiledProcedure In CompiledProcedures
+        For Each Procedure As ICompiledProcedure In CompiledProcedures
             If CompiledProcedureCorrespond(Scope, Procedure, ProvidedName, ProvidedGenericType, ProvidedArguments) Then
                 Return Procedure
             End If
         Next
 
         'Search if there is a uncompiled procedure that match
-        For Each Procedure As UnCompiledProcedure In UncompiledProcedures
-            If UncompiledProcedureCorrespond(Scope, Procedure, ProvidedName, ProvidedGenericType, ProvidedArguments) Then
+        For Each Procedure As IUnCompiledProcedure In UncompiledProcedures
+            If UncompiledProcedureCorrespond(Scope, Procedure, ProvidedName, ProvidedGenericType, ProvidedArguments, CompiledScope) Then
                 Return CompileUncompiledFunction(Procedure, ProvidedGenericType)
             End If
         Next
@@ -48,7 +48,7 @@ Public Module Procedure
         Throw New UnableToFindProcedure()
 
     End Function
-    Public Function CompiledProcedureCorrespond(Scope As Scope, Procedure As CompiledProcedure, ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type), ProvidedArguments As IEnumerable(Of ExpressionNode)) As Boolean
+    Public Function CompiledProcedureCorrespond(Scope As Scope, Procedure As ICompiledProcedure, ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type), ProvidedArguments As IEnumerable(Of ExpressionNode)) As Boolean
 
         'Name
         If Not Procedure.Name = ProvidedName Then
@@ -83,7 +83,7 @@ Public Module Procedure
         Return True
 
     End Function
-    Public Function UncompiledProcedureCorrespond(Scope As Scope, Procedure As UnCompiledProcedure, ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type), ProvidedArguments As IEnumerable(Of ExpressionNode)) As Boolean
+    Public Function UncompiledProcedureCorrespond(Scope As Scope, Procedure As IUnCompiledProcedure, ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type), ProvidedArguments As IEnumerable(Of ExpressionNode), CompiledScope As Scope) As Boolean
 
         'Name
         If Not Procedure.Name = ProvidedName Then
@@ -108,7 +108,7 @@ Public Module Procedure
         End If
 
         'Create scope
-        Dim ProcedureScope As Scope = Procedure.GenerateScope(ProvidedGenericType)
+        Dim ProcedureScope As Scope = Procedure.GenerateScope(ProvidedGenericType, CompiledScope)
 
         'Passed arguments types
         For i As Integer = 0 To ProvidedArguments.Count - 1
@@ -128,44 +128,49 @@ Public Module Procedure
 
 
     'Search [name] <generic_types...>
-    Public Function SearchBestProcedure(Of T As Procedure)(CompiledProcedures As IEnumerable(Of CompiledProcedure), UncompiledProcedures As IEnumerable(Of UnCompiledProcedure), ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type), CompileUncompiledFunction As Func(Of UnCompiledProcedure, IEnumerable(Of Type), CompiledProcedure)) As T
-
-        'Store each corresponding functions
-        Dim Results As New List(Of Procedure)
+    Public Function SearchBestProcedure(CompiledProcedures As IEnumerable(Of ICompiledProcedure), UncompiledProcedures As IEnumerable(Of IUnCompiledProcedure), ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type), CompileUncompiledFunction As Func(Of IUnCompiledProcedure, IEnumerable(Of Type), ICompiledProcedure), Optional CompiledScope As Scope = Nothing) As ICompiledProcedure
 
         'Search if there is a compiled procedure that already exist
-        For Each Procedure As CompiledProcedure In CompiledProcedures
+        Dim AvailableCompiledResults As New List(Of ICompiledProcedure)
+        For Each Procedure As ICompiledProcedure In CompiledProcedures
             If CompiledProcedureCorrespond(Procedure, ProvidedName, ProvidedGenericType) Then
-                Results.Add(Procedure)
+                AvailableCompiledResults.Add(Procedure)
             End If
         Next
 
-        'Search if there is a uncompiled procedure that match
-        For Each Procedure As UnCompiledProcedure In UncompiledProcedures
-            If UncompiledProcedureCorrespond(Procedure, ProvidedName, ProvidedGenericType) Then
-                Results.Add(Procedure)
-            End If
-        Next
-
-        'No result
-        If Results.Count = 0 Then
-            Throw New UnableToFindProcedure()
+        'If there is only one compatible procedure -> choose it
+        If AvailableCompiledResults.Count = 1 Then
+            Return AvailableCompiledResults(0)
         End If
 
         'Too many result
-        If Results.Count > 1 Then
+        If AvailableCompiledResults.Count > 1 Then
             Throw New UnableToChooseProcedure()
         End If
 
-        'Return result
-        If TypeOf Results(0) Is UnCompiledProcedure Then
-            Return CompileUncompiledFunction(Results(0), ProvidedGenericType)
-        Else
-            Return Results(0)
+        'Search if there is a uncompiled procedure that match
+        Dim AvailableUcompiledResults As New List(Of IUnCompiledProcedure)
+        For Each Procedure As IUnCompiledProcedure In UncompiledProcedures
+            If UncompiledProcedureCorrespond(Procedure, ProvidedName, ProvidedGenericType, CompiledScope) Then
+                AvailableUcompiledResults.Add(Procedure)
+            End If
+        Next
+
+        'One uncompiled procedure -> choose it
+        If AvailableUcompiledResults.Count = 1 Then
+            Return CompileUncompiledFunction(AvailableUcompiledResults(0), ProvidedGenericType)
         End If
 
+        'Too many uncompiled procedures result
+        If AvailableUcompiledResults.Count > 1 Then
+            Throw New UnableToChooseProcedure()
+        End If
+
+        'No available uncompiled procedure
+        Throw New UnableToFindProcedure()
+
     End Function
-    Public Function CompiledProcedureCorrespond(Procedure As CompiledProcedure, ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type)) As Boolean
+    Public Function CompiledProcedureCorrespond(Procedure As ICompiledProcedure, ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type)) As Boolean
 
         'Name
         If Not Procedure.Name = ProvidedName Then
@@ -188,7 +193,7 @@ Public Module Procedure
         Return True
 
     End Function
-    Public Function UncompiledProcedureCorrespond(Procedure As UnCompiledProcedure, ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type)) As Boolean
+    Public Function UncompiledProcedureCorrespond(Procedure As IUnCompiledProcedure, ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type), CompiledScope As Scope) As Boolean
 
         'Name
         If Not Procedure.Name = ProvidedName Then
@@ -213,21 +218,21 @@ Public Module Procedure
     End Function
 
     'Search [name] <generic_types...> (args...)
-    Public Function SearchBestProcedure(Of T As Procedure)(CompiledProcedures As IEnumerable(Of CompiledProcedure), UncompiledProcedures As IEnumerable(Of UnCompiledProcedure), ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type), WantedSignature As FunctionSignatureType, CompileUncompiledFunction As Func(Of UnCompiledProcedure, IEnumerable(Of Type), CompiledProcedure)) As T
+    Public Function SearchBestProcedure(CompiledProcedures As IEnumerable(Of ICompiledProcedure), UncompiledProcedures As IEnumerable(Of IUnCompiledProcedure), ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type), WantedSignature As FunctionSignatureType, CompileUncompiledFunction As Func(Of IUnCompiledProcedure, IEnumerable(Of Type), ICompiledProcedure), Optional CompiledScope As Scope = Nothing) As ICompiledProcedure
 
         'Search if there is a compiled procedure that already exist
-        For Each Procedure As CompiledProcedure In CompiledProcedures
+        For Each Procedure As ICompiledProcedure In CompiledProcedures
             If CompiledProcedureCorrespond(Procedure, ProvidedName, ProvidedGenericType, WantedSignature) Then
                 Return Procedure
             End If
         Next
 
         'Search if there is a uncompiled procedure that match
-        For Each Procedure As UnCompiledProcedure In UncompiledProcedures
-            If UncompiledProcedureCorrespond(Procedure, ProvidedName, ProvidedGenericType, WantedSignature) Then
+        For Each Procedure As IUnCompiledProcedure In UncompiledProcedures
+            If UncompiledProcedureCorrespond(Procedure, ProvidedName, ProvidedGenericType, WantedSignature, CompiledScope) Then
 
                 'Compile
-                Dim CompiledProcedure As CompiledProcedure = CompileUncompiledFunction(Procedure, ProvidedGenericType)
+                Dim CompiledProcedure As ICompiledProcedure = CompileUncompiledFunction(Procedure, ProvidedGenericType)
 
                 'Check return type
                 If CompiledProcedure.ReturnType = WantedSignature.ReturnType Then
@@ -241,7 +246,7 @@ Public Module Procedure
         Throw New UnableToFindProcedure()
 
     End Function
-    Public Function CompiledProcedureCorrespond(Procedure As CompiledProcedure, ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type), WantedSignature As FunctionSignatureType) As Boolean
+    Public Function CompiledProcedureCorrespond(Procedure As ICompiledProcedure, ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type), WantedSignature As FunctionSignatureType) As Boolean
 
         'Name
         If Not Procedure.Name = ProvidedName Then
@@ -281,7 +286,7 @@ Public Module Procedure
         Return True
 
     End Function
-    Public Function UncompiledProcedureCorrespond(Procedure As UnCompiledProcedure, ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type), WantedSignature As FunctionSignatureType) As Boolean
+    Public Function UncompiledProcedureCorrespond(Procedure As IUnCompiledProcedure, ProvidedName As String, ProvidedGenericType As IEnumerable(Of Type), WantedSignature As FunctionSignatureType, CompiledScope As Scope) As Boolean
 
         'Name
         If Not Procedure.Name = ProvidedName Then
@@ -306,7 +311,7 @@ Public Module Procedure
         End If
 
         'Create scope
-        Dim ProcedureScope As Scope = Procedure.GenerateScope(ProvidedGenericType)
+        Dim ProcedureScope As Scope = Procedure.GenerateScope(ProvidedGenericType, CompiledScope)
 
         'Passed arguments types
         For i As Integer = 0 To WantedSignature.ArgumentsTypes.Count - 1

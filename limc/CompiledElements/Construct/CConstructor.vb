@@ -1,5 +1,34 @@
 ﻿Public MustInherit Class CConstructor
-    Implements BuildableFunction
+    Implements IBuildableFunction
+    Implements ICompiledProcedure
+
+    '======================
+    '======== NAME ========
+    '======================
+    Private ReadOnly Property Name As String = "new" Implements ICompiledProcedure.Name
+
+    '===============================
+    '======== GENERIC TYPES ========
+    '===============================
+    Private ReadOnly Property GenericTypes As IEnumerable(Of Type) = {} Implements ICompiledProcedure.GenericTypes
+
+    '===========================
+    '======== ARGUMENTS ========
+    '===========================
+    Private ReadOnly Property ArgumentsTypes As IEnumerable(Of Type) Implements ICompiledProcedure.Arguments
+        Get
+            Dim Result As New List(Of Type)
+            For Each Var As Variable In Scope.Variables
+                Result.Add(Var.Type)
+            Next
+            Return Result
+        End Get
+    End Property
+
+    '=============================
+    '======== RETURN TYPE ========
+    '=============================
+    Private ReadOnly Property ReturnType As Type = Nothing Implements ICompiledProcedure.ReturnType
 
     '========================
     '======== TARGET ========
@@ -19,7 +48,7 @@
     '===============================
     '======== COMPILED NAME ========
     '===============================
-    Public ReadOnly Property CompiledName As String
+    Public ReadOnly Property CompiledName As String Implements ICompiledProcedure.CompiledName
     Private Shared ConsructorCount As Integer = 0
 
     '=============================
@@ -29,7 +58,9 @@
     Public Sub New(Type As ClassType, Node As MethodConstructNode, Optional DefaultMethod As Boolean = False)
 
         'Notice parent file that this function is compiled
-        Type.NotifyNewCompiledConstructor(Me)
+        If Not DefaultMethod Then
+            Type.NotifyNewCompiledConstructor(Me)
+        End If
 
         'Notify ourself
         FileBuilder.NotifyNewFunction(Me)
@@ -39,10 +70,10 @@
 
         'Create name
         If DefaultMethod Then
-            CompiledName = $"{ParentType.Name}__default"
+            CompiledName = $"{ParentType.Name}_default"
         Else
             ConsructorCount += 1
-            CompiledName = $"{ParentType.Name}__new{ConsructorCount.ToString()}"
+            CompiledName = $"{ParentType.Name}_new{ConsructorCount.ToString()}"
         End If
 
         'Create scope
@@ -63,21 +94,21 @@
             Next
         End If
 
-
         'Get logic
         CompiledLogic = ContentScope.Result
 
     End Sub
 
-    '=============================
-    '======== CREATE SELF ========
-    '=============================
-    Protected MustOverride Function CreateSelf() As String
+    '===================================
+    '======== SUBCLASS COMPLETE ========
+    '===================================
+    Protected MustOverride Function CreateSelf() As IEnumerable(Of String)
+    Protected MustOverride Function ReturnValue() As String
 
     '=================================
     '======== BUILD PROTOTYPE ========
     '=================================
-    Private Function BuildPrototype() As String Implements BuildableFunction.BuildPrototypeWithoutSemiColon
+    Private Function BuildPrototype() As String Implements IBuildableFunction.BuildPrototypeWithoutSemiColon
 
         'Compile arguments signatures
         Dim Arguments As String = ""
@@ -98,18 +129,18 @@
     '=============================
     '======== BUILD LOGIC ========
     '=============================
-    Private Function BuildLogic() As IEnumerable(Of String) Implements BuildableFunction.BuildLogic
+    Private Function BuildLogic() As IEnumerable(Of String) Implements IBuildableFunction.BuildLogic
 
         'Create result
         Dim Result As New List(Of String)
 
         'Create self
-        Result.Add(CreateSelf())
+        Result.AddRange(CreateSelf())
         Result.Add("")
 
         'Init default states of variables
         For Each Propertie As Propertie In DirectCast(ParentType, ClassType).Properties
-            Result.Add(Propertie.Setter(Propertie.Type.DefaultValue) & ";")
+            Result.Add(Propertie.Type.SetVariable(Propertie.AcessName, Propertie.Type.DefaultValue))
         Next
         Result.Add("")
 
@@ -118,31 +149,9 @@
         Result.Add("")
 
         'Add return
-        Result.Add("return self;")
+        Result.Add($"return {ReturnValue()};")
 
         Return Result
-
-    End Function
-
-    '============================
-    '======== LOOKS LIKE ========
-    '============================
-    Public Function LooksLike(ArgumentsTypes As IEnumerable(Of Type)) As Boolean
-
-        'Passed arguments types count
-        If Not Scope.Variables.Count = ArgumentsTypes.Count Then
-            Return False
-        End If
-
-        'Passed arguments types
-        For i As Integer = 0 To ArgumentsTypes.Count - 1
-            If Not Scope.Variables(i).Type = ArgumentsTypes(i) Then 'TODO: Check type compatibility instead of equality
-                Return False
-            End If
-        Next
-
-        'Everything looks ok
-        Return True
 
     End Function
 

@@ -170,14 +170,14 @@ Public Class LimSource
 
             'Search best function in current file
             Try
-                Return Procedure.SearchBestProcedure(Of CFunction)(Me.CompiledFunctions, Me.Functions, Name, GenericTypes, Function(X, Y) New CFunction(X, Y))
+                Return Procedure.SearchBestProcedure(Me.CompiledFunctions, Me.Functions.Cast(Of IProcedure), Name, GenericTypes, Function(X, Y) New CFunction(X, Y))
             Catch ex As UnableToFindProcedure
             End Try
 
             'Search best function in all files
             For Each ImportedFile As LimSource In Me.ImportedFiles
                 Try
-                    Return Procedure.SearchBestProcedure(Of CFunction)(ImportedFile.CompiledFunctions, ImportedFile.Functions, Name, GenericTypes, Function(X, Y) New CFunction(X, Y))
+                    Return Procedure.SearchBestProcedure(ImportedFile.CompiledFunctions, ImportedFile.Functions, Name, GenericTypes, Function(X, Y) New CFunction(X, Y))
                 Catch ex As UnableToFindProcedure
                 End Try
             Next
@@ -192,14 +192,14 @@ Public Class LimSource
 
             'Search best function in current file
             Try
-                Return Procedure.SearchBestProcedure(Of CFunction)(Scope, Me.CompiledFunctions, Me.Functions, Name, GenericTypes, Arguments, Function(X, Y) New CFunction(X, Y))
+                Return Procedure.SearchBestProcedure(Scope, Me.CompiledFunctions, Me.Functions, Name, GenericTypes, Arguments, Function(X, Y) New CFunction(X, Y))
             Catch ex As UnableToFindProcedure
             End Try
 
             'Search best function in all files
             For Each ImportedFile As LimSource In Me.ImportedFiles
                 Try
-                    Return Procedure.SearchBestProcedure(Of CFunction)(Scope, ImportedFile.CompiledFunctions, ImportedFile.Functions, Name, GenericTypes, Arguments, Function(X, Y) New CFunction(X, Y))
+                    Return Procedure.SearchBestProcedure(Scope, ImportedFile.CompiledFunctions, ImportedFile.Functions, Name, GenericTypes, Arguments, Function(X, Y) New CFunction(X, Y))
                 Catch ex As UnableToFindProcedure
                 End Try
             Next
@@ -214,14 +214,14 @@ Public Class LimSource
 
             'Search best function in current file
             Try
-                Return Procedure.SearchBestProcedure(Of CFunction)(Me.CompiledFunctions, Me.Functions, Name, GenericTypes, Signature, Function(X, Y) New CFunction(X, Y))
+                Return Procedure.SearchBestProcedure(Me.CompiledFunctions, Me.Functions, Name, GenericTypes, Signature, Function(X, Y) New CFunction(X, Y))
             Catch ex As UnableToFindProcedure
             End Try
 
             'Search best function in all files
             For Each ImportedFile As LimSource In Me.ImportedFiles
                 Try
-                    Return Procedure.SearchBestProcedure(Of CFunction)(ImportedFile.CompiledFunctions, ImportedFile.Functions, Name, GenericTypes, Signature, Function(X, Y) New CFunction(X, Y))
+                    Return Procedure.SearchBestProcedure(ImportedFile.CompiledFunctions, ImportedFile.Functions, Name, GenericTypes, Signature, Function(X, Y) New CFunction(X, Y))
                 Catch ex As UnableToFindProcedure
                 End Try
             Next
@@ -235,7 +235,7 @@ Public Class LimSource
 
         'Search best function in current file
         Try
-            Procedure.SearchBestProcedure(Of CFunction)(Me.CompiledFunctions, Me.Functions, Name, GenericTypes, Signature, Function(X, Y) New CFunction(X, Y))
+            Procedure.SearchBestProcedure(Me.CompiledFunctions, Me.Functions, Name, GenericTypes, Signature, Function(X, Y) New CFunction(X, Y))
             Return True
         Catch ex As UnableToFindProcedure
         End Try
@@ -243,7 +243,7 @@ Public Class LimSource
         'Search best function in all files
         For Each ImportedFile As LimSource In Me.ImportedFiles
             Try
-                Procedure.SearchBestProcedure(Of CFunction)(ImportedFile.CompiledFunctions, ImportedFile.Functions, Name, GenericTypes, Signature, Function(X, Y) New CFunction(X, Y))
+                Procedure.SearchBestProcedure(ImportedFile.CompiledFunctions, ImportedFile.Functions, Name, GenericTypes, Signature, Function(X, Y) New CFunction(X, Y))
                 Return True
             Catch ex As UnableToFindProcedure
             End Try
@@ -258,8 +258,9 @@ Public Class LimSource
     Private CompiledFunctions As New List(Of CFunction)
 
     ' Notice a new compiled type
-    Public Sub NoticeNewCompiledFunction(Fun As CFunction)
+    Public Sub NoticeNewCompiledFunction(Fun As CFunction, Node As FunctionConstructNode)
         CompiledFunctions.Add(Fun)
+        Functions.Remove(Node)
     End Sub
 
     '==========================

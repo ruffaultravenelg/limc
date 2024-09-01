@@ -1,21 +1,21 @@
 ﻿Public Class FunctionConstructNode
     Inherits LogicContainerConstruct
-    Implements UnCompiledProcedure
+    Implements IUnCompiledProcedure
 
     '===============================
     '======== FUNCTION NAME ========
     '===============================
-    Public ReadOnly Property Name As String Implements UnCompiledProcedure.Name
+    Public ReadOnly Property Name As String Implements IUnCompiledProcedure.Name
 
     '===============================
     '======== GENERIC TYPES ========
     '===============================
-    Private ReadOnly Property GenericTypes As List(Of GenericTypeNode) Implements UnCompiledProcedure.GenericTypes
+    Private ReadOnly Property GenericTypes As List(Of GenericTypeNode) Implements IUnCompiledProcedure.GenericTypes
 
     '===========================
     '======== ARGUMENTS ========
     '===========================
-    Private ReadOnly Property Arguments As List(Of FunctionArgumentNode) Implements UnCompiledProcedure.Arguments
+    Private ReadOnly Property Arguments As List(Of FunctionArgumentNode) Implements IUnCompiledProcedure.Arguments
 
     '=============================
     '======== RETURN TYPE ========
@@ -39,7 +39,7 @@
     '========================================
     '======== GENERATE GENERIC TYPES ========
     '========================================
-    Private Function GenerateGenericType(GenericTypes As IEnumerable(Of Type)) As Scope Implements UnCompiledProcedure.GenerateScope
+    Private Function GenerateGenericType(GenericTypes As IEnumerable(Of Type), ParentClass As Scope) As Scope Implements IUnCompiledProcedure.GenerateScope
 
         'Create scope
         Dim Scope As New Scope(Me.Location.File.Scope)

@@ -1,6 +1,6 @@
-﻿
-'
+﻿'
 ' Represent a class's variable
+' Can only be modified in a class's method
 '
 Public Class Propertie
 
@@ -8,6 +8,11 @@ Public Class Propertie
     '======== COMPILED NAME ========
     '===============================
     Public ReadOnly Property CompiledName As String
+
+    '=============================
+    '======== ACCESS NAME ========
+    '=============================
+    Public ReadOnly Property AcessName As String
 
     '======================
     '======== NAME ========
@@ -22,10 +27,13 @@ Public Class Propertie
     '=============================
     '======== CONSTRUCTOR ========
     '=============================
-    Public Sub New(ParentType As Type, Name As String, Type As Type, CompiledName As String)
+    Public Sub New(ParentType As ClassType, Name As String, Type As Type, CompiledName As String)
 
         'Set compiled name
         Me.CompiledName = CompiledName
+
+        'Set acess name
+        Me.AcessName = "((" & ParentType.Name & "*)self)->" & CompiledName
 
         'Set name
         Me.Name = Name
@@ -33,37 +41,6 @@ Public Class Propertie
         'Set type
         Me.Type = Type
 
-        'Acessor
-        Dim AcessorOperator As String = If(TypeOf ParentType Is HeapType, "->", ".")
-
-        'Create getter
-        Dim GetterName As String = $"{ParentType.Name}__{CompiledName}__get"
-        Getter = GetterName & "(&self)"
-        CSourceFunction.GenerateSourceFunction($"{Type.CompiledName} {GetterName}({ParentType.CompiledName}* self)", {
-            $"return (*self){AcessorOperator}{CompiledName};"
-        })
-
-        'Create setter
-        SetterName = $"{ParentType.Name}__{CompiledName}__set"
-        CSourceFunction.GenerateSourceFunction($"void {SetterName}({ParentType.CompiledName}* self, {Type.CompiledName} newValue)", {
-            $"(*self){AcessorOperator}{CompiledName} = newValue;"
-        })
-
     End Sub
-
-    '========================
-    '======== GETTER ========
-    '========================
-    Public ReadOnly Property Getter As String
-
-    '========================
-    '======== SETTER ========
-    '========================
-    Private SetterName As String
-    Public ReadOnly Property Setter(NewValue As String) As String
-        Get
-            Return SetterName & "(&self, " & NewValue & ")"
-        End Get
-    End Property
 
 End Class

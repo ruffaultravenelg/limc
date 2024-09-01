@@ -1,5 +1,5 @@
 ﻿Public Class CSourceFunction
-    Implements BuildableFunction
+    Implements IBuildableFunction
 
     '=========================
     '======== CONTENT ========
@@ -24,14 +24,14 @@
     '=================================
     '======== BUILD PROTOTYPE ========
     '=================================
-    Private Function BuildPrototype() As String Implements BuildableFunction.BuildPrototypeWithoutSemiColon
+    Private Function BuildPrototype() As String Implements IBuildableFunction.BuildPrototypeWithoutSemiColon
         Return Prototype
     End Function
 
     '=============================
     '======== BUILD LOGIC ========
     '=============================
-    Private Function BuildLogic() As IEnumerable(Of String) Implements BuildableFunction.BuildLogic
+    Private Function BuildLogic() As IEnumerable(Of String) Implements IBuildableFunction.BuildLogic
         Return Code
     End Function
 

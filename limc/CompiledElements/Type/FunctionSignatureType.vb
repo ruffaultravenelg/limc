@@ -4,7 +4,7 @@
 '
 Public Class FunctionSignatureType
     Inherits Type
-    Implements BuildableStructure
+    Implements IBuildableStructure
 
     '=============================
     '======== SOURCE NAME ========
@@ -139,14 +139,14 @@ Public Class FunctionSignatureType
     '=====================================
     '======== BUILD: FORWARD TYPE ========
     '=====================================
-    Private Function BuildTypeForward() As String Implements BuildableStructure.BuildTypeForward
+    Private Function BuildTypeForward() As String Implements IBuildableStructure.BuildTypeForward
         Return $"typedef struct {Name} {Name};"
     End Function
 
     '=============================================
     '======== BUILD: STRUCTURE DEFINITION ========
     '=============================================
-    Private Function BuildStructureDefinition() As IEnumerable(Of String) Implements BuildableStructure.BuildStructureDefinition
+    Private Function BuildStructureDefinition() As IEnumerable(Of String) Implements IBuildableStructure.BuildStructureDefinition
 
         'Create result
         Dim Result As New List(Of String)
@@ -209,5 +209,13 @@ Public Class FunctionSignatureType
             Return $"{Name}_default()"
         End Get
     End Property
+
+    '==============================
+    '======== SET VARIABLE ========
+    '==============================
+    'Variable = NewValue
+    Public Overrides Function SetVariable(Variable As String, NewValue As String) As String
+        Return Variable & " = " & NewValue & ";"
+    End Function
 
 End Class

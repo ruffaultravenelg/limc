@@ -130,24 +130,21 @@
     '============================================
     '======== WRITE VARIABLE ASSIGNATION ========
     '============================================
-    '
+    '   
     ' WARNING: This function does not check if the type of the new value is that of the variable.
     '
     Public Sub WriteVariableAssignation(Variable As Variable, Value As String)
+        Lines.Add(Variable.Type.SetVariable(Variable.CompiledName, Value))
+    End Sub
 
-        If TypeOf Variable.Type Is HeapType Then
-
-            'Heap type -> garbage collector assignation
-            'TODO
-            Throw New NotImplementedException()
-
-        Else
-
-            'Primitive type -> normal assignation
-            Lines.Add(Variable.CompiledName & " = " & Value & ";")
-
-        End If
-
+    '=============================================
+    '======== WRITE PROPERTIE ASSIGNATION ========
+    '=============================================
+    '
+    ' WARNING: This function does not check if the type of the new value is that of the propertie, neighter if we are in a class.
+    '
+    Public Sub WritePropertieAssignation(Propertie As Propertie, Value As String)
+        Lines.Add(Propertie.Type.SetVariable(Propertie.AcessName, Value))
     End Sub
 
     '========================
@@ -198,16 +195,26 @@
     End Property
 
 
-    '=============================================
-    '======== WRITE PROPERTIE ASSIGNATION ========
-    '=============================================
-    '
-    ' WARNING: This function does not check if the type of the new value is that of the propertie.
-    '
-    Public Sub WritePropertieAssignation(Propertie As Propertie, Value As String)
+    '================================
+    '======== GET ADDRESS OF ========
+    '================================
+    Private Shared TempPrimitiveValueKeeper As Integer = 0
+    Public Function GetAdressOf(Value As String, Type As PrimitiveClassType) As String
 
-        Lines.Add(Propertie.Setter(Value) & ";")
+        'Pattern to check if a string is a direct variable access in C
+        Dim pattern As String = "^[a-zA-Z_][a-zA-Z0-9_]*(->)?[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$"
 
-    End Sub
+        'Direct access (just add '&')
+        If System.Text.RegularExpressions.Regex.IsMatch(Value, pattern) Then
+            Return "&" & Value
+        End If
+
+        'Create a temp variable
+        TempPrimitiveValueKeeper += 1
+        Dim VarName As String = "keeper" & TempPrimitiveValueKeeper.ToString()
+        WriteLine(Type.CompiledName & " " & VarName & " = " & Value & ";")
+        Return "&" & VarName
+
+    End Function
 
 End Class

@@ -252,10 +252,28 @@
                 ElseIf CurrentToken.Type = TokenType.SYNTAX_LEFT_BRACKET Then
 
                     'TODO
+                    Throw New NotImplementedException
 
                 ElseIf CurrentToken.Type = TokenType.SYNTAX_DOT Then
 
-                    'TODO
+                    'Get child attribute
+                    Advance()
+                    If Not CurrentToken.Type = TokenType.WORD Then
+                        Throw New SyntaxErrorException("The name of an element was expected here.", CurrentToken.Location)
+                    End If
+                    Dim ChildName As String = CurrentToken.Value
+                    Advance()
+
+                    'Finish here
+                    If Not CurrentToken.Type = TokenType.OPERATOR_LESSTHAN Then
+                        Left = New ChildNode(LocationFrom(Left.Location), Left, ChildName)
+                        Continue While
+                    End If
+
+                    'MethodReferenceNode
+                    Dim PassedGenericTypes As List(Of TypeNode) = GetPassedGenericTypes()
+                    Left = New MethodReferenceNode(LocationFrom(Left.Location), Left, ChildName, PassedGenericTypes)
+                    Continue While
 
                 Else
 
@@ -976,11 +994,6 @@
                 Name = CurrentToken.Value
             End If
             Advance()
-
-            ' There is generic types
-            If CurrentToken.Type = TokenType.OPERATOR_LESSTHAN Then
-                Throw New SyntaxErrorException("A class method cannot have generic types. Please use the generic types of the class itself or an independent function.", CurrentToken.Location)
-            End If
 
             ' Get generic types
             If Name = "new" AndAlso CurrentToken.Type = TokenType.OPERATOR_LESSTHAN Then

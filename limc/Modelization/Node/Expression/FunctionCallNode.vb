@@ -46,14 +46,20 @@
             Dim ExplicitName As ProcedureSelectorNode = TargetedFunction
 
             'Get procedure return type
-            Dim Procedure As CompiledProcedure = ExplicitName.GetProcedureByYourself(Scope)
+            Dim Procedure As ICompiledProcedure = ExplicitName.GetProcedureByYourself(Scope)
             If Procedure IsNot Nothing Then
+                If Procedure.ReturnType Is Nothing Then
+                    Throw New TypeErrorException("The """ & Procedure.Name & """ procedure does not return a value", Me.Location)
+                End If
                 Return Procedure.ReturnType
             End If
 
             'Choose by argument
             Procedure = ExplicitName.GetProcedureWithHelpOfArgs(Scope, PassedArguments)
             If Procedure IsNot Nothing Then
+                If Procedure.ReturnType Is Nothing Then
+                    Throw New TypeErrorException("The """ & Procedure.Name & """ procedure does not return a value", Me.Location)
+                End If
                 Return Procedure.ReturnType
             End If
 
@@ -82,7 +88,7 @@
             Dim ExplicitName As ProcedureSelectorNode = TargetedFunction
 
             'Get procedure return type
-            Dim Procedure As CompiledProcedure = ExplicitName.GetProcedureByYourself(Scope)
+            Dim Procedure As ICompiledProcedure = ExplicitName.GetProcedureByYourself(Scope)
             If Procedure IsNot Nothing Then
                 Return ExplicitName.CompileCallTo(Procedure, Scope, PassedArguments)
             End If

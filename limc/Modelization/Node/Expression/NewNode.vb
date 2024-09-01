@@ -53,7 +53,12 @@
         End If
 
         'Get constructor
-        Dim Constructor As CConstructor = DirectCast(Type, ClassType).Constructor(CompiledPassedArguments)
+        Dim Constructor As CConstructor = Nothing
+        Try
+            Constructor = DirectCast(Type, ClassType).Constructor(CompiledPassedArguments)
+        Catch ex As ClassType.ConstructorNotFoundException
+            Throw New SyntaxErrorException("No constructor with these arguments is accessible.", Me.Location)
+        End Try
 
         'Compile constructor call
         Return Constructor.CompiledName & "(" & CompiledArguments & ")"

@@ -47,15 +47,24 @@
     '=============================
     Protected Overrides Function CalculateReturnType(Scope As Scope) As Type
 
-        'Get generic types
+        'Compile types
         Dim GenericTypes As List(Of Type) = CompilePassedGenericTypes(Scope)
 
         'Search function
         Try
             Return Me.Location.File.Function(FunctionName, GenericTypes).SignatureType
         Catch ex As SearchProcedureException
-            Throw New LocalizedException($"The ""{FunctionName}{Type.StringifyListOfType(GenericTypes)}"" function/method cannot be found in this scope.", $"No function or method named ""{FunctionName}"" exist or have {GenericTypes.Count} generic types.", Me.Location)
         End Try
+
+        'Search method
+        If Scope.HasAttachedClass Then
+            Try
+                Return Scope.AttachedClass.Method(FunctionName, GenericTypes).SignatureType
+            Catch ex As SearchProcedureException
+            End Try
+        End If
+
+        Throw New LocalizedException($"The ""{FunctionName}{Type.StringifyListOfType(GenericTypes)}"" function/method cannot be found in this scope.", $"No function or method named ""{FunctionName}"" exist or have {GenericTypes.Count} generic types.", Me.Location)
 
     End Function
 
@@ -66,6 +75,11 @@
 
         'Search function
         If TypeOf Request Is FunctionSignatureType AndAlso Me.Location.File.HasFunction(FunctionName, GenericTypes, DirectCast(Request, FunctionSignatureType)) Then
+            Return True
+        End If
+
+        'Search method
+        If Scope.HasAttachedClass AndAlso TypeOf Request Is FunctionSignatureType AndAlso Scope.AttachedClass.HasMethod(FunctionName, GenericTypes, DirectCast(Request, FunctionSignatureType)) Then
             Return True
         End If
 
@@ -121,7 +135,7 @@
     '=============================
 
     ' Allows you to search for a procedure without using the given arguments, returns Nothing if no unique function is found.
-    Private Function GetProcedureByYourself(Scope As Scope) As CompiledProcedure Implements ProcedureSelectorNode.GetProcedureByYourself
+    Private Function GetProcedureByYourself(Scope As Scope) As ICompiledProcedure Implements ProcedureSelectorNode.GetProcedureByYourself
 
         'Compile types
         Dim PassedGenericTypes As New List(Of Type)
@@ -133,13 +147,23 @@
         Try
             Return Me.Location.File.Function(FunctionName, PassedGenericTypes)
         Catch ex As SearchProcedureException
-            Return Nothing
         End Try
+
+        'Search method
+        If Scope.HasAttachedClass Then
+            Try
+                Return Scope.AttachedClass.Method(FunctionName, PassedGenericTypes)
+            Catch ex As SearchProcedureException
+            End Try
+        End If
+
+        'Nothing found
+        Return Nothing
 
     End Function
 
     ' Searches for a procedure using the given arguments, returns Nothing if no function is found.
-    Private Function GetProcedureWithHelpOfArgs(Scope As Scope, ProvidedArguments As IEnumerable(Of ExpressionNode)) As CompiledProcedure Implements ProcedureSelectorNode.GetProcedureWithHelpOfArgs
+    Private Function GetProcedureWithHelpOfArgs(Scope As Scope, ProvidedArguments As IEnumerable(Of ExpressionNode)) As ICompiledProcedure Implements ProcedureSelectorNode.GetProcedureWithHelpOfArgs
 
         'Compile types
         Dim PassedGenericTypes As New List(Of Type)
@@ -154,10 +178,21 @@
             Return Nothing
         End Try
 
+        'Search method
+        If Scope.HasAttachedClass Then
+            Try
+                Return Scope.AttachedClass.Method(Scope, FunctionName, PassedGenericTypes, ProvidedArguments)
+            Catch ex As SearchProcedureException
+            End Try
+        End If
+
+        'Nothing found
+        Return Nothing
+
     End Function
 
     ' Compiles a call to the targeted procedure
-    Function CompileCallTo(Procedure As CompiledProcedure, Scope As Scope, ProvidedArguments As IEnumerable(Of ExpressionNode)) As String Implements ProcedureSelectorNode.CompileCallTo
+    Function CompileCallTo(Procedure As ICompiledProcedure, Scope As Scope, ProvidedArguments As IEnumerable(Of ExpressionNode)) As String Implements ProcedureSelectorNode.CompileCallTo
 
         'Argument count
         If Procedure.Arguments.Count > ProvidedArguments.Count Then

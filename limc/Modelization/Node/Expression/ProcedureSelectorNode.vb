@@ -4,10 +4,10 @@
 Public Interface ProcedureSelectorNode
 
     ' Allows you to search for a procedure with or without the help of given arguments, returns Nothing if no unique function is found.
-    Function GetProcedureByYourself(Scope As Scope) As CompiledProcedure
-    Function GetProcedureWithHelpOfArgs(Scope As Scope, ProvidedArguments As IEnumerable(Of ExpressionNode)) As CompiledProcedure
+    Function GetProcedureByYourself(Scope As Scope) As ICompiledProcedure
+    Function GetProcedureWithHelpOfArgs(Scope As Scope, ProvidedArguments As IEnumerable(Of ExpressionNode)) As ICompiledProcedure
 
     ' Compile a call to a given procedure
-    Function CompileCallTo(Procedure As CompiledProcedure, Scope As Scope, ProvidedArguments As IEnumerable(Of ExpressionNode)) As String
+    Function CompileCallTo(Procedure As ICompiledProcedure, Scope As Scope, ProvidedArguments As IEnumerable(Of ExpressionNode)) As String
 
 End Interface

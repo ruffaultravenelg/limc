@@ -1,5 +1,41 @@
 ﻿Public Class CMethod
-    Implements BuildableFunction
+    Implements IBuildableFunction
+    Implements Procedure.ICompiledProcedure
+
+    '======================
+    '======== NAME ========
+    '======================
+    Private ReadOnly Property Name As String Implements ICompiledProcedure.Name
+        Get
+            Return Node.Name
+        End Get
+    End Property
+
+    '===============================
+    '======== GENERIC TYPES ========
+    '===============================
+    Private ReadOnly Property GenericTypes As IEnumerable(Of Type) Implements ICompiledProcedure.GenericTypes
+        Get
+            Dim Result As New List(Of Type)
+            For Each GT As GenericType In Scope.GenericTypes
+                Result.Add(GT.Type)
+            Next
+            Return Result
+        End Get
+    End Property
+
+    '===========================
+    '======== ARGUMENTS ========
+    '===========================
+    Private ReadOnly Property ArgumentsTypes As IEnumerable(Of Type) Implements ICompiledProcedure.Arguments
+        Get
+            Dim Result As New List(Of Type)
+            For Each Var As Variable In Scope.Variables
+                Result.Add(Var.Type)
+            Next
+            Return Result
+        End Get
+    End Property
 
     '================================
     '======== FUNCTION SCOPE ========
@@ -19,7 +55,7 @@
     '===============================
     '======== COMPILED NAME ========
     '===============================
-    Public ReadOnly Property CompiledName As String
+    Public ReadOnly Property CompiledName As String Implements ICompiledProcedure.CompiledName
     Private Shared MethodCount As Integer = 0
 
     '==============================
@@ -31,7 +67,7 @@
     '======== RETURN TYPE ========
     '=============================
     Private _ReturnType As Type = Nothing
-    Public ReadOnly Property ReturnType As Type
+    Public ReadOnly Property ReturnType As Type Implements ICompiledProcedure.ReturnType
         Get
 
             'There is a return type
@@ -95,7 +131,7 @@
     Public Sub New(ParentClass As ClassType, Node As MethodConstructNode, GenericTypes As IEnumerable(Of Type))
 
         'Notice parent file that this function is compiled
-        DirectCast(ParentClass, Type).NotifyNewCompiledMethod(Me)
+        ParentClass.NotifyNewCompiledMethod(Me)
 
         'Notify ourself
         FileBuilder.NotifyNewFunction(Me)
@@ -108,13 +144,13 @@
 
         'Create name
         MethodCount += 1
-        CompiledName = $"Method{MethodCount.ToString()}"
+        CompiledName = $"{ParentClass.CompiledName}_Method{MethodCount.ToString()}"
 
         'Create scope
-        Me.Scope = New Scope(ParentClass, AddressOf SetReturnType)
+        Me.Scope = New Scope(ParentClass.Scope, AddressOf SetReturnType)
 
         'Add generic type
-        Node.GenerateGenericTypes(Scope, GenericTypes)
+        Node.AddGenericTypeToScope(Scope, GenericTypes)
 
         'Get arguments varaibles (here for looksLike())
         Node.GenerateArgumentsVariables(Scope)
@@ -128,7 +164,7 @@
         Dim ContentScope As New Scope(Scope)
 
         'Check null self
-        ContentScope.WriteLine("if (self == NULL) panic(""The \""" & Node.Name & "\"" method has been called on a null object of type \""" & ParentClass.ToString() & "\""."");")
+        ContentScope.WriteLine("if (self == NULL) lim_panic(""The \""" & Node.Name & "\"" method has been called on a null object of type \""" & ParentClass.ToString() & "\""."");")
         ContentScope.WriteLine("")
 
         'Compile method's statements
@@ -144,7 +180,7 @@
     '=================================
     '======== BUILD PROTOTYPE ========
     '=================================
-    Private Function BuildPrototype() As String Implements BuildableFunction.BuildPrototypeWithoutSemiColon
+    Private Function BuildPrototype() As String Implements IBuildableFunction.BuildPrototypeWithoutSemiColon
 
         'Compile arguments signatures
         Dim Arguments As String = ""
@@ -154,9 +190,9 @@
 
         'Assemble and return result
         If ReturnType Is Nothing Then
-            Return $"void {CompiledName}({DirectCast(ParentClass, Type).CompiledName} self{Arguments})"
+            Return $"void {CompiledName}(void* self{Arguments})"
         Else
-            Return $"{ReturnType.CompiledName} {CompiledName}({DirectCast(ParentClass, Type).CompiledName} self{Arguments})"
+            Return $"{ReturnType.CompiledName} {CompiledName}(void* self{Arguments})"
         End If
 
     End Function
@@ -164,70 +200,8 @@
     '=============================
     '======== BUILD LOGIC ========
     '=============================
-    Private Function BuildLogic() As IEnumerable(Of String) Implements BuildableFunction.BuildLogic
+    Private Function BuildLogic() As IEnumerable(Of String) Implements IBuildableFunction.BuildLogic
         Return CompiledLogic
-    End Function
-
-    '============================
-    '======== LOOKS LIKE ========
-    '============================
-    Public Function LooksLike(Name As String, PassedGenericTypes As IEnumerable(Of Type), ArgumentsTypes As IEnumerable(Of Type)) As Boolean
-
-        'Name
-        If Not Me.Node.Name = Name Then
-            Return False
-        End If
-
-        'Passed generic types count
-        If Not Scope.GenericTypes.Count = PassedGenericTypes.Count Then
-            Return False
-        End If
-
-        'Passed generic types
-        For i As Integer = 0 To PassedGenericTypes.Count - 1
-            If Not Scope.GenericTypes(i).Type = PassedGenericTypes Then
-                Return False
-            End If
-        Next
-
-        'Passed arguments types count
-        If Not Scope.Variables.Count = ArgumentsTypes.Count Then
-            Return False
-        End If
-
-        'Passed arguments types
-        For i As Integer = 0 To ArgumentsTypes.Count - 1
-            If Not Scope.Variables(i).Type = ArgumentsTypes(i) Then 'TODO: Check type compatibility instead of equality
-                Return False
-            End If
-        Next
-
-        'Everything looks ok
-        Return True
-
-    End Function
-    Public Function LooksLike(Name As String, PassedGenericTypes As IEnumerable(Of Type)) As Boolean
-
-        'Name
-        If Not Me.Node.Name = Name Then
-            Return False
-        End If
-
-        'Passed generic types count
-        If Not Scope.GenericTypes.Count = PassedGenericTypes.Count Then
-            Return False
-        End If
-
-        'Passed generic types
-        For i As Integer = 0 To PassedGenericTypes.Count - 1
-            If Not Scope.GenericTypes(i).Type = PassedGenericTypes(i) Then
-                Return False
-            End If
-        Next
-
-        'Everything looks ok
-        Return True
-
     End Function
 
 End Class

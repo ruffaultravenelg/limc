@@ -8,6 +8,7 @@ Public MustInherit Class Type
     '======== COMMON TYPES ========
     '==============================
     Public Shared int As PrimitiveClassType
+    Public Shared float As PrimitiveClassType
     Public Shared bool As PrimitiveClassType
 
     '============================
@@ -72,7 +73,7 @@ Public MustInherit Class Type
 
         ' Create name
         If CustomCompiledName Is Nothing Then
-            Name = "C" & TypeID & "_t"
+            Name = "C" & TypeID
         Else
             Name = CustomCompiledName
         End If
@@ -188,27 +189,34 @@ Public MustInherit Class Type
     '========================
     '======== METHOD ========
     '========================
-    Public ReadOnly Property Method(Name As String, GenericTypes As IEnumerable(Of Type), ArgumentTypes As IEnumerable(Of Type)) As CMethod
+    Public ReadOnly Property Method(Name As String, GenericTypes As IEnumerable(Of Type)) As CMethod
         Get
-
-            'Search if there is a compiled method that correspond
-            For Each CompiledMethod As CMethod In CompiledMethods
-                If CompiledMethod.LooksLike(Name, GenericTypes, ArgumentTypes) Then
-                    Return CompiledMethod
-                End If
-            Next
-
-            'Search if there is a non-compiled method that correspond
-            Dim NonCompiledMethod As CMethod = SearchMethod(Name, GenericTypes, ArgumentTypes)
-            If NonCompiledMethod IsNot Nothing Then
-                Return NonCompiledMethod
-            End If
-
-            'Not found
-            Throw New MethodNotFoundException(Name)
-
+            Return Procedure.SearchBestProcedure(Me.CompiledMethods, Me.UncompiledMethods, Name, GenericTypes, Function(X, Y) New CMethod(Me, X, Y))
         End Get
     End Property
+    Public ReadOnly Property Method(Scope As Scope, Name As String, GenericTypes As IEnumerable(Of Type), Arguments As IEnumerable(Of ExpressionNode)) As CMethod
+        Get
+            Return Procedure.SearchBestProcedure(Scope, Me.CompiledMethods, Me.UncompiledMethods, Name, GenericTypes, Arguments, Function(X, Y) New CMethod(Me, X, Y))
+        End Get
+    End Property
+    Public ReadOnly Property Method(Name As String, GenericTypes As IEnumerable(Of Type), Signature As FunctionSignatureType) As CMethod
+        Get
+            Return Procedure.SearchBestProcedure(Me.CompiledMethods, Me.UncompiledMethods, Name, GenericTypes, Signature, Function(X, Y) New CMethod(Me, X, Y))
+        End Get
+    End Property
+    Public Function HasMethod(Name As String, GenericTypes As IEnumerable(Of Type), Signature As FunctionSignatureType) As Boolean
+        Try
+            Procedure.SearchBestProcedure(Me.CompiledMethods, Me.UncompiledMethods, Name, GenericTypes, Signature, Function(X, Y) New CMethod(Me, X, Y))
+            Return True
+
+        Catch ex As UnableToFindProcedure
+            Return False
+
+        Catch ex As UnableToChooseProcedure
+            Throw New CompilerException("Two methods have the same signature", "The """ & Me.ToString() & """ type has several procedures named """ & Name & """ with the signature """ & Signature.ToString() & """.")
+
+        End Try
+    End Function
 
     'List of all already compiled methods
     Private CompiledMethods As New List(Of CMethod)
@@ -219,15 +227,28 @@ Public MustInherit Class Type
     End Sub
 
     'Allow for sub-classes to indicate non-compiled methods
-    Protected Overridable Function SearchMethod(Name As String, GenericTypes As IEnumerable(Of Type), ArgumentTypes As IEnumerable(Of Type)) As CMethod
-        Return Nothing
-    End Function
+    Protected Overridable ReadOnly Property UncompiledMethods As IEnumerable(Of MethodConstructNode) = New List(Of MethodConstructNode)
 
     'When a getter is not found
     Public Class MethodNotFoundException
         Inherits CompilerException
         Public Sub New(Name As String)
             MyBase.New("Method not found", $"Method ""{Name}"" not found.")
+        End Sub
+    End Class
+
+    '==============================
+    '======== SET VARIABLE ========
+    '==============================
+    Public Overridable Function SetVariable(Variable As String, NewValue As String) As String
+        Throw New CannotSetVariableOfTypeException(Me)
+    End Function
+
+    'When a type cannot be set
+    Public Class CannotSetVariableOfTypeException
+        Inherits CompilerException
+        Public Sub New(Type As Type)
+            MyBase.New("The type does not allow updating", "A variable of type """ & Type.ToString() & """ cannot be updated.")
         End Sub
     End Class
 

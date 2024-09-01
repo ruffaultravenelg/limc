@@ -1,24 +1,21 @@
-﻿Imports System.Diagnostics.CodeAnalysis
+﻿Public Class CFunction
+    Implements IBuildableFunction
+    Implements Procedure.ICompiledProcedure
 
-Public Class CFunction
-    Implements BuildableFunction
-    Implements Procedure.CompiledProcedure
-
-    '================================
-    '======== FUNCTION SCOPE ========
-    '================================
+    '======================
+    '======== NAME ========
+    '======================
     Private Node As FunctionConstructNode
-    Private ReadOnly Property Name As String Implements CompiledProcedure.Name
+    Private ReadOnly Property Name As String Implements ICompiledProcedure.Name
         Get
             Return Node.Name
         End Get
     End Property
 
-    '================================
-    '======== FUNCTION SCOPE ========
-    '================================
-    Private Scope As Scope 'Only for arguments, use deeper scope for content
-    Private ReadOnly Property GenericTypes As IEnumerable(Of Type) Implements CompiledProcedure.GenericTypes
+    '===============================
+    '======== GENERIC TYPES ========
+    '===============================
+    Private ReadOnly Property GenericTypes As IEnumerable(Of Type) Implements ICompiledProcedure.GenericTypes
         Get
             Dim Result As New List(Of Type)
             For Each GT As GenericType In Scope.GenericTypes
@@ -31,7 +28,8 @@ Public Class CFunction
     '===========================
     '======== ARGUMENTS ========
     '===========================
-    Private ReadOnly Property ArgumentsTypes As IEnumerable(Of Type) Implements CompiledProcedure.Arguments
+    Private Scope As Scope 'Only for arguments, use deeper scope for content
+    Private ReadOnly Property ArgumentsTypes As IEnumerable(Of Type) Implements ICompiledProcedure.Arguments
         Get
             Dim Result As New List(Of Type)
             For Each Var As Variable In Scope.Variables
@@ -49,14 +47,14 @@ Public Class CFunction
     '===============================
     '======== COMPILED NAME ========
     '===============================
-    Public ReadOnly Property CompiledName As String Implements CompiledProcedure.CompiledName
+    Public ReadOnly Property CompiledName As String Implements ICompiledProcedure.CompiledName
     Private Shared FunctionCount As Integer = 0
 
     '=============================
     '======== RETURN TYPE ========
     '=============================
     Private _ReturnType As Type = Nothing
-    Public ReadOnly Property ReturnType As Type Implements CompiledProcedure.ReturnType
+    Public ReadOnly Property ReturnType As Type Implements ICompiledProcedure.ReturnType
         Get
 
             'There is a return type
@@ -120,7 +118,7 @@ Public Class CFunction
     Public Sub New(Node As FunctionConstructNode, GenericTypes As IEnumerable(Of Type))
 
         'Notice parent file that this function is compiled
-        Node.Location.File.NoticeNewCompiledFunction(Me)
+        Node.Location.File.NoticeNewCompiledFunction(Me, Node)
 
         'Notify ourself
         FileBuilder.NotifyNewFunction(Me)
@@ -158,7 +156,7 @@ Public Class CFunction
     '=================================
     '======== BUILD PROTOTYPE ========
     '=================================
-    Private Function BuildPrototype() As String Implements BuildableFunction.BuildPrototypeWithoutSemiColon
+    Private Function BuildPrototype() As String Implements IBuildableFunction.BuildPrototypeWithoutSemiColon
 
         'Compile arguments signatures
         Dim Arguments As String = ""
@@ -183,7 +181,7 @@ Public Class CFunction
     '=============================
     '======== BUILD LOGIC ========
     '=============================
-    Private Function BuildLogic() As IEnumerable(Of String) Implements BuildableFunction.BuildLogic
+    Private Function BuildLogic() As IEnumerable(Of String) Implements IBuildableFunction.BuildLogic
         Return CompiledLogic
     End Function
 
