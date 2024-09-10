@@ -1,12 +1,12 @@
-﻿Public Class HeapClassType
+﻿Public Class ArrayType
     Inherits ClassType
     Implements IBuildableStructure
     Implements IGarbageCollectedType
 
-    '=======================
-    '======== CLASS ========
-    '=======================
-    Private FromClass As ClassConstructNode
+    '=============================
+    '======== TYPE LISTED ========
+    '=============================
+    Private TypeListed As Type
 
     '===============================
     '======== COMPILED NAME ========
@@ -34,17 +34,16 @@
     '=============================
     '======== SOURCE NAME ========
     '=============================
-    Protected Overrides ReadOnly Property SourceName As String
-        Get
-            Return FromClass.Name
-        End Get
-    End Property
+    Protected Overrides ReadOnly Property SourceName As String = "array"
 
     '=============================
     '======== CONSTRUCTOR ========
     '=============================
-    Public Sub New(From As ClassConstructNode, PassedGenericTypes As IEnumerable(Of Type))
-        MyBase.New(From.Location.File)
+    Private Sub New(ListedType As Type)
+        MyBase.New(LimSource.STD)
+
+        'Set listed type
+        Me.TypeListed = ListedType
 
         'Notify to file builder
         FileBuilder.NotifyNewStructure(Me)
@@ -52,26 +51,11 @@
         'Set attached class of type's scope
         Me.Scope.AttachClass(Me)
 
-        'Set class
-        Me.FromClass = From
-
         'Set generic types
-        Me.Scope.GenericTypes.AddRange(FromClass.CreateGenericTypes(PassedGenericTypes))
+        Me.Scope.GenericTypes.Add(New GenericType("T", ListedType))
 
-        'Create class's variables for the scope
-        Dim PropertiesCounter As Integer = 0
-        For Each DeclareVariable As DeclareVariableStatementNode In FromClass.DeclareVariables
-            PropertiesCounter += 1
-            Dim VariableCompiledName As String = $"propertie{PropertiesCounter}"
-            If DeclareVariable.VariableType IsNot Nothing Then
-                Properties.Add(New Propertie(Me, DeclareVariable.VariableName, DeclareVariable.VariableType.AssociatedType(Me.SharedScope), VariableCompiledName))
-            Else
-                Properties.Add(New Propertie(Me, DeclareVariable.VariableName, DeclareVariable.VariableValue.ReturnType(Me.SharedScope), VariableCompiledName))
-            End If
-        Next
-
-        'Create default state
-        'Dim DefaultMethod As New CPrimitiveClassConstructor(Me, FromClass.DefaultState, True) 'if FromClass.DefaultState is nothing CConstructor will create a default method
+        'Create constructor
+        Dim Constructor As New CArrayConstructor(Me)
 
         'Create assignement function
         CSourceFunction.GenerateSourceFunction(
@@ -97,17 +81,18 @@
             "",
             "self->marked = true;"
         }
-        For Each Propertie As Propertie In Properties
-            If TypeOf Propertie.Type Is IGarbageCollectedType Then
-                MarkFunctionContent.Add(Propertie.Type.Name & "_mark(self->" & Propertie.CompiledName & ");")
-            End If
-        Next
+        If TypeOf ListedType Is IGarbageCollectedType Then
+            MarkFunctionContent.Add("")
+            MarkFunctionContent.Add("for (int i = 0; i < self->length; i++)")
+            MarkFunctionContent.Add(vbTab & ListedType.Name & "_mark(self->array[i]);")
+        End If
         CSourceFunction.GenerateSourceFunction($"void {Name}_mark({CompiledName} self)", MarkFunctionContent)
 
         'Create free function
         CSourceFunction.GenerateSourceFunction($"void {Name}_free({CompiledName} self)", {
             "if (self == NULL)",
             vbTab & "return;",
+            "free(self->array);",
             "free(self);"
         })
 
@@ -128,16 +113,11 @@
         'Create result
         Dim Result As New List(Of String)
 
-        'Header
+        'Struct content
         Result.Add("// " & ToString())
         Result.Add("typedef struct " & Name & "{")
-
-        'All propertie
-        For Each Propertie As Propertie In Properties
-            Result.Add(vbTab & $"{Propertie.Type.CompiledName} {Propertie.CompiledName}; //{Propertie.Name}")
-        Next
-
-        'Footer
+        Result.Add(vbTab & TypeListed.CompiledName & "* array;")
+        Result.Add(vbTab & "int length;")
         Result.Add(vbTab & "int stackReferences;")
         Result.Add(vbTab & "bool marked;")
         Result.Add(vbTab & $"{CompiledName} next;")
@@ -148,26 +128,12 @@
 
     End Function
 
-    '====================================
-    '======== UNCOMPILED METHODS ========
-    '====================================
-    Protected Overrides ReadOnly Property UncompiledMethods As IEnumerable(Of MethodConstructNode)
-        Get
-            Return FromClass.Methods
-        End Get
-    End Property
-
     '==============================
     '======== CONSTRUCTORS ========
     '==============================
-    Protected Overrides ReadOnly Property UncompiledConstructors As IEnumerable(Of MethodConstructNode)
-        Get
-            Return FromClass.Constructors
-        End Get
-    End Property
     Protected Overrides ReadOnly Property CompiledConstructor(UncompiledConstructor As IUnCompiledProcedure) As CConstructor
         Get
-            Return New CHeapClassConstructor(Me, UncompiledConstructor)
+            Return Nothing
         End Get
     End Property
 
@@ -178,5 +144,31 @@
     Public Overrides Function SetVariable(Variable As String, NewValue As String) As String
         Return $"{Name}_set(&{Variable}, {NewValue});"
     End Function
+
+    '==========================================
+    '======== ALL COMPILED ARRAY TYPES ========
+    '==========================================
+    Private Shared AllCompiledArrayTypes As New List(Of ArrayType)
+
+    '===========================
+    '======== FROM TYPE ========
+    '===========================
+    Public Shared ReadOnly Property FromType(Type As Type) As ArrayType
+        Get
+
+            'If type already compiled
+            For Each CompiledArrayType As ArrayType In AllCompiledArrayTypes
+                If CompiledArrayType.TypeListed = Type Then
+                    Return CompiledArrayType
+                End If
+            Next
+
+            'Create type
+            Dim Result As New ArrayType(Type)
+            AllCompiledArrayTypes.Add(Result)
+            Return Result
+
+        End Get
+    End Property
 
 End Class

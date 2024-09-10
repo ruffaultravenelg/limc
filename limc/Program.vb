@@ -41,12 +41,29 @@ Module Program
     '=============================
     '======== CUSTOM TAGS ========
     '=============================
-    Private _DefinedFlag As New List(Of String)
-    Public ReadOnly Property DefinedFlag As List(Of String)
+    Private _DefinedFlags As New List(Of String)
+    Public ReadOnly Property DefinedFlags As List(Of String)
         Get
-            Return _DefinedFlag
+            Return _DefinedFlags
         End Get
     End Property
+    Public Function HasFlag(Flag As String) As Boolean
+        Dim Value As String = Flag.ToLower()
+        For Each DefinedFlag As String In DefinedFlags
+            If DefinedFlag.ToLower() = Value Then
+                Return True
+            End If
+        Next
+        Return False
+    End Function
+    Public Function HasFlags(Flags As IEnumerable(Of String)) As Boolean
+        For Each Flag As String In Flags
+            If Not HasFlag(Flag) Then
+                Return False
+            End If
+        Next
+        Return True
+    End Function
 
     '=============================
     '======== ENTRY POINT ========
@@ -96,12 +113,13 @@ Module Program
         _OutputFile = Path.GetFullPath(_OutputFile)
 
         'Flags but compiles a lib
-        If DefinedFlag.Count > 0 AndAlso (CompilationTarget = CompilationType.Libs OrElse CompilationTarget = CompilationType.Json) Then
+        If DefinedFlags.Count > 0 AndAlso (CompilationTarget = CompilationType.Libs OrElse CompilationTarget = CompilationType.Json) Then
             Throw New InvalidCompileTargetException("You are compiling to a library file while limiting the contents of the file with flags. When you want to compile to this kind of file, no compilation flag can be set.")
         End If
 
         'Add current platform flag
-        _DefinedFlag.Add(Platform.Current.ToString())
+        _DefinedFlags.Add(Platform.CurrentOS.ToString())
+        _DefinedFlags.Add(Platform.CurrentArch.ToString())
 
         'Start to compile
         Compiler.Compile()
@@ -174,7 +192,8 @@ Module Program
             'Custom flag
             If arg = "-f" OrElse arg = "--add-flag" Then
                 i += 1
-                _DefinedFlag.Add(args(i))
+                _DefinedFlags.Add(args(i))
+                Continue While
             End If
 
             'Not found
@@ -202,15 +221,13 @@ Module Program
         Console.WriteLine(vbTab & "--version" & vbTab & vbTab & "-v" & vbTab & vbTab & vbTab & ": Show current software version")
         Console.WriteLine("")
         Console.WriteLine(vbTab & "--icon [icon_path]" & vbTab & "-i [icon_path]" & vbTab & vbTab & ": Set the executable icon")
-        Console.WriteLine(vbTab & "--gcc-bin [gcc_bin_dir]" & vbTab & "-gcc [gcc_bin_dir]" & vbTab & ": Set a custom gcc bin directory. Just the parent folder.")
+        Console.WriteLine(vbTab & "--gcc-bin [gcc_bin_dir]" & vbTab & "-gcc [gcc_bin_dir]" & vbTab & ": Set a custom gcc bin directory.")
         Console.WriteLine(vbTab & "--target [<com_type>]" & vbTab & "-t [<com_type>]" & vbTab & vbTab & ": Set file type to be compiled.")
         Console.WriteLine(vbTab & "--add-flag [flag]" & vbTab & "-f [flag]" & vbTab & vbTab & ": Add a custom flag.")
         Console.WriteLine("")
         Console.WriteLine("<com_type>:")
         Console.WriteLine(vbTab & "bin" & vbTab & ": Compiles the project to an executable")
         Console.WriteLine(vbTab & "c" & vbTab & ": Compiles the project to a single .c source file")
-        Console.WriteLine(vbTab & "lib" & vbTab & ": Compiles the file to a .limlib file, containing all the code")
-        Console.WriteLine(vbTab & "json" & vbTab & ": Compiles the file to a .json file, containing all the node (for debuging)")
 
     End Sub
 

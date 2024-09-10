@@ -7,6 +7,11 @@
     Public Property Exported As Boolean
 
     '=============================
+    '======== ANNOTATIONS ========
+    '=============================
+    Public Property Annotations As Annotations
+
+    '=============================
     '======== CONSTRUCTOR ========
     '=============================
     Protected Sub New(Location As Location)

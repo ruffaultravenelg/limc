@@ -27,7 +27,7 @@ Public MustInherit Class ClassType
             End Try
 
             'Default constructor?
-            If ArgumentTypes.Count = 0 AndAlso UncompiledConstructors.Count = 0 Then
+            If ArgumentTypes.Count = 0 AndAlso UncompiledConstructors.Count = 0 AndAlso TypeOf Me IsNot ArrayType Then
                 Return CompiledConstructor(Nothing) 'Nothing => Default constructor
             End If
 

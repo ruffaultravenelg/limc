@@ -13,8 +13,8 @@
     '=============================
     Protected Overrides Function CreateSelf() As IEnumerable(Of String)
         Return {
-            $"{ParentType.CompiledName} local_self;",
-            $"void* self = &local_self;"
+            $"{ParentType.CompiledName} cself;",
+            $"void* self = &cself;"
         }
     End Function
 
@@ -22,7 +22,7 @@
     '======== RETURN VALUE ========
     '==============================
     Protected Overrides Function ReturnValue() As String
-        Return "local_self"
+        Return "cself"
     End Function
 
 End Class

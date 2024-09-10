@@ -144,7 +144,7 @@
     ' WARNING: This function does not check if the type of the new value is that of the propertie, neighter if we are in a class.
     '
     Public Sub WritePropertieAssignation(Propertie As Propertie, Value As String)
-        Lines.Add(Propertie.Type.SetVariable(Propertie.AcessName, Value))
+        Lines.Add(Propertie.AcessName & " = " & Value & ";")
     End Sub
 
     '========================

@@ -1,4 +1,5 @@
 ﻿Imports System.IO
+Imports System.Threading
 Public Class LimSource
 
     '====================================
@@ -281,8 +282,7 @@ Public Class LimSource
                 If CL.Primitive Then
                     Return New PrimitiveClassType(CL, GenericTypes)
                 Else
-                    Throw New NotImplementedException
-                    'Return New ClassType(Me)
+                    Return New HeapClassType(CL, GenericTypes)
                 End If
             End If
         Next

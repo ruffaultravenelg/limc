@@ -38,7 +38,7 @@
     '===================================
     '======== CONSTRUCTOR SCOPE ========
     '===================================
-    Private Scope As Scope 'Only for arguments, use deeper scope for content
+    Protected Scope As Scope 'Only for arguments, use deeper scope for content
 
     '===============================
     '======== COMPIED LOGIC ========
@@ -108,7 +108,7 @@
     '=================================
     '======== BUILD PROTOTYPE ========
     '=================================
-    Private Function BuildPrototype() As String Implements IBuildableFunction.BuildPrototypeWithoutSemiColon
+    Protected Overridable Function BuildPrototype() As String Implements IBuildableFunction.BuildPrototypeWithoutSemiColon
 
         'Compile arguments signatures
         Dim Arguments As String = ""

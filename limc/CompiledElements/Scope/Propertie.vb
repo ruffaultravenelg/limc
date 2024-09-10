@@ -33,7 +33,8 @@ Public Class Propertie
         Me.CompiledName = CompiledName
 
         'Set acess name
-        Me.AcessName = "((" & ParentType.Name & "*)self)->" & CompiledName
+        Dim AccessOperator As String = If(TypeOf ParentType Is PrimitiveClassType, ".", "->")
+        Me.AcessName = "cself" & AccessOperator & CompiledName
 
         'Set name
         Me.Name = Name

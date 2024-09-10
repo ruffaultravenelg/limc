@@ -144,7 +144,7 @@
 
         'Create name
         MethodCount += 1
-        CompiledName = $"{ParentClass.CompiledName}_Method{MethodCount.ToString()}"
+        CompiledName = $"{ParentClass.Name}_Method{MethodCount.ToString()}"
 
         'Create scope
         Me.Scope = New Scope(ParentClass.Scope, AddressOf SetReturnType)

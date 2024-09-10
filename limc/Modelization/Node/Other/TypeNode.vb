@@ -71,6 +71,19 @@ Public Class TypeNode
 
         End If
 
+        'Array type
+        If Name = "array" Then
+
+            'Error
+            If GenericTypes.Count <> 1 Then
+                Throw New SyntaxErrorException("An array takes only one generic type, representing the element to be listed.", Me.Location)
+            End If
+
+            'Search & return type
+            Return ArrayType.FromType(GenericTypes(0))
+
+        End If
+
         'Search type in current file
         Try
             Return Me.Location.File.Type(Name, GenericTypes)

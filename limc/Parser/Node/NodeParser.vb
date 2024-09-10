@@ -1,4 +1,6 @@
-﻿Public Module NodeParser
+﻿Imports System.Collections.Concurrent
+
+Public Module NodeParser
 
     '
     ' Parse a list of token into differents nodes
@@ -135,6 +137,11 @@
 
                 ' Get node
                 Dim Construct As ConstructNode = GetConstruct()
+
+                ' Check "on" annotation
+                If Construct.Annotations.HasAnnotation("on") AndAlso Not Program.HasFlags(Construct.Annotations.GetAnnotationParameters("on")) Then
+                    Continue While
+                End If
 
                 ' Sort
                 If TypeOf Construct Is ExceptionConstructNode Then
@@ -977,6 +984,9 @@
             ' Save location
             Dim Start As Location = CurrentToken.Location
 
+            ' Get annotations
+            Dim Annotations As New Annotations(GetAnnotations())
+
             ' Exception keyword
             If Not CurrentToken.Type = TokenType.KEYWORD_FUNC Then
                 Return Nothing
@@ -1031,7 +1041,7 @@
             Dim Logic As List(Of StatementNode) = GetLogic(2) '2 because it's a method.
 
             ' Return result
-            Return New MethodConstructNode(LocationFrom(Start), Logic, Name, GenericTypes, Arguments, ReturnType)
+            Return New MethodConstructNode(LocationFrom(Start), Logic, Name, GenericTypes, Arguments, ReturnType) With {.Annotations = Annotations}
 
         End Function
 
@@ -1119,6 +1129,13 @@
                     Throw New SyntaxErrorException("No class statement could be found here.", CurrentToken.Location)
                 End If
 
+                ' Check "on" annotation
+                If TypeOf Result Is ConstructNode Then
+                    If DirectCast(Result, ConstructNode).Annotations.HasAnnotation("on") AndAlso Not Program.HasFlags(DirectCast(Result, ConstructNode).Annotations.GetAnnotationParameters("on")) Then
+                        Continue While
+                    End If
+                End If
+
                 ' Return result
                 Content.Add(Result)
 
@@ -1197,6 +1214,22 @@
 
         End Function
 
+        '=================================
+        '======== GET ANNOTATIONS ========
+        '=================================
+        Private Function GetAnnotations() As List(Of AnnotationNode)
+
+            Dim Result As New List(Of AnnotationNode)
+
+            While CurrentToken.Type = TokenType.PRECOMPILE
+                Result.Add(New AnnotationNode(CurrentToken.Location, CurrentToken.Value))
+                Advance()
+            End While
+
+            Return Result
+
+        End Function
+
         '===============================
         '======== GET CONSTRUCT ========
         '===============================
@@ -1214,6 +1247,9 @@
 
             ' Skip indentation
             Advance()
+
+            ' Get annotations
+            Dim Annotations As New Annotations(GetAnnotations())
 
             ' Is the construct exported ?
             Dim Exported As Boolean = False
@@ -1251,6 +1287,9 @@
 
             ' Change it's visibility (exported or not)
             Result.Exported = Exported
+
+            'Change it's annotations
+            Result.Annotations = Annotations
 
             ' Return result
             Return Result

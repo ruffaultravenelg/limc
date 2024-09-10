@@ -152,7 +152,7 @@ Public MustInherit Class Type
 
         'Is there somes generic types
         If SharedScope.GenericTypes.Count > 0 Then
-            Return SourceName & limc.Type.StringifyListOfType(GenericType.GetTypes(SharedScope.GenericTypes))
+            Return SourceName & Type.StringifyListOfType(GenericType.GetTypes(SharedScope.GenericTypes))
         Else
             Return SourceName
         End If

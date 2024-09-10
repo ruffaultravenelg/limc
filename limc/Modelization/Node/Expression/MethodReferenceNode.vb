@@ -198,8 +198,17 @@
             Throw New LocalizedException("Too many arguments", Procedure.Arguments.Count & " arguments were expected instead of " & ProvidedArguments.Count & ".", Me.Location)
         End If
 
+        'Compile parent
+        Dim CompiledParent As String
+        Dim ParentType As Type = Parent.ReturnType(Scope)
+        CompiledParent = Parent.Compile(Scope)
+
+        If TypeOf ParentType IsNot HeapClassType Then
+            CompiledParent = Scope.GetAdressOf(Parent.Compile(Scope), ParentType)
+        End If
+
         'Compile args
-        Dim Arguments As String = Scope.GetAdressOf(Parent.Compile(Scope), Parent.ReturnType(Scope))
+        Dim Arguments As String = CompiledParent
         For i As Integer = 0 To Procedure.Arguments.Count - 1
 
             Dim WantedType As Type = Procedure.Arguments(i)

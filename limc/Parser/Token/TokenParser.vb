@@ -237,20 +237,47 @@
     '
     Private Function ParsePrecompile() As Token
 
-        'Pass the '@'
+        ' Pass the '@'
         Advance()
 
-        'Get the word
+        ' Get the word (the name of the annotation)
         Dim start As Integer = CharIndex
         While Char.IsLetterOrDigit(CurrentChar)
             Advance()
         End While
-        Dim word As String = CurrentLine.Content.Substring(start, CharIndex - start)
+        Dim name As String = CurrentLine.Content.Substring(start, CharIndex - start)
 
-        'Create token
-        Return CreateToken(TokenType.PRECOMPILE, word)
+        ' Check if there is an argument list (i.e., a '(' follows the name)
+        Dim args As String = ""
+        If CurrentChar = "("c Then
+            Advance() ' Pass the '('
+            start = CharIndex
+
+            ' Continue until we find the closing ')'
+            While CurrentChar <> ")"c AndAlso Not CurrentChar = Nothing
+                Advance()
+            End While
+
+            ' Capture the arguments, if any
+            args = CurrentLine.Content.Substring(start, CharIndex - start)
+
+            ' Pass the closing ')'
+            If CurrentChar = ")"c Then
+                Advance()
+            End If
+        End If
+
+        ' Combine name and args (if present) into a single string
+        Dim precompileContent As String = name
+        If args <> "" Then
+            precompileContent &= "(" & args & ")"
+        End If
+
+        ' Create token
+        Return CreateToken(TokenType.PRECOMPILE, precompileContent)
 
     End Function
+
 
     '
     ' Parse a number

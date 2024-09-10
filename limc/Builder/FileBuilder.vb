@@ -63,6 +63,26 @@ Public Module FileBuilder
         ' Space between
         Writer.WriteLine()
 
+        'Garbage collector heads
+        WriteHeaderComment(Writer, "garbage collectors anchors")
+        For Each line As String In GarbageCollector.GetLinkedListHeads()
+            Writer.WriteLine(line)
+        Next
+
+        ' Space between
+        Writer.WriteLine()
+
+        'Garbage collector mark
+        WriteHeaderComment(Writer, "garbage collector mark")
+        Writer.WriteLine("void mark(){")
+        For Each line As String In GarbageCollector.GetMarkContent()
+            Writer.WriteLine(vbTab & line)
+        Next
+        Writer.WriteLine("}")
+
+        ' Space between
+        Writer.WriteLine()
+
         ' Build functions
         WriteHeaderComment(Writer, "functions")
         For Each Fn As IBuildableFunction In Functions
