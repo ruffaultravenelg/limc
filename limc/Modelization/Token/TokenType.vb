@@ -61,4 +61,6 @@
 
     PRECOMPILE
 
+    SOURCE
+
 End Enum

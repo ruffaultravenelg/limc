@@ -1,89 +1,121 @@
-# Lim Compiler
+# limc - Lim Compiler
 
 ## Introduction
-Lim est un langage de programmation compilé orienté objet.
+`limc` est un compilateur pour le langage [Lim](#lim). Il prend des fichiers source `.lim` et les convertit exécutables.
 
-## Fonctionnalités
-- Programmation orientée objet.
-- Programmation événementielle.
-- Support du multithreading.
-- Compilation vers le langage C.
-- Ramasse miette intégrée.
+## Utilisation
+```bash
+limc <source> <destination> [options...]
+```
 
-## Prérequis (pour le code source)
-- .NET Framework 8.0 ou version ultérieure pour compiler le projet.
+- `source` : Chemin vers le fichier `.lim` à compiler. Ce fichier doit contenir une fonction `main`.
+- `destination` : Chemin vers l'exécutable à créer. Le fichier sera écrasé s'il existe déjà.
 
-## Utilisation (du compilateur)
-1. Téléchargez-le depuis les releases.
-2. Ouvrez un terminal.
-3. Utilisez la commande `limc <source.lim> [destination] [flags...]`.
+## Intentions
+Lim a été avant tout conçu comme un projet ludique, sans la prétention de rivaliser avec quelconque autre langages, ou de réinventer la roue. Cependant, il essaie d'explorer une approche différente de la programmation orientée objet, en privilégiant la composition plutôt que l'héritage, notamment dans sa syntaxe.
 
-## Exemples
-### Hello World
-```limc
+## Caractéristiques techniques
+- Lim compile d'abord tout le code source en un fichier C, puis utilise `gcc` pour le transformer en exécutable. Cela permet d'accéder à l'ensemble des bibliothèques C. De plus, il est possible d'injecter directement du code C dans le code Lim.
+- Le type d'allocation mémoire est déterminé par la classe : une classe déclarée avec `class` crée des objets sur le tas (heap), tandis qu'une classe `primitive class` alloue ses objets sur la pile (stack).
+- Là où Java prône "Write once, run anywhere", Lim prône le "Write once, compile anywhere".
+
+## À faire
+- [X] Classes primitives
+- [X] Fonctions
+- [X] Système d'import/export
+- [X] Types génériques
+- [X] Classes heap
+- [X] Ajout direct de sources
+- [X] Collecteur de déchets (Garbage Collector)
+- [ ] Relations
+- [ ] Accesseurs (getters & setters)
+- [ ] Chaînes de caractères
+- [ ] Énumérations
+- [ ] Contrats
+- [ ] Extensions
+- [ ] Multithreading
+
+## Lim
+Lim est un langage compilé, orienté objet et fortement typé, inspiré de la syntaxe de Python.
+
+### Exemple : Hello World
+```go
 func main
-    puts("Hello world")
+    puts("Hello World")
 ```
 
-### Définition d'une classe
-```limc
-class user
-    let username:str
-    let age:int
+### Fonctions
+```go
+func main(args:array<str>)
+    for arg in args
+        if not isFlag(arg)
+            puts(arg)
 
-    func new(_username:str, _age:int)
-        username = _username
-        age = _age
+func isFlag(arg:str)
+    return arg[0] == '-'
 ```
 
-### Programmation synchronisée
-```limc
-func foo
-    ...
+### Types génériques et accesseurs
+```go
+class stack<T>
+    let content:list<T>
 
-func main
-    foo() // La fonction foo sera exécutée, une fois finie, on passe à la ligne suivante
-    cook foo() // La fonction foo est appelée sur un nouveau thread, la fonction continue sans attendre que foo finisse.
+    func new
+        content = new list<T>
+    
+    func push(elm:T)
+        content.add(elm)
+
+    func pop:T
+        let elm = content[-1]
+        content.remove(-1)
+        return elm
+    
+    get len
+        return content.len
 ```
 
-### Utilisation des relations
-```limc
-class vector
+### Contrats
+```go
+import image
+
+class rectangle implements drawable
     let x:int
     let y:int
+    let w:int
+    let h:int
 
-    func new(x:int, y:int)
-        me.x = x
-        me.y = y
-    
-    relation +(a:vector, b:vector)
-        return new vector(a.x + b.x, a.y + b.y)
+    func draw(canvas:image)
+        canvas.drawRect(x, y, w, h, "#00FF00".hex())
 
-func main
-    let vec1 = new vector(1, 2)
-    let vec2 = new vector(3, 4)
-    let vec3 = vec1 + vec2
+class circle implements drawable
+    let x:int
+    let y:int
+    let r:int
+
+    func draw(canvas:image)
+        canvas.drawEllipse(x, y, r, r, "#0000FF".hex())
+
+contract drawable
+    func draw(img:image)
 ```
 
-### Utilisation des contrats (interfaces)
-```limc
-class vehicule
-    func avancer()
+### Extensions
+Lim ne permet pas l'héritage, mais il est possible d'étendre une classe avec `extend` :
+```go
+extend int
+    let counter
 
-class bus signs vehicule
-    func avancer()
-
-class voiture signs vehicule
-    func avancer()
-
-func main
-    let v:vehicule = new bus()
-    v.avancer() // Appelle le avancer() de bus
+    func increment
+        counter += 1
 ```
 
-## Projets utilisés
-- [Boehm GC](https://github.com/ivmai/bdwgc)
-- [SDL2](https://www.libsdl.org/)
-- [MinGW](https://www.mingw-w64.org/)
-- [Olive C](https://github.com/tsoding/olive.c/)
-- [STB](https://github.com/nothings/stb/)
+Il est également possible d'étendre toutes les classes qui implémentent un contrat :
+```go
+extend drawable
+    let c:color
+```
+Ici, la propriété `c:color` sera ajoutée aux classes `rectangle` et `circle`.
+
+## Liens
+- [TGC](https://github.com/orangeduck/tgc) est un collecteur de déchets (garbage collector) de type mark-and-sweep qui m'a grandement aidé lors du développement des prototypes.

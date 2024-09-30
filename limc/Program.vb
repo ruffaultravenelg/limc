@@ -18,6 +18,16 @@ Module Program
         End Get
     End Property
 
+    '=========================================
+    '======== GARBAGE COLLECTOR DEBUG ========
+    '=========================================
+    Private _GarbageCollectorDebug As Boolean = False
+    Public ReadOnly Property GarbageCollectorDebug As Boolean
+        Get
+            Return _GarbageCollectorDebug
+        End Get
+    End Property
+
     '============================
     '======== INPUT FILE ========
     '============================
@@ -189,6 +199,13 @@ Module Program
                 Continue While
             End If
 
+            'Garbage collector debug
+            If arg = "-gcd" Then
+                i += 1
+                _GarbageCollectorDebug = True
+                Continue While
+            End If
+
             'Custom flag
             If arg = "-f" OrElse arg = "--add-flag" Then
                 i += 1
@@ -224,6 +241,7 @@ Module Program
         Console.WriteLine(vbTab & "--gcc-bin [gcc_bin_dir]" & vbTab & "-gcc [gcc_bin_dir]" & vbTab & ": Set a custom gcc bin directory.")
         Console.WriteLine(vbTab & "--target [<com_type>]" & vbTab & "-t [<com_type>]" & vbTab & vbTab & ": Set file type to be compiled.")
         Console.WriteLine(vbTab & "--add-flag [flag]" & vbTab & "-f [flag]" & vbTab & vbTab & ": Add a custom flag.")
+        Console.WriteLine(vbTab & "-gcd" & vbTab & vbTab & vbTab & vbTab & vbTab & ": Activate debugs prints for garbage collector.")
         Console.WriteLine("")
         Console.WriteLine("<com_type>:")
         Console.WriteLine(vbTab & "bin" & vbTab & ": Compiles the project to an executable")

@@ -41,6 +41,7 @@ Public Module NodeParser
             AddressOf GetReturnStatement,
             AddressOf GetRaiseStatement,
             AddressOf GetCall,
+            AddressOf GetSource,
             AddressOf GetAsignVaraible
         }
 
@@ -197,11 +198,18 @@ Public Module NodeParser
                 Return Expression
             End If
 
-            'True
+            'Boolean
             If CurrentToken.Type = TokenType.BOOL Then
                 Advance()
                 Return New BooleanNode(Tok)
             End If
+
+            'String
+            If CurrentToken.Type = TokenType.STR Then
+                Advance()
+                Return New StringNode(Tok.Location, Tok.Value)
+            End If
+
 
             'No factor found
             Throw New SyntaxErrorException("An expression was expected here.", CurrentToken.Location)
@@ -645,6 +653,27 @@ Public Module NodeParser
             End While
 
             'Return result
+            Return Result
+
+        End Function
+
+        '============================
+        '======== GET SOURCE ========
+        '============================
+        Private Function GetSource(StatementIndentationLevel As Integer) As SourceStatement
+
+            'No break keyword
+            If Not CurrentToken.Type = TokenType.SOURCE Then
+                Return Nothing
+            End If
+
+            'Create token
+            Dim Result As New SourceStatement(CurrentToken.Location, CurrentToken.Value)
+
+            'Advance
+            Advance()
+
+            ' Return
             Return Result
 
         End Function

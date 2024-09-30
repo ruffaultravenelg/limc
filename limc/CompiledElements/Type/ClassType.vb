@@ -1,6 +1,4 @@
-﻿Imports System.Security.AccessControl
-
-Public MustInherit Class ClassType
+﻿Public MustInherit Class ClassType
     Inherits Type
 
     '=============================

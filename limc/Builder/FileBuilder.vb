@@ -80,6 +80,22 @@ Public Module FileBuilder
         Next
         Writer.WriteLine("}")
 
+        'Garbage collector sweep
+        WriteHeaderComment(Writer, "garbage collector mark")
+        Writer.WriteLine("void sweep(){")
+        For Each line As String In GarbageCollector.GetSweepContent()
+            Writer.WriteLine(vbTab & line)
+        Next
+        Writer.WriteLine("}")
+
+        'Garbage collector collect
+        WriteHeaderComment(Writer, "garbage collector run")
+        Writer.WriteLine("void gc_run(){")
+        For Each line As String In GarbageCollector.GetRunContent()
+            Writer.WriteLine(vbTab & line)
+        Next
+        Writer.WriteLine("}")
+
         ' Space between
         Writer.WriteLine()
 

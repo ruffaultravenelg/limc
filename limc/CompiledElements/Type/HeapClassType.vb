@@ -138,7 +138,7 @@
         Next
 
         'Footer
-        Result.Add(vbTab & "int stackReferences;")
+        Result.Add(vbTab & "unsigned long stackReferences;")
         Result.Add(vbTab & "bool marked;")
         Result.Add(vbTab & $"{CompiledName} next;")
         Result.Add("} " & Name & ";")

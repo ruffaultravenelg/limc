@@ -10,6 +10,7 @@ Public MustInherit Class Type
     Public Shared int As PrimitiveClassType
     Public Shared float As PrimitiveClassType
     Public Shared bool As PrimitiveClassType
+    Public Shared str As HeapClassType
 
     '============================
     '======== TYPE SCOPE ========

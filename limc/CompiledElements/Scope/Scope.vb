@@ -16,13 +16,48 @@
     Private ReadOnly Parent As Scope
     Private ReadOnly ReturnTypeSetter As Action(Of Type, Location) = Nothing
 
+    '=======================================
+    '======== CLEAR LOCAL VARIABLES ========
+    '=======================================
+    Private Function GenerateVariableDeferencing() As String
+
+        'Create result
+        Dim Result As String = ""
+
+        'Add reference uncount
+        For Each Variable As Variable In Variables
+            If TypeOf Variable.Type Is IGarbageCollectedType Then
+                Result &= " " & Variable.CompiledName & "->stackReferences--;"
+            End If
+        Next
+
+        'Add comment
+        If Not Result = "" Then
+            Result = "/* Deletes local references */" & Result
+        End If
+
+        'Return result
+        Return Result
+
+    End Function
+
     '========================
     '======== RESULT ========
     '========================
     Private ReadOnly Lines As New List(Of String)
     Public ReadOnly Property Result As IEnumerable(Of String)
         Get
-            Return Lines
+
+            'Create result
+            Dim Final As New List(Of String)
+            Final.AddRange(Lines)
+
+            'Add reference uncount
+            Final.Add(GenerateVariableDeferencing())
+
+            'Return final
+            Return Final
+
         End Get
     End Property
     Public ReadOnly Property IndentedResult(Indent As Integer) As IEnumerable(Of String)
@@ -85,12 +120,18 @@
         'Add it to scope
         Variables.Add(Variable)
 
-        'Compile it
+        'Get default value
         If DefaultValue = Nothing Then
-            Lines.Add($"{Type.CompiledName} {Variable.CompiledName} = {Type.DefaultValue};")
-        Else
-            Lines.Add($"{Type.CompiledName} {Variable.CompiledName} = {DefaultValue};")
+            DefaultValue = Type.DefaultValue
         End If
+
+        'Create variable
+        If Type.CompiledName.Contains("*"c) Then 'If variable is a pointeur -> default value MUST be NULL.
+            WriteLine($"{Type.CompiledName} {Variable.CompiledName} = NULL;")
+        Else
+            WriteLine($"{Type.CompiledName} {Variable.CompiledName};")
+        End If
+        WriteVariableAssignation(Variable, DefaultValue)
 
         'Return variable
         Return Variable
@@ -134,7 +175,7 @@
     ' WARNING: This function does not check if the type of the new value is that of the variable.
     '
     Public Sub WriteVariableAssignation(Variable As Variable, Value As String)
-        Lines.Add(Variable.Type.SetVariable(Variable.CompiledName, Value))
+        WriteLine(Variable.Type.SetVariable(Variable.CompiledName, Value))
     End Sub
 
     '=============================================
@@ -144,7 +185,7 @@
     ' WARNING: This function does not check if the type of the new value is that of the propertie, neighter if we are in a class.
     '
     Public Sub WritePropertieAssignation(Propertie As Propertie, Value As String)
-        Lines.Add(Propertie.AcessName & " = " & Value & ";")
+        WriteLine(Propertie.AcessName & " = " & Value & ";")
     End Sub
 
     '========================
@@ -159,7 +200,8 @@
     '==============================
     Public Sub WriteReturn(Value As String)
 
-        'TODO: decrease all heap variable reference by one
+        'Dereference local variables
+        WriteLine(GenerateVariableDeferencing())
 
         'Compile return
         Me.Lines.Add("return " & Value & ";")

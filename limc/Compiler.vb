@@ -33,6 +33,7 @@ Public Module Compiler
         Type.int = LimSource.STD.Type("int", {})
         Type.float = LimSource.STD.Type("float", {})
         Type.bool = LimSource.STD.Type("bool", {})
+        'Type.str = LimSource.STD.Type("str", {})
 
         'Parse main file
         _MainFile = New LimSource(Program.InputFile)

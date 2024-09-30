@@ -2,7 +2,7 @@
   "profiles": {
     "limc": {
       "commandName": "Project",
-      "commandLineArgs": "main.lim prog",
+      "commandLineArgs": "main.lim prog -gcd",
       "workingDirectory": "C:\\Users\\gemin\\Documents\\Projets\\Lim\\limc\\debug"
     }
   }

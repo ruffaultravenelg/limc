@@ -1,4 +1,6 @@
-﻿Public Module TokenParser
+﻿Imports System.Runtime.InteropServices
+
+Public Module TokenParser
 
     '
     ' Some constants
@@ -102,6 +104,19 @@
 
             'Set the position of the start of the token
             TokenCharIndexStart = CharIndex
+
+            'Source
+            If CurrentChar = "$"c Then
+                Advance()
+                Dim Source As String = ""
+                While Not CurrentChar = Nothing
+                    Source &= CurrentChar
+                    Advance()
+                End While
+                Source = Source.TrimStart()
+                Tokens.Add(CreateToken(TokenType.SOURCE, Source))
+                Continue While
+            End If
 
             ' Ignore whitespace
             If Char.IsWhiteSpace(CurrentChar) Then
@@ -329,7 +344,7 @@
 
         'Get the string
         Dim start As Integer = CharIndex
-        While Not CurrentChar <> Nothing AndAlso CurrentChar <> """"c
+        While CurrentChar <> Nothing AndAlso CurrentChar <> """"c
             Advance()
         End While
 

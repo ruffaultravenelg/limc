@@ -31,6 +31,7 @@
             vbTab & "while (current->next != NULL){",
             vbTab & vbTab & "current = current->next;",
             vbTab & "}",
+            vbTab & "current->next = cself;",
             "}"
         }
     End Function
