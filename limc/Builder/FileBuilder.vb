@@ -99,6 +99,23 @@ Public Module FileBuilder
         ' Space between
         Writer.WriteLine()
 
+        'Malloc
+        WriteHeaderComment(Writer, "ALLOCATE MEMORY")
+
+        Writer.WriteLine("void* lim_malloc(size_t len){")
+        Writer.WriteLine(vbTab & "void* addr = malloc(len);")
+        Writer.WriteLine(vbTab & "if (addr == NULL){")
+        Writer.WriteLine(vbTab & vbTab & "lim_panic(""Not enought memory"");")
+        Writer.WriteLine(vbTab & "}")
+        If Program.GarbageCollectorDebug Then
+            Writer.WriteLine(vbTab & "printf(""[LIM::ALLOCATOR] %lld bytes of memory allocated.\n"", len);")
+        End If
+        Writer.WriteLine(vbTab & "return addr;")
+        Writer.WriteLine("}")
+
+        ' Space between
+        Writer.WriteLine()
+
         ' Build functions
         WriteHeaderComment(Writer, "functions")
         For Each Fn As IBuildableFunction In Functions

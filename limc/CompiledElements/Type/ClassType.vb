@@ -15,17 +15,17 @@
     '======== CONSTRUCTORS ========
     '==============================
     Private CompiledConstructors As New List(Of CConstructor)
-    ReadOnly Property Constructor(ArgumentTypes As IEnumerable(Of Type)) As CConstructor
+    ReadOnly Property Constructor(Arguments As IEnumerable(Of ExpressionNode)) As CConstructor
         Get
 
             'Search best
             Try
-                Return Procedure.SearchBestProcedure(CompiledConstructors, UncompiledConstructors, "new", {}, Function(x, y) CompiledConstructor(x), Me.Scope)
+                Return Procedure.SearchBestProcedure(Me.Scope, CompiledConstructors, UncompiledConstructors, "new", {}, Arguments, Function(x, y) CompiledConstructor(x), Me.SharedScope)
             Catch ex As SearchProcedureException
             End Try
 
             'Default constructor?
-            If ArgumentTypes.Count = 0 AndAlso UncompiledConstructors.Count = 0 AndAlso TypeOf Me IsNot ArrayType Then
+            If Arguments.Count = 0 AndAlso UncompiledConstructors.Count = 0 AndAlso TypeOf Me IsNot ArrayType Then
                 Return CompiledConstructor(Nothing) 'Nothing => Default constructor
             End If
 

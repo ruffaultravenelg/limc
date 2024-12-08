@@ -34,7 +34,7 @@ Public Class Propertie
 
         'Set acess name
         Dim AccessOperator As String = If(TypeOf ParentType Is PrimitiveClassType, ".", "->")
-        Me.AcessName = "cself" & AccessOperator & CompiledName
+        Me.AcessName = $"self{AccessOperator}{CompiledName}"
 
         'Set name
         Me.Name = Name

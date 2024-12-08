@@ -18,12 +18,10 @@
     Protected Overrides Function CreateSelf() As IEnumerable(Of String)
         Return {
             "// Allocate memory",
-            $"{ParentType.CompiledName} self = malloc(sizeof({ParentType.Name}));",
-            "if (self == NULL) lim_panic(""Not enough memory"");",
+            $"{ParentType.CompiledName} self = lim_malloc(sizeof({ParentType.Name}));",
             "",
             "// Set default values",
-            $"self->array = malloc(sizeof({DirectCast(ParentType, ArrayType).Scope.GenericTypes(0).Type.CompiledName}) * length);",
-            "if (self->array == NULL) lim_panic(""Not enough memory"");",
+            $"self->array = lim_malloc(sizeof({DirectCast(ParentType, ArrayType).Scope.GenericTypes(0).Type.CompiledName}) * length);",
             "self->stackReferences = 0;",
             "self->marked = false;",
             "self->next = NULL;",

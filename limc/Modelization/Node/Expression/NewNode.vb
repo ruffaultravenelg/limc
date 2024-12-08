@@ -41,24 +41,25 @@
             Throw New LocalizedException($"""{Type.ToString()}"" is not a class", $"The type ""{Type.ToString()}"" does not come from a class and therefore cannot be instantiated with the ""new"" keyword.", Me.Location)
         End If
 
-        'Compile arguments
-        Dim CompiledPassedArguments As New List(Of Type)
+        'Get constructor
+        Dim Constructor As CConstructor = Nothing
+        Try
+            Constructor = DirectCast(Type, ClassType).Constructor(PassedArguments)
+        Catch ex As ClassType.ConstructorNotFoundException
+            Throw New SyntaxErrorException("No constructor with these arguments is accessible.", Me.Location)
+        End Try
+
+        'Compile call
         Dim CompiledArguments As String = ""
-        For Each PassedArgument As ExpressionNode In PassedArguments
-            CompiledPassedArguments.Add(PassedArgument.ReturnType(Scope))
-            CompiledArguments &= ", " & PassedArgument.Compile(Scope)
+        For i As Integer = 0 To PassedArguments.Count - 1
+
+            Dim WantedType As Type = DirectCast(Constructor, ICompiledProcedure).Arguments(i)
+            CompiledArguments &= ", " & PassedArguments(i).Compile(Scope, WantedType)
+
         Next
         If CompiledArguments.StartsWith(", ") Then
             CompiledArguments = CompiledArguments.Substring(2)
         End If
-
-        'Get constructor
-        Dim Constructor As CConstructor = Nothing
-        Try
-            Constructor = DirectCast(Type, ClassType).Constructor(CompiledPassedArguments)
-        Catch ex As ClassType.ConstructorNotFoundException
-            Throw New SyntaxErrorException("No constructor with these arguments is accessible.", Me.Location)
-        End Try
 
         'Compile constructor call
         Return Constructor.CompiledName & "(" & CompiledArguments & ")"

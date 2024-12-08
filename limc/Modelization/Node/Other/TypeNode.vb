@@ -72,7 +72,7 @@ Public Class TypeNode
         End If
 
         'Array type
-        If Name = "array" Then
+        If Name = "arr" Then
 
             'Error
             If GenericTypes.Count <> 1 Then

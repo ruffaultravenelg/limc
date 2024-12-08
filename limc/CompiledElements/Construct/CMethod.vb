@@ -172,6 +172,8 @@
             Statement.Compile(ContentScope)
         Next
 
+        'TODO: return default value
+
         'Set logic
         CompiledLogic = ContentScope.Result
 
@@ -190,9 +192,9 @@
 
         'Assemble and return result
         If ReturnType Is Nothing Then
-            Return $"void {CompiledName}(void* self{Arguments})"
+            Return $"void {CompiledName}({ParentClass.CompiledName} self{Arguments})"
         Else
-            Return $"{ReturnType.CompiledName} {CompiledName}(void* self{Arguments})"
+            Return $"{ReturnType.CompiledName} {CompiledName}({ParentClass.CompiledName} self{Arguments})"
         End If
 
     End Function

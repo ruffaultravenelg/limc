@@ -140,7 +140,11 @@
 
         'Init default states of variables
         For Each Propertie As Propertie In DirectCast(ParentType, ClassType).Properties
-            Result.Add(Propertie.Type.SetVariable(Propertie.AcessName, Propertie.Type.DefaultValue))
+            If Propertie.Type.CompiledName.EndsWith("*") Then
+                Result.Add(Propertie.AcessName & " = NULL;")
+            Else
+                Result.Add(Propertie.Type.SetVariable(Propertie.AcessName, Propertie.Type.DefaultValue))
+            End If
         Next
         Result.Add("")
 

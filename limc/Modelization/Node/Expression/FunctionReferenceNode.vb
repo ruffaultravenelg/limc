@@ -103,7 +103,7 @@
             Dim TargetedFunction As CFunction = Me.Location.File.Function(FunctionName, GenericTypes)
 
             'Return variable
-            Return TargetedFunction.SignatureType.NewFuncCompiledName & "(" & TargetedFunction.CompiledName & ")"
+            Return TargetedFunction.SignatureType.BuildFunctionReference(TargetedFunction.CompiledName)
 
         Catch ex As SearchProcedureException
             Throw New LocalizedException($"The ""{FunctionName}{Type.StringifyListOfType(GenericTypes)}"" function/method cannot be found in this scope.", $"No function or method named ""{FunctionName}"" exist or have {GenericTypes.Count} generic types.", Me.Location)
@@ -120,7 +120,7 @@
         If TypeOf RequestedType Is FunctionSignatureType Then
             Try
                 Dim Result As CFunction = Me.Location.File.Function(FunctionName, GenericTypes, DirectCast(RequestedType, FunctionSignatureType))
-                Return DirectCast(RequestedType, FunctionSignatureType).NewFuncCompiledName & "(" & Result.CompiledName & ")"
+                Return DirectCast(RequestedType, FunctionSignatureType).BuildFunctionReference(Result.CompiledName)
             Catch ex As SearchProcedureException
             End Try
         End If

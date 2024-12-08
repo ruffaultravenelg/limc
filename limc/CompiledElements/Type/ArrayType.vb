@@ -34,7 +34,7 @@
     '=============================
     '======== SOURCE NAME ========
     '=============================
-    Protected Overrides ReadOnly Property SourceName As String = "array"
+    Protected Overrides ReadOnly Property SourceName As String = "arr"
 
     '=============================
     '======== CONSTRUCTOR ========

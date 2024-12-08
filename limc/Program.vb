@@ -241,7 +241,7 @@ Module Program
         Console.WriteLine(vbTab & "--gcc-bin [gcc_bin_dir]" & vbTab & "-gcc [gcc_bin_dir]" & vbTab & ": Set a custom gcc bin directory.")
         Console.WriteLine(vbTab & "--target [<com_type>]" & vbTab & "-t [<com_type>]" & vbTab & vbTab & ": Set file type to be compiled.")
         Console.WriteLine(vbTab & "--add-flag [flag]" & vbTab & "-f [flag]" & vbTab & vbTab & ": Add a custom flag.")
-        Console.WriteLine(vbTab & "-gcd" & vbTab & vbTab & vbTab & vbTab & vbTab & ": Activate debugs prints for garbage collector.")
+        Console.WriteLine(vbTab & "-gcd" & vbTab & vbTab & vbTab & vbTab & vbTab & vbTab & ": Activate debugs prints for garbage collector.")
         Console.WriteLine("")
         Console.WriteLine("<com_type>:")
         Console.WriteLine(vbTab & "bin" & vbTab & ": Compiles the project to an executable")

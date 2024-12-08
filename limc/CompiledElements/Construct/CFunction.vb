@@ -150,6 +150,7 @@
             Statement.Compile(ContentScope)
         Next
         CompiledLogic = ContentScope.Result
+        'TODO: return default value
 
     End Sub
 

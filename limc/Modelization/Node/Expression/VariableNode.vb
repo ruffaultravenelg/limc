@@ -79,7 +79,6 @@ Public Class VariableNode
             Next
         Next
 
-
         'Search for properties/method
         If Scope.HasAttachedClass Then
 
@@ -160,7 +159,7 @@ Public Class VariableNode
             Dim TargetedFunction As CFunction = Me.Location.File.Function(VariableName, {})
 
             'Return variable
-            Return TargetedFunction.SignatureType.NewFuncCompiledName & "(" & TargetedFunction.CompiledName & ")"
+            Return TargetedFunction.SignatureType.BuildFunctionReference(TargetedFunction.CompiledName)
 
         Catch ex As UnableToChooseProcedure
             Throw New LocalizedException("There are several """ & VariableName & """ functions.", "The name is ambiguous because it can refer to multiple functions. Specify with an explicit type.", Me.Location)
@@ -222,7 +221,7 @@ Public Class VariableNode
                 Dim TargetedFunction As CFunction = Me.Location.File.Function(VariableName, {}, DirectCast(RequestedType, FunctionSignatureType))
 
                 'Return variable
-                Return TargetedFunction.SignatureType.NewFuncCompiledName & "(" & TargetedFunction.CompiledName & ")"
+                Return TargetedFunction.SignatureType.BuildFunctionReference(TargetedFunction.CompiledName)
 
             Catch ex As UnableToChooseProcedure
                 Throw New LocalizedException("There are several """ & VariableName & """ functions.", "The name is ambiguous because it can refer to multiple functions. Specify with an explicit type.", Me.Location)

@@ -92,7 +92,7 @@
             Result.Add(vbTab & "}")
             Result.Add("}")
             If Program.GarbageCollectorDebug Then
-                Result.Add($"printf(""%lu \""{Type.ToString()}\"" object%s %s freed.\n"", count, count > 1 ? ""s"":  """", count > 1 ? ""were"":  ""was"");")
+                Result.Add($"if (count > 0) printf(""[LIM::GC] %lu \""{Type.ToString()}\"" object%s %s freed.\n"", count, count > 1 ? ""s"":  """", count > 1 ? ""were"":  ""was"");")
             End If
             Result.Add("")
 
