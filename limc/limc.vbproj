@@ -6,16 +6,4 @@
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>C:\Users\gemin\Documents\Projets\Lim\limc\bin</OutputPath>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>C:\Users\gemin\Documents\Projets\Lim\limc\bin</OutputPath>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="MessagePack" Version="2.5.140" />
-  </ItemGroup>
-
 </Project>
