@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "limc": {
+      "commandName": "Project",
+      "commandLineArgs": "main.lim",
+      "workingDirectory": "C:\\Users\\gemin\\Documents\\Projets\\limc\\debug"
+    }
+  }
+}
