@@ -6,4 +6,10 @@
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="SourceModelisation\Expressions\" />
+    <Folder Include="SourceModelisation\Miscellaneous\" />
+    <Folder Include="SourceModelisation\Statements\" />
+  </ItemGroup>
+
 </Project>

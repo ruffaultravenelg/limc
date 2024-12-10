@@ -1,14 +1,21 @@
 ﻿Friend Class Compiler
 
-    Private ReadOnly input As String
-    Private ReadOnly output As String
+    'Inputs
+    Private ReadOnly Input As String
+    Private ReadOnly Output As String
 
-    Public Sub New(input As String, output As String)
-        Me.input = input
-        Me.output = output
+    'Constructor
+    Public Sub New(Input As String, Output As String)
+        Me.Input = Input
+        Me.Output = Output
     End Sub
 
+    'Compile the input file
     Friend Sub Compile()
-        Console.WriteLine(IO.File.ReadAllText(input))
+
+        'Parse file
+        Dim Source As Lim.SourceFile = Lim.SourceFile.Load(Input)
+
     End Sub
+
 End Class
