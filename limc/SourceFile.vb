@@ -1,4 +1,6 @@
-﻿Namespace Lim
+﻿Imports System.Net.Security
+
+Namespace Lim
 
     Public Class SourceFile
 
@@ -25,12 +27,14 @@
             'Set path
             Me.FullFilePath = IO.Path.GetFullPath(Filename)
 
-            'Parse tokens
+            'Parse text
             Dim Lines As IEnumerable(Of SourceLine) = SourceLine.Load(Me)
 
-            For Each line In Lines
-                Console.WriteLine(line)
-            Next
+            'Parse tokens
+            Dim Content As FileAST = AST.GenerateAST(Lines)
+
+            'Print
+            Console.WriteLine(Content.ToString())
 
         End Sub
 

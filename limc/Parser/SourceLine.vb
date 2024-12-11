@@ -1,9 +1,10 @@
 ﻿Public Class SourceLine
+    Implements ILocated
 
     ' Properties
-    Public ReadOnly Tokens As IEnumerable(Of Token)
-    Public ReadOnly Indentation As Integer
-    Public ReadOnly Location As Location
+    Public ReadOnly Property Tokens As IEnumerable(Of Token)
+    Public ReadOnly Property Indentation As Integer
+    Public ReadOnly Property Location As Location Implements ILocated.Location
 
     ' Constructor
     Public Sub New(Line As String, LineNumber As Integer, File As Lim.SourceFile)
@@ -36,6 +37,9 @@
                 Result.Add(Line)
             End If
         Next
+
+        'Add last token
+        Result.Add(New SourceLine("", Lines.Count - 1, File))
 
         'Return result
         Return Result

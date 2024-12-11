@@ -28,4 +28,13 @@
 
     End Sub
 
+    'Combine
+    Public Shared Operator +(a As PreciseLocation, b As PreciseLocation) As PreciseLocation
+        If (a.Column < b.Column) Then
+            Return New PreciseLocation(a.File, a.Line, a.Column, (b.Column - a.Column) + b.Length)
+        Else
+            Return New PreciseLocation(a.File, a.Line, b.Column, (a.Column - b.Column) + a.Length)
+        End If
+    End Operator
+
 End Class

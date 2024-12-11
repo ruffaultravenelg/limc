@@ -28,7 +28,16 @@
         'Parse all tokens
         Dim Result As New List(Of Token)
         While Index < Line.Length
+
+            'White space -> next char
+            If Char.IsWhiteSpace(CurrentChar) Then
+                Advance()
+                Continue While
+            End If
+
+            'Parse token
             Result.Add(ParseToken())
+
         End While
 
         'Return result
@@ -51,11 +60,6 @@
     'Parse token
     Private Function ParseToken() As Token
 
-        'Skip spaces
-        While Char.IsWhiteSpace(CurrentChar)
-            Advance()
-        End While
-
         'If it's a number
         If Char.IsDigit(CurrentChar) Then
             Return ParseNumber()
@@ -71,11 +75,63 @@
             Return ParseWord()
         End If
 
-
+        'If it's a syntax character
+        Select Case CurrentChar
+            Case "("c
+                Return CreateToken(Token.TokenType.SYNTAX_LEFT_PARENTHESIS)
+            Case ")"c
+                Return CreateToken(Token.TokenType.SYNTAX_RIGHT_PARENTHESIS)
+            Case "["c
+                Return CreateToken(Token.TokenType.SYNTAX_LEFT_BRACKET)
+            Case "]"c
+                Return CreateToken(Token.TokenType.SYNTAX_RIGHT_BRACKET)
+            Case "."c
+                Return CreateToken(Token.TokenType.SYNTAX_DOT)
+            Case ","c
+                Return CreateToken(Token.TokenType.SYNTAX_COMMA)
+            Case ":"c
+                Return CreateToken(Token.TokenType.SYNTAX_COLON)
+            Case "+"c
+                Return CreateToken(Token.TokenType.OPERATOR_PLUS)
+            Case "-"c
+                Return CreateToken(Token.TokenType.OPERATOR_MINUS)
+            Case "*"c
+                Return CreateToken(Token.TokenType.OPERATOR_MULTIPLICATION)
+            Case "/"c
+                Return CreateToken(Token.TokenType.OPERATOR_DIVISION)
+            Case "%"c
+                Return CreateToken(Token.TokenType.OPERATOR_MODULO)
+            Case "="c
+                Return CreateToken(Token.TokenType.OPERATOR_EQUAL)
+            Case "<"c
+                If PeekNextChar() = "="c Then
+                    Advance()
+                    Return CreateToken(Token.TokenType.OPERATOR_LESSTHANEQUAL)
+                End If
+                Return CreateToken(Token.TokenType.OPERATOR_LESSTHAN)
+            Case ">"c
+                If PeekNextChar() = "="c Then
+                    Advance()
+                    Return CreateToken(Token.TokenType.OPERATOR_MORETHANEQUAL)
+                End If
+                Return CreateToken(Token.TokenType.OPERATOR_MORETHAN)
+        End Select
 
         'Don't know what it is
         Throw New SyntaxException($"Unexpected character '{CurrentChar}'.", New PreciseLocation(File, LineNumber, Index, 1))
 
+    End Function
+
+    'Peek next character without advancing
+    Private Function PeekNextChar() As Char
+        Return If(Index + 1 < Line.Length, Line(Index + 1), Nothing)
+    End Function
+
+    'Create syntax token
+    Private Function CreateToken(type As Token.TokenType) As Token
+        Dim StartIndex As Integer = Index
+        Advance()
+        Return New Token(type, New PreciseLocation(File, LineNumber, StartIndex, 1))
     End Function
 
     'Parse word
@@ -92,15 +148,29 @@
         'Word could be a keyword
         Dim EnumValue As String = "KEYWORD_" & Word.ToUpper()
         If [Enum].IsDefined(GetType(Token.TokenType), EnumValue) Then
-            Return New Token([Enum].Parse(GetType(Token.TokenType), EnumValue), Word, New PreciseLocation(File, LineNumber, StartIndex, Index - StartIndex))
+            Return New Token([Enum].Parse(GetType(Token.TokenType), EnumValue), New PreciseLocation(File, LineNumber, StartIndex, Index - StartIndex))
         End If
 
         'Maybe a boolean
-        If Word.ToLower() = "true" Then
-            Return New Token(Token.TokenType.VALUE_TRUE, New PreciseLocation(File, LineNumber, StartIndex, Index - StartIndex))
-        ElseIf Word.ToLower() = "false" Then
-            Return New Token(Token.TokenType.VALUE_FALSE, New PreciseLocation(File, LineNumber, StartIndex, Index - StartIndex))
-        End If
+        Dim WordLower As String = Word.ToLower()
+        Select Case WordLower
+
+            Case "true"
+                Return New Token(Token.TokenType.VALUE_TRUE, New PreciseLocation(File, LineNumber, StartIndex, Index - StartIndex))
+
+            Case "false"
+                Return New Token(Token.TokenType.VALUE_FALSE, New PreciseLocation(File, LineNumber, StartIndex, Index - StartIndex))
+
+            Case "in"
+                Return New Token(Token.TokenType.OPERATOR_IN, New PreciseLocation(File, LineNumber, StartIndex, Index - StartIndex))
+
+            Case "is"
+                Return New Token(Token.TokenType.OPERATOR_IS, New PreciseLocation(File, LineNumber, StartIndex, Index - StartIndex))
+
+            Case "not"
+                Return New Token(Token.TokenType.OPERATOR_NOT, New PreciseLocation(File, LineNumber, StartIndex, Index - StartIndex))
+
+        End Select
 
         'Return the token
         Return New Token(Token.TokenType.WORD, Word, New PreciseLocation(File, LineNumber, StartIndex, Index - StartIndex))
@@ -122,10 +192,10 @@
         End While
 
         'Skip the last "
-        Advance()
+            Advance()
 
-        'Return the token
-        Return New Token(Token.TokenType.VALUE_STRING, Str, New PreciseLocation(File, LineNumber, StartIndex, Index - StartIndex))
+            'Return the token
+            Return New Token(Token.TokenType.VALUE_STRING, Str, New PreciseLocation(File, LineNumber, StartIndex, Index - StartIndex))
 
     End Function
 

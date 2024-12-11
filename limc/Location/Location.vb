@@ -1,8 +1,8 @@
 ﻿Public Class Location
 
     ' Information of the location
-    Private File As Lim.SourceFile
-    Private Line As Integer
+    Protected File As Lim.SourceFile
+    Protected Line As Integer
 
     ' Constructor
     Public Sub New(File As Lim.SourceFile, Line As Integer)
@@ -17,7 +17,7 @@
         Dim Lines As String() = IO.File.ReadAllLines(File.FullFilePath)
 
         ' Return the line
-        Return Lines(Line - 1)
+        Return Lines(Line)
 
     End Function
 
@@ -35,7 +35,7 @@
 
     ' To string
     Public Overrides Function ToString() As String
-        Return $"<{File.RelativePath}> at line {Line}"
+        Return $"<{File.RelativePath}> at line {Line + 1}"
     End Function
 
 End Class
