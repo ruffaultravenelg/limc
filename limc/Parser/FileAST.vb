@@ -8,12 +8,17 @@ Public Class FileAST
     'To string
     Public Overrides Function ToString() As String
 
+        'Add each properties
+        Dim Objs As New List(Of Object)
+        Objs.AddRange(Import)
+        Objs.AddRange(Functions)
+
         'Create string builder
         Dim Result As New StringBuilder()
 
-        'Add imports
-        For Each Im In Import
-            Result.Append(Im.ToString())
+        'Print each element to string
+        For Each Obj In Objs
+            Result.Append(Obj.ToString())
             Result.Append(Environment.NewLine)
         Next
 

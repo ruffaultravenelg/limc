@@ -59,6 +59,7 @@
         SYNTAX_DOT
         SYNTAX_COMMA
         SYNTAX_COLON
+        SYNTAX_DOUBLECOLON
 
         KEYWORD_FUNC
         KEYWORD_CLASS

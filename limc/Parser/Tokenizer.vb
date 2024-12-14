@@ -90,6 +90,10 @@
             Case ","c
                 Return CreateToken(Token.TokenType.SYNTAX_COMMA)
             Case ":"c
+                If PeekNextChar() = ":"c Then
+                    Advance()
+                    Return CreateToken(Token.TokenType.SYNTAX_DOUBLECOLON)
+                End If
                 Return CreateToken(Token.TokenType.SYNTAX_COLON)
             Case "+"c
                 Return CreateToken(Token.TokenType.OPERATOR_PLUS)

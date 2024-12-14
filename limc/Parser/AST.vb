@@ -71,6 +71,13 @@
         Tokens = New IteratorAdapter(Of Token)(Lines.Current.Tokens)
     End Sub
 
+    'Get typenode
+    Private Function GetTypeNode() As Source.Type
+
+
+
+    End Function
+
     'Get generic types
     Private Function GetGenericTypes() As List(Of String)
 
@@ -140,10 +147,8 @@
         'Generic types
         Dim GenericTypes As IEnumerable(Of String) = GetGenericTypes()
 
-        '
-
-
-
+        'Create function
+        Return New Source.Function()
 
     End Function
 
