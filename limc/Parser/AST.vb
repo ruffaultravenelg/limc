@@ -83,10 +83,10 @@
         End If
 
         ' <
+        Tokens.Next()
         If Not Tokens.Current.Type = Token.TokenType.OPERATOR_LESSTHAN Then
             Return Result
         End If
-        Tokens.Next()
 
         ' type
         While True
@@ -100,9 +100,17 @@
 
             '>
             If Tokens.Current.Type = Token.TokenType.OPERATOR_MORETHAN Then
-
+                Exit While
             End If
 
+            ',
+            If Tokens.Current.Type = Token.TokenType.SYNTAX_COMMA Then
+                Tokens.Next()
+                Continue While
+            End If
+
+            'Unexpected token
+            Throw New SyntaxException("Unexpected token, expected a comma or a closing angle bracket", Tokens.Current.Location)
 
         End While
 
@@ -130,6 +138,9 @@
         Dim Name As String = Tokens.Current.Value
 
         'Generic types
+        Dim GenericTypes As IEnumerable(Of String) = GetGenericTypes()
+
+        '
 
 
 
