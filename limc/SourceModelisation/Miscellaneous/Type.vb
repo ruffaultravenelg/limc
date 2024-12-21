@@ -20,6 +20,15 @@
             Throw New NotImplementedException
         End Function
 
+        'To string
+        Public Overrides Function ToString() As String
+            Dim Result As String = TypeName
+            If PassedGenericTypes.Count > 0 Then
+                Result &= "<" & String.Join(", ", PassedGenericTypes.Select(Function(GenericType) GenericType.ToString())) & ">"
+            End If
+            Return Result
+        End Function
+
     End Class
 
     'TypeNode from another file -> "utils::linkedList<str>"
@@ -38,6 +47,15 @@
         'Get targeted type
         Public Overrides Function GetTargetedType(Scope As Object) As Lim.Type
             Throw New NotImplementedException
+        End Function
+
+        'To string
+        Public Overrides Function ToString() As String
+            Dim Result As String = Filename & "::" & TypeName
+            If PassedGenericTypes.Count > 0 Then
+                Result &= "<" & String.Join(", ", PassedGenericTypes.Select(Function(GenericType) GenericType.ToString())) & ">"
+            End If
+            Return Result
         End Function
 
     End Class

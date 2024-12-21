@@ -38,9 +38,6 @@
             End If
         Next
 
-        'Add last token
-        Result.Add(New SourceLine("", Lines.Count - 1, File))
-
         'Return result
         Return Result
 

@@ -29,7 +29,7 @@
     End Sub
 
     'Combine
-    Public Shared Operator +(a As PreciseLocation, b As PreciseLocation) As PreciseLocation
+    Public Overloads Shared Operator +(a As PreciseLocation, b As PreciseLocation) As PreciseLocation
         If (a.Column < b.Column) Then
             Return New PreciseLocation(a.File, a.Line, a.Column, (b.Column - a.Column) + b.Length)
         Else

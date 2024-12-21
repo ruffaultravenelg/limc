@@ -3,6 +3,7 @@
 
     Private _HasNext As Boolean
     Private LastValue As T
+    Private LastLastValue As T
 
     Public Sub New(source As IEnumerable(Of T))
         If source Is Nothing Then
@@ -10,12 +11,18 @@
         End If
         Enumerator = source.GetEnumerator()
 
-
         Enumerator.MoveNext()
+        LastLastValue = Nothing
         LastValue = Enumerator.Current
         _HasNext = Enumerator.MoveNext()
 
     End Sub
+
+    Public ReadOnly Property Last As T
+        Get
+            Return LastLastValue
+        End Get
+    End Property
 
     Public ReadOnly Property Current As T
         Get
@@ -35,6 +42,7 @@
             Throw New SyntaxException("A element was expected after this token", Current.Location)
         End If
 
+        LastLastValue = LastValue
         LastValue = Enumerator.Current
         _HasNext = Enumerator.MoveNext()
 

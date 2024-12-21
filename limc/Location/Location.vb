@@ -24,14 +24,29 @@
     'Display the code snippet of the error
     Public Overridable Sub DisplayCodeSnippet()
 
+        'Get line
+        Dim Line As String = GetLine()
+
         'Display the line
         Console.ForegroundColor = ConsoleColor.Gray
-        Console.WriteLine(GetLine())
+        Console.WriteLine(Line)
+
+        'Display ^^^^^
+        Console.ForegroundColor = ConsoleColor.Yellow
+        Console.WriteLine(StrDup(Line.Length, "^"))
 
         'Reset color
         Console.ResetColor()
 
     End Sub
+
+    'Combine
+    Public Shared Operator +(a As Location, b As Location) As Location
+        If TypeOf a Is PreciseLocation AndAlso TypeOf b Is PreciseLocation Then
+            Return CType(a, PreciseLocation) + CType(b, PreciseLocation)
+        End If
+        Throw New NotImplementedException
+    End Operator
 
     ' To string
     Public Overrides Function ToString() As String

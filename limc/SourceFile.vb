@@ -1,6 +1,4 @@
-﻿Imports System.Net.Security
-
-Namespace Lim
+﻿Namespace Lim
 
     Public Class SourceFile
 

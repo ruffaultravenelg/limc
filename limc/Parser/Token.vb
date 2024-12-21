@@ -3,7 +3,7 @@
 
     ' Properties
     Public ReadOnly Property Type As TokenType
-    Public ReadOnly Property Value As String
+    Public ReadOnly Property Value As Object
     Public ReadOnly Property Location As Location Implements ILocated.Location
 
     ' Constructor
@@ -12,7 +12,7 @@
         Me.Value = Nothing
         Me.Location = Location
     End Sub
-    Public Sub New(Type As TokenType, Value As String, Location As Location)
+    Public Sub New(Type As TokenType, Value As Object, Location As Location)
         Me.Type = Type
         Me.Value = Value
         Me.Location = Location
@@ -30,6 +30,7 @@
     ' Token types
     Public Enum TokenType
         WORD
+        LINESTART
 
         VALUE_INT
         VALUE_FLOAT

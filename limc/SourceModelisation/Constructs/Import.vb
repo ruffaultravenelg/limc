@@ -1,7 +1,7 @@
 ﻿Namespace Source
 
     Public Class Import
-        Inherits Node
+        Inherits ConstructNode
 
         'Properties
         Public ReadOnly Property Filename As String
