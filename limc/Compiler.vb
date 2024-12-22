@@ -16,6 +16,9 @@
         'Parse file
         Dim Source As Lim.SourceFile = Lim.SourceFile.Load(Input)
 
+        'Get "main" function
+        Dim MainFunction As Lim.Function = Source.Functions.GetCorrespondances("main", {}).FirstOrDefault()
+        Console.WriteLine("aaaa > " & MainFunction.Base.Name & " " & MainFunction.Base.Exported.ToString())
     End Sub
 
 End Class

@@ -19,6 +19,9 @@
             End Get
         End Property
 
+        'Functions
+        Public ReadOnly Functions As FunctionContainer
+
         'Constructor
         Private Sub New(Filename As String)
 
@@ -31,8 +34,11 @@
             'Parse tokens
             Dim Content As FileAST = AST.GenerateAST(Lines)
 
-            'Print
+            'Print file for debuging purposes
             Console.WriteLine(Content.ToString())
+
+            'Get functions
+            Me.Functions = New FunctionContainer(Content.GetConstructs(Of Source.Function))
 
         End Sub
 

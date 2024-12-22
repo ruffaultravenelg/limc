@@ -2,6 +2,7 @@
 
     'Constants
     Private ReadOnly CONSTRUCTS As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetImport, AddressOf GetFunction}
+    Private ReadOnly FUNCTION_STATEMENTS As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetLet}
 
     'Properties
     Private Tokens As IteratorAdapter(Of Token)
@@ -63,28 +64,40 @@
                 Throw New SyntaxException("Indetation must be 0", Tokens.Current.Location)
             End If
 
-            'Get constructs
+            'Save location
             Tokens.Next()
+            Dim StartLocation As Location = Tokens.Current.Location
+
+            'Get exported
+            Dim Exported As Boolean = False
+            If Tokens.Current.Type = Token.TokenType.KEYWORD_EXPORT Then
+                Exported = True
+                Tokens.Next()
+            End If
+
+            'Get constructs
             Dim Construct As ConstructNode = Nothing
             For Each ParsingFunction In CONSTRUCTS
-
                 Try
                     Construct = ParsingFunction()
                     Exit For
                 Catch ex As NotTheRightElement
                     Continue For
                 End Try
-
             Next
 
             'Append or error
             If Construct Is Nothing Then
-                Throw New SyntaxException("Unexpected token, expected a construct", Tokens.Current.Location)
+                Throw New SyntaxException("Unexpected token, expected a construct", StartLocation)
             Else
+                Construct.SetExported(Exported)
                 Result.AppendConstruct(Construct)
             End If
 
         End While
+
+        'Export all constructs if none of them is exported
+        Result.HandleExports()
 
         'Return
         Return Result
@@ -304,8 +317,11 @@
             ReturnType = GetAType()
         End If
 
+        'Get body
+        Dim Body As IEnumerable(Of StatementNode) = GetStatements(FUNCTION_STATEMENTS, 1)
+
         'Return function
-        Return New Source.Function(LocationFrom(StartLocation), Name, GenericTypes, Arguments, ReturnType)
+        Return New Source.Function(LocationFrom(StartLocation), Name, GenericTypes, Arguments, ReturnType, Body)
 
     End Function
 
@@ -355,6 +371,101 @@
         'Return
         Return New Source.Import(LocationFrom(StartLocation), Filename, Library, Naming)
 
+    End Function
+
+    'Get statements
+    Private Function GetStatements(AcceptedStatements As IEnumerable(Of Func(Of Integer, StatementNode)), CurrentIndentation As Integer) As IEnumerable(Of StatementNode)
+
+        'Create result
+        Dim Result As New List(Of StatementNode)
+
+        'Get statements
+        While Tokens.HasNext
+
+            'Check tokentype
+            If Not Tokens.Current.Type = Token.TokenType.LINESTART Then
+                Throw New SyntaxException("Unexpected token, expected a line start", Tokens.Current.Location)
+            End If
+
+            'Check identation
+            Dim Indentation As Integer = Tokens.Current.Value
+            If Indentation < CurrentIndentation Then
+                Exit While
+            End If
+            If Indentation > CurrentIndentation Then
+                Throw New SyntaxException("Unexpected identation", Tokens.Current.Location)
+            End If
+
+            'Save token
+            Tokens.Next()
+            Dim StartLocation As Location = Tokens.Current.Location
+
+            'Get statement
+            Dim Statement As StatementNode = Nothing
+            For Each ParsingFunction In AcceptedStatements
+                Try
+                    Statement = ParsingFunction(Indentation)
+                    Exit For
+                Catch ex As NotTheRightElement
+                    Continue For
+                End Try
+            Next
+
+            'Append or error
+            If Statement Is Nothing Then
+                Throw New SyntaxException("Unexpected token, expected a statement", StartLocation)
+            Else
+                Result.Add(Statement)
+            End If
+
+        End While
+
+        'Return result
+        Return Result
+
+    End Function
+
+    'Get let statement
+    Private Function GetLet(CurrentIndentation As Integer)
+
+        'Save start location
+        Dim StartLocation As Location = Tokens.Current.Location
+
+        'Check "let" keyword
+        If Not Tokens.Current.Type = Token.TokenType.KEYWORD_LET Then
+            Throw New NotTheRightElement()
+        End If
+        Tokens.Next()
+
+        'Get name
+        If Not Tokens.Current.Type = Token.TokenType.WORD Then
+            Throw New SyntaxException("A variable name was expected here.", Tokens.Current.Location)
+        End If
+        Dim Name As String = Tokens.Current.Value
+        Tokens.Next()
+
+        'Get type
+        Dim Type As Source.Type = Nothing
+        If Tokens.Current.Type = Token.TokenType.SYNTAX_COLON Then
+            Tokens.Next()
+            Type = GetAType()
+        End If
+
+        'Get value
+        Dim Value As ExpressionNode = Nothing
+        If Tokens.Current.Type = Token.TokenType.OPERATOR_EQUAL Then
+            Tokens.Next()
+            Value = GetExpression()
+        End If
+
+        'Return node
+        Return New Source.LetStatement(LocationFrom(StartLocation), Name, Type, Value)
+
+    End Function
+
+    'Get expression
+    Private Function GetExpression() As ExpressionNode
+        Return Nothing
     End Function
 
 End Class

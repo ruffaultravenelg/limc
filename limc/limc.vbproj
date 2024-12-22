@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="SourceModelisation\Expressions\" />
-    <Folder Include="SourceModelisation\Statements\" />
   </ItemGroup>
 
 </Project>
