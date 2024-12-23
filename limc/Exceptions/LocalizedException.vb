@@ -7,6 +7,9 @@
     Public Sub New(Name As String, Msg As String, Location As Location)
         Me.Name = Name
         Me.Msg = Msg
+        If Location Is Nothing Then
+            Throw New ArgumentNullException()
+        End If
         Me.Location = Location
     End Sub
 

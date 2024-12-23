@@ -1,8 +1,8 @@
 ﻿Public Class FunctionContainer
 
     'Functions
-    Dim CompiledFunctions As New Dictionary(Of String, HashSet(Of Lim.Function))
-    Dim UncompiledFunctions As New Dictionary(Of String, HashSet(Of Source.Function))
+    Private CompiledFunctions As New Dictionary(Of String, HashSet(Of Lim.Function))
+    Private UncompiledFunctions As New Dictionary(Of String, HashSet(Of Source.Function))
 
     'Constructor
     Public Sub New(Functions As IEnumerable(Of Source.Function))
@@ -99,14 +99,18 @@
         Dim Correspondances As New List(Of Lim.Function)
 
         'Compile uncompiled functions that match
-        For Each Fn As Source.Function In UncompiledFunctions(Name)
-            If Fn.GenericTypes.Count = GenericTypes.Count Then
-                CompileFunction(Fn, GenericTypes)
-            End If
-        Next
+        If UncompiledFunctions.ContainsKey(Name) Then
+            For Each Fn As Source.Function In UncompiledFunctions(Name)
+                If Fn.GenericTypes.Count = GenericTypes.Count Then
+                    CompileFunction(Fn, GenericTypes)
+                End If
+            Next
+        End If
 
         'Get all compiled functions
-        Correspondances.AddRange(CompiledFunctions(Name))
+        If CompiledFunctions.ContainsKey(Name) Then
+            Correspondances.AddRange(CompiledFunctions(Name))
+        End If
 
         'Return value
         Return Correspondances

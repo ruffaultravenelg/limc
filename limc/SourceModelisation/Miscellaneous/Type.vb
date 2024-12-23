@@ -16,7 +16,7 @@
         End Sub
 
         'Get targeted type
-        Public Overridable Function GetTargetedType(Context As context) As Lim.Type
+        Public Overridable Function GetTargetedType(Context As Context) As Lim.Type
 
             'Search for generic type
             If PassedGenericTypes.Count = 0 Then
@@ -34,14 +34,11 @@
             'Compile passed generic types
             Dim CompiledPassedGenericTypes As IEnumerable(Of Lim.Type) = PassedGenericTypes.Select(Function(GenericType) GenericType.GetTargetedType(Context))
 
-            'Search for type in current file
-            Dim TargetedType As Lim.Type = Location.File.Types.GetCorrespondance(TypeName, CompiledPassedGenericTypes)
+            'Search for type from the current file
+            Dim TargetedType As Lim.Type = Location.File.GetAType(TypeName, CompiledPassedGenericTypes)
             If TargetedType IsNot Nothing Then
                 Return TargetedType
             End If
-
-            'Search in imported files
-            'TODO
 
             'Not found
             Throw New SyntaxException($"The type ""{ToString()}"" is unknown or unreachable", Location)
@@ -74,7 +71,32 @@
 
         'Get targeted type
         Public Overrides Function GetTargetedType(Context As Context) As Lim.Type
-            Throw New NotImplementedException 'Search in a specific file
+
+            'Search for generic type
+            If PassedGenericTypes.Count = 0 Then
+
+                'Search for generic type named {TypeName}
+                Dim Result As Lim.Type = Context.GenericType(TypeName)
+
+                'If found, return it
+                If Result IsNot Nothing Then
+                    Return Result
+                End If
+
+            End If
+
+            'Compile passed generic types
+            Dim CompiledPassedGenericTypes As IEnumerable(Of Lim.Type) = PassedGenericTypes.Select(Function(GenericType) GenericType.GetTargetedType(Context))
+
+            'Search for type into the selected file
+            Dim TargetedType As Lim.Type = Location.File.GetAType(Filename, TypeName, CompiledPassedGenericTypes)
+            If TargetedType IsNot Nothing Then
+                Return TargetedType
+            End If
+
+            'Not found
+            Throw New SyntaxException($"The type ""{ToString()}"" is unknown or unreachable", Location)
+
         End Function
 
         'To string

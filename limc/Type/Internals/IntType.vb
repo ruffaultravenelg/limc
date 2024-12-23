@@ -4,8 +4,8 @@ Public Class IntType
     Implements Lim.InternalType
 
     'Constructor
-    Public Sub New(GenericTypes As IEnumerable(Of Lim.Type))
-        MyBase.New()
+    Public Sub New(Base As TypeConstruct, GenericTypes As IEnumerable(Of Lim.Type))
+        MyBase.New(Base)
         SetCompiledName("int")
     End Sub
 

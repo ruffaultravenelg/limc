@@ -32,7 +32,7 @@ Namespace Source
             End If
 
             'Instanciate the type
-            Return CType(Activator.CreateInstance(targetType, PassedGenericTypes), Lim.Type)
+            Return CType(Activator.CreateInstance(targetType, Me, PassedGenericTypes), Lim.Type)
 
         End Function
 

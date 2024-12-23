@@ -26,8 +26,14 @@
         Public ReadOnly Property TypeID As Integer
         Private Shared TypesIDs As Integer = 0
 
+        'Base
+        Public ReadOnly Property Base As TypeConstruct
+
         'Constructor
-        Public Sub New()
+        Public Sub New(Base As TypeConstruct)
+
+            'Set base
+            Me.Base = Base
 
             'Create TypeID
             Lim.Type.TypesIDs += 1

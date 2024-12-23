@@ -13,7 +13,7 @@
         Dim Source As Lim.SourceFile = Lim.SourceFile.Load(Input)
 
         'Get "main" function
-        Dim MainFunction As Lim.Function = Source.Functions.GetCorrespondance("main", {}, {})
+        Dim MainFunction As Lim.Function = Source.GetFunction("main", {}, {})
 
         'Write file to output
         Dim Writer As New IO.StreamWriter(Output)
