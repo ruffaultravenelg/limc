@@ -25,7 +25,23 @@
         'Compile
         Public Overrides Sub Compile(Scope As Scope)
 
+            'If there is not value
+            If VariableValue Is Nothing Then
 
+                If Scope.WriteVariableDeclaration(VariableName, VariableType.GetTargetedType(Scope)) Is Nothing Then
+                    Throw New SyntaxException("A variable with the same name was already declared in this scope.", Location)
+                End If
+
+                Return
+
+            End If
+
+            'If there is not type
+            If VariableType Is Nothing Then
+
+                'TODO
+
+            End If
 
         End Sub
 

@@ -17,7 +17,7 @@
         Dim Lines As String() = IO.File.ReadAllLines(File.FullFilePath)
 
         ' Return the line
-        Return Lines(Line)
+        Return Lines(Line).TrimStart()
 
     End Function
 

@@ -21,7 +21,6 @@
         Public Sub WriteBody(Stream As IO.StreamWriter)
             Stream.Write(Signature)
             Stream.WriteLine("{")
-            Stream.WriteLine()
             For Each Line As String In Body
                 Stream.WriteLine(vbTab & Line)
             Next

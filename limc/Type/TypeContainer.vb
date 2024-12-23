@@ -76,6 +76,9 @@
                 'Compile the lim type
                 LimType.Compile()
 
+                'Return the type
+                Return LimType
+
             End If
         Next
 

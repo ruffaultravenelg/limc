@@ -9,7 +9,7 @@ Public Class Context
 
     'Parent context
     Private Parent As Context
-
+    
     'Constructor
     Public Sub New(Optional Parent As Context = Nothing)
         Me.Parent = Parent
@@ -44,13 +44,15 @@ Public Class Context
     End Property
 
     'Declare variable
-    Public Function DeclareVariable(Name As String, Type As Lim.Type) As Lim.Variable
+    Public Function RegisterVariable(Name As String, Type As Lim.Type) As Lim.Variable
 
         'Create variable
         Dim Variable As New Lim.Variable(C.Namer.GenerateVariableName(), Type)
 
         'Add it to context
-        Variables.Add(Name, Variable)
+        If Not Variables.TryAdd(Name, Variable) Then
+            Return Nothing 'If the variable is not added -> return nothing
+        End If
 
         'Return varaible
         Return Variable

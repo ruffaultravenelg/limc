@@ -6,7 +6,15 @@
     Public MustInherit Class Type
 
         'Compiled name
+        Private _CompiledName As String
         Public ReadOnly Property CompiledName As String
+            Get
+                Return _CompiledName
+            End Get
+        End Property
+        Protected Sub SetCompiledName(Value As String)
+            _CompiledName = Value
+        End Sub
 
         'Name
         Public MustOverride ReadOnly Property Name As String
@@ -26,7 +34,7 @@
             Me.TypeID = Lim.Type.TypesIDs
 
             'Create compiled name
-            Me.CompiledName = C.Generator.Namer.GenerateTypeName()
+            SetCompiledName(C.Generator.Namer.GenerateTypeName())
 
         End Sub
 
@@ -49,6 +57,12 @@
                 Return Name & "<" & String.Join(", ", GenericTypes) & ">"
             End If
         End Function
+
+        'Default value
+        Public MustOverride Function DefaultValue() As String
+
+        'Assignation
+        Public MustOverride Function Assignation(Variable As String, Value As String) As String
 
     End Class
 

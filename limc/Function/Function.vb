@@ -45,7 +45,7 @@
 
             'Create arguments
             For Each Argument As Source.Argument In Me.Base.Arguments
-                Scope.DeclareVariable(Argument.Name, Argument.Type.GetTargetedType(Scope))
+                Scope.WriteVariableDeclaration(Argument.Name, Argument.Type.GetTargetedType(Scope))
             Next
 
         End Sub
@@ -64,6 +64,7 @@
 
             'Compile body
             For Each Statement As StatementNode In Base.Body
+                Scope.WriteLine()
                 Statement.Compile(Scope)
             Next
 

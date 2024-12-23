@@ -6,6 +6,7 @@ Public Class IntType
     'Constructor
     Public Sub New(GenericTypes As IEnumerable(Of Lim.Type))
         MyBase.New()
+        SetCompiledName("int")
     End Sub
 
     'Name
@@ -17,5 +18,15 @@ Public Class IntType
     'Compile
     Public Overrides Sub Compile()
     End Sub
+
+    'Default value
+    Public Overrides Function DefaultValue() As String
+        Return "0"
+    End Function
+
+    'Assignation
+    Public Overrides Function Assignation(Variable As String, Value As String) As String
+        Return $"{Variable} = {Value};"
+    End Function
 
 End Class

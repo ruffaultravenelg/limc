@@ -31,8 +31,11 @@
 
             End If
 
+            'Compile passed generic types
+            Dim CompiledPassedGenericTypes As IEnumerable(Of Lim.Type) = PassedGenericTypes.Select(Function(GenericType) GenericType.GetTargetedType(Context))
+
             'Search for type in current file
-            Dim TargetedType As Lim.Type = Location.File.Types.GetCorrespondance(TypeName, PassedGenericTypes)
+            Dim TargetedType As Lim.Type = Location.File.Types.GetCorrespondance(TypeName, CompiledPassedGenericTypes)
             If TargetedType IsNot Nothing Then
                 Return TargetedType
             End If
@@ -41,7 +44,7 @@
             'TODO
 
             'Not found
-            Throw New SyntaxException($"Type ""{ToString()}"" is unknown or unreachable" & Me.ToString(), Location)
+            Throw New SyntaxException($"The type ""{ToString()}"" is unknown or unreachable", Location)
 
         End Function
 
