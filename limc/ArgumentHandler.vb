@@ -20,6 +20,9 @@
     'Version
     Public ReadOnly Property Version As Boolean = False
 
+    'Libs directory
+    Public ReadOnly Property LibsDirectory As String = AppContext.BaseDirectory & "/libs"
+
 
     'Load arguments
     Private Sub New(Args As IEnumerable(Of String))
@@ -45,6 +48,16 @@
                 If Arg = "-v" OrElse Arg = "--version" Then
                     Version = True
                     Return 'If need to show version, don't need to parse all args
+                End If
+
+                'libs
+                If Arg = "-l" OrElse Arg = "--libs" Then
+                    i += 1
+                    If i >= Args.Count Then
+                        Throw New SimpleException("Missing argument", "Flag """ & Arg & """ need an argument.")
+                    End If
+                    LibsDirectory = Args(i)
+                    Continue While
                 End If
 
                 'Unknown flag
