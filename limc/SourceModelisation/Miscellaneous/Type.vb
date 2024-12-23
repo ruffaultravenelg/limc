@@ -16,8 +16,33 @@
         End Sub
 
         'Get targeted type
-        Public Overridable Function GetTargetedType(Scope As Object) As Lim.Type
-            Throw New NotImplementedException
+        Public Overridable Function GetTargetedType(Context As context) As Lim.Type
+
+            'Search for generic type
+            If PassedGenericTypes.Count = 0 Then
+
+                'Search for generic type named {TypeName}
+                Dim Result As Lim.Type = Context.GenericType(TypeName)
+
+                'If found, return it
+                If Result IsNot Nothing Then
+                    Return Result
+                End If
+
+            End If
+
+            'Search for type in current file
+            Dim TargetedType As Lim.Type = Location.File.Types.GetCorrespondance(TypeName, PassedGenericTypes)
+            If TargetedType IsNot Nothing Then
+                Return TargetedType
+            End If
+
+            'Search in imported files
+            'TODO
+
+            'Not found
+            Throw New SyntaxException($"Type ""{ToString()}"" is unknown or unreachable" & Me.ToString(), Location)
+
         End Function
 
         'To string
@@ -45,8 +70,8 @@
         End Sub
 
         'Get targeted type
-        Public Overrides Function GetTargetedType(Scope As Object) As Lim.Type
-            Throw New NotImplementedException
+        Public Overrides Function GetTargetedType(Context As Context) As Lim.Type
+            Throw New NotImplementedException 'Search in a specific file
         End Function
 
         'To string

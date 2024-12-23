@@ -22,6 +22,9 @@
         'Functions
         Public ReadOnly Functions As FunctionContainer
 
+        'Types
+        Public ReadOnly Types As TypeContainer
+
         'Constructor
         Private Sub New(Filename As String)
 
@@ -34,11 +37,11 @@
             'Parse tokens
             Dim Content As FileAST = AST.GenerateAST(Lines)
 
-            'Print file for debuging purposes
-            Console.WriteLine(Content.ToString())
-
             'Get functions
             Me.Functions = New FunctionContainer(Content.GetConstructs(Of Source.Function))
+
+            'Get types
+            Me.Types = New TypeContainer(Content.GetConstructs(Of TypeConstruct))
 
         End Sub
 

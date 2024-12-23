@@ -44,6 +44,26 @@
 
     End Function
 
+    'Function match arguments
+    Private Function FunctionMatchArguments(Fn As Lim.Function, Arguments As IEnumerable(Of Lim.Type)) As Boolean
+
+        'Argument count
+        If Not Fn.Arguments.Count = Arguments.Count Then
+            Return False
+        End If
+
+        'Argument matches
+        For i As Integer = 0 To Arguments.Count - 1
+            If Not Fn.Arguments(i) = Arguments(i) Then
+                Return False
+            End If
+        Next
+
+        'All tests pass
+        Return True
+
+    End Function
+
     'Compile function
     Private Sub CompileFunction(Fn As Source.Function, GenericTypes As IEnumerable(Of Lim.Type))
 
@@ -90,6 +110,34 @@
 
         'Return value
         Return Correspondances
+
+    End Function
+
+    'Get correspondances ->  {Name, GenericType, Arguments}
+    Public Function GetCorrespondance(Name As String, GenericTypes As IEnumerable(Of Lim.Type), Arguments As IEnumerable(Of Lim.Type)) As Lim.Function
+
+        'Get correspondances of name & generic types
+        Dim Correspondances As New List(Of Lim.Function)
+
+        'Search the one that correspond
+        For Each NameCorrespondance As Lim.Function In GetCorrespondances(Name, GenericTypes)
+            If FunctionMatchArguments(NameCorrespondance, Arguments) Then
+                Correspondances.Add(NameCorrespondance)
+            End If
+        Next
+
+        'On correspondance -> ok
+        If Correspondances.Count = 1 Then
+            Return Correspondances.First
+        End If
+
+        'Multiple correspondance -> error
+        If Correspondances.Count > 1 Then
+            Throw New SyntaxException("To functions have the same signatures", Correspondances.First.Base.Location)
+        End If
+
+        'No correspondance
+        Return Nothing
 
     End Function
 

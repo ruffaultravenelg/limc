@@ -1,7 +1,7 @@
 ﻿Public Class AST
 
     'Constants
-    Private ReadOnly CONSTRUCTS As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetImport, AddressOf GetFunction}
+    Private ReadOnly CONSTRUCTS As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetImport, AddressOf GetFunction, AddressOf GetInternalType}
     Private ReadOnly FUNCTION_STATEMENTS As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetLet}
 
     'Properties
@@ -370,6 +370,40 @@
 
         'Return
         Return New Source.Import(LocationFrom(StartLocation), Filename, Library, Naming)
+
+    End Function
+
+
+    'Get internal type
+    Private Function GetInternalType() As Source.InteralType
+
+        'Save start location
+        Dim StartLocation As Location = Tokens.Current.Location
+
+        'Check "internal" word
+        If Not Tokens.Current.Type = Token.TokenType.WORD AndAlso Tokens.Current.Value.ToString().ToLower() = "internal" Then
+            Throw New NotTheRightElement()
+        End If
+
+        'Check for "type" word
+        Tokens.Next()
+        If Not Tokens.Current.Type = Token.TokenType.WORD AndAlso Tokens.Current.Value.ToString().ToLower() = "type" Then
+            Throw New NotTheRightElement()
+        End If
+
+        'Get type name
+        Tokens.Next()
+        If Not Tokens.Current.Type = Token.TokenType.WORD Then
+            Throw New SyntaxException("A type name was expected here", Tokens.Current.Location)
+        End If
+        Dim Name As String = Tokens.Current.Value
+
+        'Get generic types
+        Tokens.Next()
+        Dim GenericTypes As IEnumerable(Of Source.GenericType) = GetGenericTypes()
+
+        'Return node
+        Return New Source.InteralType(LocationFrom(StartLocation), Name, GenericTypes)
 
     End Function
 

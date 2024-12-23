@@ -73,8 +73,7 @@ Module Program
         End If
 
         ' Create compiler
-        Dim Compiler As New Compiler(ArgumentHandler.Instance.Input, Source)
-        Compiler.Compile()
+        Compiler.Compile(ArgumentHandler.Instance.Input, Source)
 
     End Sub
 

@@ -1,24 +1,25 @@
-﻿Friend Class Compiler
+﻿Friend Module Compiler
 
-    'Inputs
-    Private ReadOnly Input As String
-    Private ReadOnly Output As String
+    'Compile a file to a output source file
+    Friend Sub Compile(Input As String, Output As String)
 
-    'Constructor
-    Public Sub New(Input As String, Output As String)
-        Me.Input = Input
-        Me.Output = Output
-    End Sub
-
-    'Compile the input file
-    Friend Sub Compile()
+        'Add general imports
+        C.Generator.AddImport("#include <stdio.h>")
+        C.Generator.AddImport("#include <stdlib.h>")
+        C.Generator.AddImport("#include <string.h>")
+        C.Generator.AddImport("#include <stdbool.h>")
 
         'Parse file
         Dim Source As Lim.SourceFile = Lim.SourceFile.Load(Input)
 
         'Get "main" function
-        Dim MainFunction As Lim.Function = Source.Functions.GetCorrespondances("main", {}).FirstOrDefault()
-        Console.WriteLine("aaaa > " & MainFunction.Base.Name & " " & MainFunction.Base.Exported.ToString())
+        Dim MainFunction As Lim.Function = Source.Functions.GetCorrespondance("main", {}, {})
+
+        'Write file to output
+        Dim Writer As New IO.StreamWriter(Output)
+        C.Generator.Write(Writer)
+        Writer.Close()
+
     End Sub
 
-End Class
+End Module

@@ -1,7 +1,7 @@
 ﻿Public Class Location
 
     ' Information of the location
-    Protected File As Lim.SourceFile
+    Public ReadOnly File As Lim.SourceFile
     Protected Line As Integer
 
     ' Constructor
