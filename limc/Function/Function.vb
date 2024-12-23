@@ -63,20 +63,15 @@
             'TODO: incroement 1 stack variable count on all heap arguments
 
             'Compile body
-            CompileBody()
+            For Each Statement As StatementNode In Base.Body
+                Statement.Compile(Scope)
+            Next
 
             'Compile signature
             Dim Signature As String = CompileSignature()
 
             'Add this function to the final file
             C.Generator.AddFunction(New C.Function(Signature, Scope.Build()))
-
-        End Sub
-
-        'Compile body
-        Private Sub CompileBody()
-
-
 
         End Sub
 
