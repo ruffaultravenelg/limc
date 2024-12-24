@@ -5,6 +5,20 @@
     '
     Public MustInherit Class Type
 
+        'Main types
+        Private Shared _Int As Type = Nothing
+        Public Shared ReadOnly Property Int As Type
+            Get
+                If _Int Is Nothing Then
+                    _Int = Lim.SourceFile.STD.GetAType("int", {})
+                    If _Int Is Nothing Then
+                        Throw New SimpleException("Incomplete library", "Int type not found in the standard library (" & IO.Path.Combine(ArgumentHandler.Instance.LibsDirectory, "std.lim") & ").")
+                    End If
+                End If
+                Return _Int
+            End Get
+        End Property
+
         'Compiled name
         Private _CompiledName As String
         Public ReadOnly Property CompiledName As String

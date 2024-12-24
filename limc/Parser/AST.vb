@@ -499,7 +499,24 @@
 
     'Get expression
     Private Function GetExpression() As ExpressionNode
-        Return Nothing
+        Return GetFactor()
+    End Function
+
+    'Get factor
+    Private Function GetFactor() As ExpressionNode
+
+        'Save first token
+        Dim FirstToken As Token = Tokens.Current
+
+        'Integer
+        If Tokens.Current.Type = Token.TokenType.VALUE_INT Then
+            Tokens.Next()
+            Return New Source.IntNode(FirstToken.Location, FirstToken.Value)
+        End If
+
+        'Nothing found -> throw exception
+        Throw New SyntaxException("A expression was expected here", Tokens.Current.Location)
+
     End Function
 
 End Class

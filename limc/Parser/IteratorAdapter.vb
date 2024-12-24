@@ -50,17 +50,4 @@
 
     End Function
 
-    Public Function NextIfPossible() As T
-
-        If Not HasNext Then
-            Return Current
-        End If
-
-        LastValue = Enumerator.Current
-        _HasNext = Enumerator.MoveNext()
-
-        Return LastValue
-
-    End Function
-
 End Class

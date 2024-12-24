@@ -27,20 +27,32 @@
 
             'If there is not value
             If VariableValue Is Nothing Then
-
                 If Scope.WriteVariableDeclaration(VariableName, VariableType.GetTargetedType(Scope)) Is Nothing Then
                     Throw New SyntaxException("A variable with the same name was already declared in this scope.", Location)
                 End If
-
                 Return
-
             End If
 
             'If there is not type
             If VariableType Is Nothing Then
+                If Scope.WriteVariableDeclaration(VariableName, VariableValue.GetReturnType(Scope)) Is Nothing Then
+                    Throw New SyntaxException("A variable with the same name was already declared in this scope.", Location)
+                End If
+                Return
+            End If
 
-                'TODO
+            'If there is a type and a value
+            Dim SpecifiedType As Lim.Type = VariableType.GetTargetedType(Scope)
+            Dim ValueType As Lim.Type = VariableValue.GetReturnType(Scope)
 
+            'Check if the value type is compatible with the specified type
+            If Not ValueType = SpecifiedType Then
+                Throw New SyntaxException("The value type is not compatible with the specified type.", Location)
+            End If
+
+            'Write the variable declaration
+            If Scope.WriteVariableDeclaration(VariableName, SpecifiedType) Is Nothing Then
+                Throw New SyntaxException("A variable with the same name was already declared in this scope.", Location)
             End If
 
         End Sub

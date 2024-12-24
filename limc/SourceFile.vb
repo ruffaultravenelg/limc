@@ -1,6 +1,19 @@
-﻿Namespace Lim
+﻿Imports System.IO
+
+Namespace Lim
 
     Public Class SourceFile
+
+        'STD file
+        Private Shared _STD As Lim.SourceFile = Nothing
+        Public Shared ReadOnly Property STD As Lim.SourceFile
+            Get
+                If _STD Is Nothing Then
+                    _STD = Lim.SourceFile.Load(Path.Combine(ArgumentHandler.Instance.LibsDirectory, "std.lim"))
+                End If
+                Return _STD
+            End Get
+        End Property
 
         'Store all sources files
         Private Shared ReadOnly ProjectFiles As New List(Of Lim.SourceFile)
@@ -23,7 +36,7 @@
         End Property
 
         'Imports
-        Public ReadOnly Property ImportedFiles As New List(Of Lim.SourceFile)
+        Public ReadOnly Property ImportedFiles As New HashSet(Of Lim.SourceFile)
         Public ReadOnly Property NammedImportedFiles As New Dictionary(Of String, Lim.SourceFile)
 
         'Functions
@@ -40,6 +53,9 @@
 
             'Add to project files
             ProjectFiles.Add(Me)
+
+            'Import the standard library
+            ImportedFiles.Add(STD)
 
             'Parse text
             Dim Lines As IEnumerable(Of SourceLine) = SourceLine.Load(Me)
