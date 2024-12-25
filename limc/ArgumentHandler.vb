@@ -1,31 +1,22 @@
-﻿Public Class ArgumentHandler
-
-    'Singleton
-    Private Shared _Instance As ArgumentHandler
-    Public Shared ReadOnly Property Instance As ArgumentHandler
-        Get
-            Return _Instance
-        End Get
-    End Property
+﻿Public Module ArgumentHandler
 
     'Input
-    Public ReadOnly Property Input As String = Nothing
+    Public Property Input As String = Nothing
 
     'Output
-    Public ReadOnly Property Output As String = Nothing
+    Public Property Output As String = Nothing
 
     'Help
-    Public ReadOnly Property Help As Boolean = False
+    Public Property Help As Boolean = False
 
     'Version
-    Public ReadOnly Property Version As Boolean = False
+    Public Property Version As Boolean = False
 
     'Libs directory
-    Public ReadOnly Property LibsDirectory As String = AppContext.BaseDirectory & "/libs"
+    Public Property LibsDirectory As String = IO.Path.Combine(AppContext.BaseDirectory, "libs")
 
-
-    'Load arguments
-    Private Sub New(Args As IEnumerable(Of String))
+    'Shared load
+    Public Sub LoadArgs(Args As IEnumerable(Of String))
 
         'Parse arguments
         Dim i As Integer = -1
@@ -84,12 +75,4 @@
 
     End Sub
 
-    'Shared load
-    Public Shared Sub LoadArgs(Args As IEnumerable(Of String))
-
-        'Create instance
-        _Instance = New ArgumentHandler(Args)
-
-    End Sub
-
-End Class
+End Module

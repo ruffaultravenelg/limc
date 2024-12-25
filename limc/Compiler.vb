@@ -9,9 +9,6 @@
         C.Generator.AddImport("#include <string.h>")
         C.Generator.AddImport("#include <stdbool.h>")
 
-        'Load standard library
-
-
         'Parse file
         Dim Source As Lim.SourceFile = Lim.SourceFile.Load(Input)
 

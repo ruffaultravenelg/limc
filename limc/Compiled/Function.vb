@@ -17,7 +17,7 @@
             Stream.WriteLine(Signature & ";")
         End Sub
 
-        'Write boyd
+        'Write body
         Public Sub WriteBody(Stream As IO.StreamWriter)
             Stream.Write(Signature)
             Stream.WriteLine("{")

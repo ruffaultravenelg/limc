@@ -7,6 +7,7 @@
         'Content of the file
         Private Import As New HashSet(Of String)
         Private Functions As New HashSet(Of C.Function)
+        Private Enums As New HashSet(Of C.Enum)
 
         'Append function
         Public Sub AddFunction(Fn As C.Function)
@@ -18,6 +19,11 @@
             If Not Generator.Import.Contains(Import) Then
                 Generator.Import.Add(Import)
             End If
+        End Sub
+
+        'Append enum
+        Public Sub AddEnum(E As C.Enum)
+            Enums.Add(E)
         End Sub
 
         'Write
@@ -40,6 +46,12 @@
             WriteTitle(Stream, "Imports")
             For Each Import As String In Generator.Import
                 Stream.WriteLine(Import)
+            Next
+
+            'Write enums
+            WriteTitle(Stream, "Enums")
+            For Each E As C.Enum In Generator.Enums
+                E.WriteTypedef(Stream)
             Next
 
             'Write functions signatures

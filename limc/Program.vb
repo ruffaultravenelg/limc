@@ -13,19 +13,19 @@ Module Program
             ArgumentHandler.LoadArgs(args)
 
             'Display help
-            If ArgumentHandler.Instance.Help Then
+            If ArgumentHandler.Help Then
                 DisplayHelp()
                 Exit Sub
             End If
 
             'Display version
-            If ArgumentHandler.Instance.Version Then
+            If ArgumentHandler.Version Then
                 DisplayVersion()
                 Exit Sub
             End If
 
             'Check input
-            If ArgumentHandler.Instance.Input = Nothing Then
+            If ArgumentHandler.Input = Nothing Then
                 Throw New SimpleException("No input", "No input file specified.")
             End If
 
@@ -73,7 +73,7 @@ Module Program
         End If
 
         ' Create compiler
-        Compiler.Compile(ArgumentHandler.Instance.Input, Source)
+        Compiler.Compile(ArgumentHandler.Input, Source)
 
     End Sub
 

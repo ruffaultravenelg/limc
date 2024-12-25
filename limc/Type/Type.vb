@@ -12,7 +12,7 @@
                 If _Int Is Nothing Then
                     _Int = Lim.SourceFile.STD.GetAType("int", {})
                     If _Int Is Nothing Then
-                        Throw New SimpleException("Incomplete library", "Int type not found in the standard library (" & IO.Path.Combine(ArgumentHandler.Instance.LibsDirectory, "std.lim") & ").")
+                        Throw New SimpleException("Incomplete library", "Int type not found in the standard library (" & IO.Path.Combine(ArgumentHandler.LibsDirectory, "std.lim") & ").")
                     End If
                 End If
                 Return _Int

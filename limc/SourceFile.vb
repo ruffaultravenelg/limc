@@ -1,5 +1,4 @@
-﻿Imports System.IO
-
+﻿
 Namespace Lim
 
     Public Class SourceFile
@@ -9,7 +8,11 @@ Namespace Lim
         Public Shared ReadOnly Property STD As Lim.SourceFile
             Get
                 If _STD Is Nothing Then
-                    _STD = Lim.SourceFile.Load(Path.Combine(ArgumentHandler.Instance.LibsDirectory, "std.lim"))
+                    Dim STDPath As String = IO.Path.Combine(ArgumentHandler.LibsDirectory, "std.lim")
+                    If Not IO.File.Exists(STDPath) Then
+                        Throw New SimpleException("std.lim missing", "The standard library file is missing from """ & STDPath & """.")
+                    End If
+                    _STD = Lim.SourceFile.Load(STDPath)
                 End If
                 Return _STD
             End Get
@@ -81,7 +84,7 @@ Namespace Lim
                 'Get the full filepath
                 Dim Filepath As String
                 If Statement.Library Then
-                    Filepath = IO.Path.GetFullPath(IO.Path.Combine(ArgumentHandler.Instance.LibsDirectory, Statement.Filename & ".lim"))
+                    Filepath = IO.Path.GetFullPath(IO.Path.Combine(ArgumentHandler.LibsDirectory, Statement.Filename & ".lim"))
                 Else
                     Filepath = IO.Path.GetFullPath(Statement.Filename, IO.Path.GetDirectoryName(FullFilePath))
                 End If
