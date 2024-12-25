@@ -179,7 +179,8 @@
                 vbTab & "printf("" > %s\n"", funcname);",
                 vbTab & "ctx = ctx->parent;",
                 "}",
-                "printf(""Program aborted.\n"");"
+                "printf(""Program aborted.\n"");",
+                "exit(-1);"
             }))
 
             'Add allocator function

@@ -128,6 +128,7 @@
             Return Correspondances.First().PointerType.Wrap(Correspondances.First().CompiledName)
 
         End Function
+
     End Class
 
 End Namespace

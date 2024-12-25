@@ -20,6 +20,7 @@
         Public Overrides Function Compile(Scope As Scope) As String
             Return Value.ToString()
         End Function
+
     End Class
 
 End Namespace

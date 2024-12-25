@@ -2,7 +2,7 @@
 
     'Constants
     Private ReadOnly CONSTRUCTS As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetImport, AddressOf GetFunction, AddressOf GetInternalType}
-    Private ReadOnly FUNCTION_STATEMENTS As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetLet}
+    Private ReadOnly FUNCTION_STATEMENTS As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetLet, AddressOf GetCallStatement}
 
     'Properties
     Private Tokens As IteratorAdapter(Of Token)
@@ -454,6 +454,7 @@
             'Save token
             Tokens.Next()
             Dim StartLocation As Location = Tokens.Current.Location
+            'TODO: save token index state
 
             'Get statement
             Dim Statement As StatementNode = Nothing
@@ -518,9 +519,72 @@
 
     End Function
 
+    'Get call statement
+    Private Function GetCallStatement(CurrentIndentation As Integer)
+
+        'Get expression
+        Dim Expression As ExpressionNode = GetExpression()
+
+        'If expression is not a call
+        If TypeOf Expression IsNot Source.CallNode Then
+            Throw New NotTheRightElement()
+        End If
+
+        'Return node
+        Return New Source.CallStatement(Expression)
+
+    End Function
+
     'Get expression
     Private Function GetExpression() As ExpressionNode
-        Return GetFactor()
+        Return GetCall()
+    End Function
+
+    'Get call
+    Private Function GetCall() As ExpressionNode
+
+        'Get target
+        Dim Target As ExpressionNode = GetFactor()
+
+        'If it's not a call
+        If Not Tokens.Current.Type = Token.TokenType.SYNTAX_LEFT_PARENTHESIS Then
+            Return Target
+        End If
+
+        'Empty lol
+        Tokens.Next()
+        If Tokens.Current.Type = Token.TokenType.SYNTAX_RIGHT_PARENTHESIS Then
+            Tokens.Next()
+            Return New Source.CallNode(LocationFrom(Target.Location), Target, {})
+        End If
+
+        'Values
+        Dim PassedArguments As New List(Of ExpressionNode)
+        While True
+
+            'Get argument
+            PassedArguments.Add(GetExpression())
+
+            'End
+            If Tokens.Current.Type = Token.TokenType.SYNTAX_RIGHT_PARENTHESIS Then
+                Tokens.Next()
+                Exit While
+            End If
+
+            'coma
+            If Tokens.Current.Type = Token.TokenType.SYNTAX_COMMA Then
+                Tokens.Next()
+                Continue While
+            End If
+
+            'Error
+            Throw New SyntaxException("The characters ')' or ',' were expected here.", Tokens.Current.Location)
+
+        End While
+
+        'Return
+        Return New Source.CallNode(LocationFrom(Target.Location), Target, PassedArguments)
+
     End Function
 
     'Get factor
