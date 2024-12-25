@@ -1,5 +1,4 @@
-﻿' Represent a function type (doesn't contains a object, not for methods)
-Public Class FuncType
+﻿Public Class FuncType
     Inherits Lim.Type
 
     'Name
@@ -12,9 +11,21 @@ Public Class FuncType
     Public ReadOnly Property ReturnType As Lim.Type
 
     'Constructor
-    Public Sub New(GenericTypes As IEnumerable(Of Lim.Type), ReturnType As Lim.Type)
+    Private Sub New(GenericTypes As IEnumerable(Of Lim.Type), ReturnType As Lim.Type)
         MyBase.New(Nothing) 'Se if this thing make crash lol
-        SetCompiledName("int")
+
+        'Set elements
+        Me.ArgumentTypes = GenericTypes
+        Me.ReturnType = ReturnType
+
+        'Generate structure
+        C.Generator.AddStructure(New C.Structure(CompiledName, {
+            If(ReturnType Is Nothing, "void", ReturnType.CompiledName) & " (*fn)(" & String.Join(", ", GenericTypes.Select(Function(T As Lim.Type) T.CompiledName)) & ")"
+        }))
+
+        'Generate default function
+
+
     End Sub
 
     'Compile
@@ -38,6 +49,48 @@ Public Class FuncType
         Else
             Return MyBase.ToString() & "<" & ReturnType.ToString() & ">"
         End If
+    End Function
+
+    'All existing func types
+    Private Shared ExistingTypes As New HashSet(Of FuncType)
+
+    'From
+    Public Shared Function From(Arguments As IEnumerable(Of Lim.Type), ReturnType As Lim.Type) As FuncType
+
+        'If already exist
+        For Each i As FuncType In ExistingTypes
+
+
+        Next
+
+        'Do not exist -> new one
+        Return New FuncType(Arguments, ReturnType)
+
+    End Function
+
+    'Compare functype
+    Private Shared Function SameType(Target As FuncType, Arguments As IEnumerable(Of Lim.Type), ReturnType As Lim.Type) As Boolean
+
+        'Compare argument count
+        If Not Target.ArgumentTypes.Count = Arguments.Count Then
+            Return False
+        End If
+
+        'Compare arguments
+        For i As Integer = 0 To Arguments.Count - 1
+            If Not Target.ArgumentTypes(i) = Arguments(i) Then
+                Return False
+            End If
+        Next
+
+        'Compare return type
+        If Target.ReturnType = ReturnType Then
+            Return False
+        End If
+
+        'Every test pass
+        Return True
+
     End Function
 
 End Class

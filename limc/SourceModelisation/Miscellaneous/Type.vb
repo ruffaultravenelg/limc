@@ -99,7 +99,7 @@ Namespace Source
 
     End Class
 
-    'TypeNode for a function -> "fn<int, str><bool>"
+    'TypeNode for a function -> "fun<int, str><bool>"
     Public Class FunType
         Inherits Type
 
@@ -115,7 +115,17 @@ Namespace Source
         'Get targeted type
         Public Overrides Function GetTargetedType(Context As Context) As Lim.Type
 
+            'Compile passed generic types
+            Dim CompiledPassedGenericTypes As IEnumerable(Of Lim.Type) = PassedGenericTypes.Select(Function(GenericType) GenericType.GetTargetedType(Context))
 
+            'Compile return type
+            Dim CompiledReturnType As Lim.Type = Nothing
+            If ReturnType IsNot Nothing Then
+                CompiledReturnType = ReturnType.GetTargetedType(Context)
+            End If
+
+            'Get func type
+            Return FuncType.From(CompiledPassedGenericTypes, CompiledReturnType)
 
         End Function
 

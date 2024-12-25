@@ -70,41 +70,10 @@
             Next
             Scope.WriteScope(InnerScope)
 
-            'Compile signature
-            Dim Signature As String = CompileSignature()
-
             'Add this function to the final file
-            C.Generator.AddFunction(New C.Function(Signature, Scope.Build()))
+            C.Generator.AddFunction(New C.Function(CompiledName, Scope.LocalVariables.Values.Select(Function(Var As Lim.Variable) Var.Type.CompiledName & " " & Var.CompiledName), If(ReturnType Is Nothing, "void", ReturnType.CompiledName), Scope.Build()))
 
         End Sub
-
-        'Generate signature
-        Private Function CompileSignature() As String
-
-            'Create result
-            Dim Signature As String = ""
-
-            'Add return type
-            If ReturnType Is Nothing Then
-                Signature &= "void"
-            Else
-                Signature &= ReturnType.CompiledName
-            End If
-
-            'Add name
-            Signature &= " " & CompiledName
-
-            'Add arguments
-            Signature &= "("
-            For Each Variable As Lim.Variable In Scope.LocalVariables.Values
-                Signature &= Variable.Type.CompiledName & " " & Variable.CompiledName & ", "
-            Next
-            Signature &= ")"
-
-            'Return
-            Return Signature
-
-        End Function
 
     End Class
 

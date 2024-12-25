@@ -170,6 +170,7 @@
                     If Not Tokens.Current.Type = Token.TokenType.OPERATOR_MORETHAN Then
                         Throw New SyntaxException("A '>' was expected here.", Tokens.Current.Location)
                     End If
+                    Tokens.Next()
                 End If
             End If
 

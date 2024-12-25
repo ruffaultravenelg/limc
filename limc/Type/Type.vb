@@ -63,6 +63,15 @@
 
         'Equality
         Public Shared Operator =(a As Type, b As Type) As Boolean
+            If a Is Nothing Then
+                If b Is Nothing Then
+                    Return True
+                Else
+                    Return False
+                End If
+            ElseIf b Is Nothing Then
+                Return False
+            End If
             Return a.TypeID = b.TypeID
         End Operator
         Public Shared Operator <>(a As Type, b As Type) As Boolean
