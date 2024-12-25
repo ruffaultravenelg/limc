@@ -18,13 +18,13 @@
         End If
 
         'Argument count
-        If Not Type.GenericTypes.Count = GenericTypes.Count Then
+        If Not Type.ArgumentTypes.Count = GenericTypes.Count Then
             Return False
         End If
 
         'Compares generic types
         For i As Integer = 0 To GenericTypes.Count - 1
-            If Not Type.GenericTypes(i) = GenericTypes(i) Then
+            If Not Type.ArgumentTypes(i) = GenericTypes(i) Then
                 Return False
             End If
         Next

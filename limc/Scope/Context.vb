@@ -5,11 +5,23 @@ Public Class Context
     Public ReadOnly Property GenericTypes As New Dictionary(Of String, Lim.Type)
 
     'Scope variables
-    Public ReadOnly Variables As New Dictionary(Of String, Lim.Variable)
+    Public ReadOnly LocalVariables As New Dictionary(Of String, Lim.Variable)
+
+    'Search a variable
+    Public ReadOnly Property Variable(Name As String) As Lim.Variable
+        Get
+            For Each Upper As Context In Parents
+                If Upper.LocalVariables.ContainsKey(Name) Then
+                    Return Upper.LocalVariables(Name)
+                End If
+            Next
+            Return Nothing
+        End Get
+    End Property
 
     'Parent context
     Private Parent As Context
-    
+
     'Constructor
     Public Sub New(Optional Parent As Context = Nothing)
         Me.Parent = Parent
@@ -50,7 +62,7 @@ Public Class Context
         Dim Variable As New Lim.Variable(C.Namer.GenerateVariableName(), Type)
 
         'Add it to context
-        If Not Variables.TryAdd(Name, Variable) Then
+        If Not LocalVariables.TryAdd(Name, Variable) Then
             Return Nothing 'If the variable is not added -> return nothing
         End If
 

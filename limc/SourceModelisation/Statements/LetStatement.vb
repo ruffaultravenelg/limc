@@ -35,7 +35,7 @@
 
             'If there is not type
             If VariableType Is Nothing Then
-                If Scope.WriteVariableDeclaration(VariableName, VariableValue.GetReturnType(Scope)) Is Nothing Then
+                If Scope.WriteVariableDeclaration(VariableName, VariableValue.GetReturnType(Scope), VariableValue.Compile(Scope)) Is Nothing Then
                     Throw New SyntaxException("A variable with the same name was already declared in this scope.", Location)
                 End If
                 Return
@@ -51,7 +51,7 @@
             End If
 
             'Write the variable declaration
-            If Scope.WriteVariableDeclaration(VariableName, SpecifiedType) Is Nothing Then
+            If Scope.WriteVariableDeclaration(VariableName, SpecifiedType, VariableValue.Compile(Scope)) Is Nothing Then
                 Throw New SyntaxException("A variable with the same name was already declared in this scope.", Location)
             End If
 

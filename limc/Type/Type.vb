@@ -34,7 +34,7 @@
         Public MustOverride ReadOnly Property Name As String
 
         'Generic types
-        Public MustOverride ReadOnly Property GenericTypes As IEnumerable(Of Lim.Type)
+        Public MustOverride ReadOnly Property ArgumentTypes As IEnumerable(Of Lim.Type)
 
         'TypeID
         Public ReadOnly Property TypeID As Integer
@@ -71,10 +71,10 @@
 
         'To string
         Public Overrides Function ToString() As String
-            If GenericTypes.Count = 0 Then
+            If ArgumentTypes.Count = 0 Then
                 Return Name
             Else
-                Return Name & "<" & String.Join(", ", GenericTypes) & ">"
+                Return Name & "<" & String.Join(", ", ArgumentTypes) & ">"
             End If
         End Function
 

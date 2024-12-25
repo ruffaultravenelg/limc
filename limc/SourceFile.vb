@@ -174,6 +174,25 @@ Namespace Lim
             Return Nothing
 
         End Function
+        Public Function GetFunctions(ImportName As String, Name As String, GenericTypes As IEnumerable(Of Lim.Type)) As IEnumerable(Of Lim.Function)
+
+            'Search if the import exist
+            If Not NammedImportedFiles.ContainsKey(ImportName) Then
+                Return Nothing
+            End If
+
+            'Check for exported results
+            Dim Result As New List(Of Lim.Function)
+            For Each Func As Lim.Function In NammedImportedFiles(ImportName).Functions.GetCorrespondances(Name, GenericTypes)
+                If Func.Base.Exported Then
+                    Result.Add(Func)
+                End If
+            Next
+
+            'Return the result
+            Return Result
+
+        End Function
 
         'Search for a type in the file or a exported one in the imports
         Public Function GetAType(TypeName As String, PassedGenericTypes As IEnumerable(Of Lim.Type)) As Lim.Type

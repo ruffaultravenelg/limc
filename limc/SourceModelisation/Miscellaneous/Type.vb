@@ -1,4 +1,6 @@
-﻿Namespace Source
+﻿Imports System.Threading.Tasks.Dataflow
+
+Namespace Source
 
     'Basic TypeNode -> "list<str>"
     Public Class Type
@@ -72,19 +74,6 @@
         'Get targeted type
         Public Overrides Function GetTargetedType(Context As Context) As Lim.Type
 
-            'Search for generic type
-            If PassedGenericTypes.Count = 0 Then
-
-                'Search for generic type named {TypeName}
-                Dim Result As Lim.Type = Context.GenericType(TypeName)
-
-                'If found, return it
-                If Result IsNot Nothing Then
-                    Return Result
-                End If
-
-            End If
-
             'Compile passed generic types
             Dim CompiledPassedGenericTypes As IEnumerable(Of Lim.Type) = PassedGenericTypes.Select(Function(GenericType) GenericType.GetTargetedType(Context))
 
@@ -105,6 +94,36 @@
             If PassedGenericTypes.Count > 0 Then
                 Result &= "<" & String.Join(", ", PassedGenericTypes.Select(Function(GenericType) GenericType.ToString())) & ">"
             End If
+            Return Result
+        End Function
+
+    End Class
+
+    'TypeNode for a function -> "fn<int, str><bool>"
+    Public Class FunType
+        Inherits Type
+
+        'Propertie
+        Protected ReadOnly ReturnType As Source.Type
+
+        'Constructor
+        Public Sub New(Location As Location, PassedGenericTypes As IEnumerable(Of Source.Type), ReturnType As Source.Type)
+            MyBase.New(Location, "fun", PassedGenericTypes)
+            Me.ReturnType = ReturnType
+        End Sub
+
+        'Get targeted type
+        Public Overrides Function GetTargetedType(Context As Context) As Lim.Type
+
+
+
+        End Function
+
+        'To string
+        Public Overrides Function ToString() As String
+            Dim Result As String = "fun"
+            Result &= "<" & String.Join(", ", PassedGenericTypes.Select(Function(GenericType) GenericType.ToString())) & ">"
+            Result &= If(ReturnType Is Nothing, "<>", "<" & ReturnType.ToString() & ">")
             Return Result
         End Function
 

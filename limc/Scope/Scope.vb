@@ -15,11 +15,20 @@ Public Class Scope
     Public Function Build() As IEnumerable(Of String)
         Return Lines
     End Function
-    Public Iterator Function BuildWithTabs() As IEnumerable(Of String)
-        For Each Line As String In Lines
-            Yield vbTab & Line
+
+    'Write lines
+    Public Sub WriteScope(Scope As Scope)
+        For Each Line As String In Scope.Build()
+            WriteLine(Line)
         Next
-    End Function
+    End Sub
+
+    'Write lines with tab
+    Public Sub WriteScopeWithIndentation(Scope As Scope)
+        For Each Line As String In Scope.Build()
+            WriteLine(vbTab & Line)
+        Next
+    End Sub
 
     'Declare variable
     Public Function WriteVariableDeclaration(Name As String, Type As Lim.Type) As Lim.Variable
@@ -35,6 +44,24 @@ Public Class Scope
         'Declare it
         WriteLine($"{Variable.Type.CompiledName} {Variable.CompiledName};")
         WriteVariableAssignation(Variable, Variable.Type.DefaultValue())
+
+        'Return variable
+        Return Variable
+
+    End Function
+    Public Function WriteVariableDeclaration(Name As String, Type As Lim.Type, Value As String) As Lim.Variable
+
+        'Create variable
+        Dim Variable As Lim.Variable = RegisterVariable(Name, Type)
+
+        'If the variable is null -> variable name already exist -> return nothing
+        If Variable Is Nothing Then
+            Return Nothing
+        End If
+
+        'Declare it
+        WriteLine($"{Variable.Type.CompiledName} {Variable.CompiledName};")
+        WriteVariableAssignation(Variable, Value)
 
         'Return variable
         Return Variable

@@ -17,7 +17,7 @@
         'Arguments types
         Public ReadOnly Iterator Property Arguments As IEnumerable(Of Lim.Type)
             Get
-                For Each Variable As Lim.Variable In Scope.Variables.Values
+                For Each Variable As Lim.Variable In Scope.LocalVariables.Values
                     Yield Variable.Type
                 Next
             End Get
@@ -63,10 +63,12 @@
             'TODO: incroement 1 stack variable count on all heap arguments
 
             'Compile body
+            Dim InnerScope As New Scope(Scope)
             For Each Statement As StatementNode In Base.Body
-                Scope.WriteLine()
-                Statement.Compile(Scope)
+                InnerScope.WriteLine()
+                Statement.Compile(InnerScope)
             Next
+            Scope.WriteScope(InnerScope)
 
             'Compile signature
             Dim Signature As String = CompileSignature()
@@ -94,7 +96,7 @@
 
             'Add arguments
             Signature &= "("
-            For Each Variable As Lim.Variable In Scope.Variables.Values
+            For Each Variable As Lim.Variable In Scope.LocalVariables.Values
                 Signature &= Variable.Type.CompiledName & " " & Variable.CompiledName & ", "
             Next
             Signature &= ")"

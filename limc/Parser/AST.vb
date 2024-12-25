@@ -158,6 +158,26 @@
             End If
         End If
 
+        'fun<><>
+        If Name = "fun" Then
+
+            'Get return type
+            Dim ReturnType As Source.Type = Nothing
+            If Tokens.Current.Type = Token.TokenType.OPERATOR_LESSTHAN Then
+                Tokens.Next()
+                If Not Tokens.Current.Type = Token.TokenType.OPERATOR_MORETHAN Then
+                    ReturnType = GetAType()
+                    If Not Tokens.Current.Type = Token.TokenType.OPERATOR_MORETHAN Then
+                        Throw New SyntaxException("A '>' was expected here.", Tokens.Current.Location)
+                    End If
+                End If
+            End If
+
+            'Create type
+            Return New Source.FunType(LocationFrom(StartLocation), PassedGenericTypes, ReturnType)
+
+        End If
+
         'Return
         If File = "" Then
             Return New Source.Type(LocationFrom(StartLocation), Name, PassedGenericTypes)
@@ -512,6 +532,27 @@
         If Tokens.Current.Type = Token.TokenType.VALUE_INT Then
             Tokens.Next()
             Return New Source.IntNode(FirstToken.Location, FirstToken.Value)
+        End If
+
+        'Element
+        If Tokens.Current.Type = Token.TokenType.WORD Then
+            Dim File As String = ""
+            Dim Value As String = FirstToken.Value
+
+            Tokens.Next()
+
+            If Tokens.Current.Type = Token.TokenType.SYNTAX_DOUBLECOLON Then
+                Tokens.Next()
+                If Not Tokens.Current.Type = Token.TokenType.WORD Then
+                    Throw New SyntaxException("A element name was expected here", Tokens.Current.Location)
+                End If
+                File = Value
+                Value = Tokens.Current.Value
+                Tokens.Next()
+            End If
+
+            Return New Source.ElementNode(LocationFrom(FirstToken.Location), File, Value)
+
         End If
 
         'Nothing found -> throw exception
