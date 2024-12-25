@@ -8,6 +8,7 @@
         Private Import As New HashSet(Of String)
         Private Functions As New HashSet(Of C.Function)
         Private Enums As New HashSet(Of C.Enum)
+        Private Structures As New HashSet(Of C.Structure)
 
         'Append function
         Public Sub AddFunction(Fn As C.Function)
@@ -24,6 +25,11 @@
         'Append enum
         Public Sub AddEnum(E As C.Enum)
             Enums.Add(E)
+        End Sub
+
+        'Append structure
+        Public Sub AddStructure(Struct As C.Structure)
+            Structures.Add(Struct)
         End Sub
 
         'Write
@@ -48,10 +54,22 @@
                 Stream.WriteLine(Import)
             Next
 
+            'Structure signature
+            WriteTitle(Stream, "Forward declaration")
+            For Each Struct As C.Structure In Structures
+                Struct.WriteTypedefSignature(Stream)
+            Next
+
             'Write enums
             WriteTitle(Stream, "Enums")
             For Each E As C.Enum In Generator.Enums
                 E.WriteTypedef(Stream)
+            Next
+
+            'Structure definition
+            WriteTitle(Stream, "Complete definition")
+            For Each Struct As C.Structure In Structures
+                Struct.WriteDefinition(Stream)
             Next
 
             'Write functions signatures
