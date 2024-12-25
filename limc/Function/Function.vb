@@ -23,6 +23,13 @@
             End Get
         End Property
 
+        'Function pointer type
+        Public ReadOnly Property PointerType As FuncType
+            Get
+                Return FuncType.From(Arguments, ReturnType)
+            End Get
+        End Property
+
         'Fonction inner context
         Private ReadOnly Scope As New Scope
 

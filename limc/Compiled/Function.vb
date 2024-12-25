@@ -7,7 +7,7 @@
         Private Body As IEnumerable(Of String)
 
         'Contexted function count
-        Private Shared Contexted As New List(Of String)
+        Private Shared Contexted As New List(Of String) From {"[Thread Start]"}
 
         'Constructor
         Public Sub New(Signature As String, Body As IEnumerable(Of String))

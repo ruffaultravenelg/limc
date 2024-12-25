@@ -1,4 +1,6 @@
 ﻿
+Imports limc.Source
+
 Namespace Lim
 
     Public Class SourceFile
@@ -150,7 +152,11 @@ Namespace Lim
 
             'Search in the imports
             For Each File As Lim.SourceFile In ImportedFiles
-                Correspondances.AddRange(File.Functions.GetCorrespondances(Name, GenericTypes))
+                For Each Correspondance As Lim.Function In File.Functions.GetCorrespondances(Name, GenericTypes)
+                    If Correspondance.Base.Exported Then
+                        Correspondances.Add(Correspondance)
+                    End If
+                Next
             Next
 
             'Return correspondances

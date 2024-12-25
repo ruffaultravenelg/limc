@@ -44,8 +44,7 @@
                 End If
 
                 'Return function pointer
-                'TODO lol
-                Throw New NotImplementedException()
+                Return FileCorrespondances.First().PointerType
 
             End If
 
@@ -71,8 +70,7 @@
             End If
 
             'Return function pointer
-            'TODO lol
-            Throw New NotImplementedException()
+            Return Correspondances.First().PointerType
 
         End Function
 
@@ -101,8 +99,7 @@
                 End If
 
                 'Return function pointer
-                'TODO lol
-                Throw New NotImplementedException()
+                Return FileCorrespondances.First().PointerType.Wrap(FileCorrespondances.First().CompiledName)
 
             End If
 
@@ -128,8 +125,7 @@
             End If
 
             'Return function pointer
-            'TODO lol
-            Throw New NotImplementedException()
+            Return Correspondances.First().PointerType.Wrap(Correspondances.First().CompiledName)
 
         End Function
     End Class

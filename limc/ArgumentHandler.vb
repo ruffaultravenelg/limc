@@ -15,6 +15,9 @@
     'Libs directory
     Public Property LibsDirectory As String = IO.Path.Combine(AppContext.BaseDirectory, "libs")
 
+    'GCC Path
+    Public Property GCC As String = "gcc"
+
     'Shared load
     Public Sub LoadArgs(Args As IEnumerable(Of String))
 
@@ -48,6 +51,16 @@
                         Throw New SimpleException("Missing argument", "Flag """ & Arg & """ need an argument.")
                     End If
                     LibsDirectory = Args(i)
+                    Continue While
+                End If
+
+                'gcc
+                If Arg = "-g" OrElse Arg = "--gcc" Then
+                    i += 1
+                    If i >= Args.Count Then
+                        Throw New SimpleException("Missing argument", "Flag """ & Arg & """ need an argument.")
+                    End If
+                    GCC = Args(i)
                     Continue While
                 End If
 

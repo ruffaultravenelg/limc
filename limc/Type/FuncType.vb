@@ -13,28 +13,34 @@
     'Constructor
     Private Sub New(GenericTypes As IEnumerable(Of Lim.Type), ReturnType As Lim.Type)
         MyBase.New(Nothing) 'Se if this thing make crash lol
-
-        'Set elements
         Me.ArgumentTypes = GenericTypes
         Me.ReturnType = ReturnType
-
-        'Generate structure
-        C.Generator.AddStructure(New C.Structure(CompiledName, {
-            If(ReturnType Is Nothing, "void", ReturnType.CompiledName) & " (*fn)(" & String.Join(", ", GenericTypes.Select(Function(T As Lim.Type) T.CompiledName)) & ")"
-        }))
-
-        'Generate default function
-
-
     End Sub
 
     'Compile
     Public Overrides Sub Compile()
+
+        'Generate structure
+        C.Generator.AddStructure(New C.Structure(CompiledName, {
+            If(ReturnType Is Nothing, "void", ReturnType.CompiledName) & " (*fn)(" & String.Join(", ", ArgumentTypes.Select(Function(T As Lim.Type) T.CompiledName)) & ")"
+        }))
+
+        'Generate default function
+        C.Generator.AddFunction(New C.Function(CompiledName & "_default", {CompiledName & " unused"}, If(ReturnType Is Nothing, "void", ReturnType.CompiledName), {
+            "",
+            "lim_panic(&ctx, ""Call on a null " & ToString() & """);"
+        }))
+
     End Sub
 
     'Default value
     Public Overrides Function DefaultValue() As String
-        Return "NULL" 'TODO: default variable
+        Return Wrap(CompiledName & "_default")
+    End Function
+
+    'Compile wrapper
+    Public Function Wrap(Fn As String) As String
+        Return "((" & CompiledName & "){.fn = " & Fn & "})"
     End Function
 
     'Assignation
@@ -59,12 +65,16 @@
 
         'If already exist
         For Each i As FuncType In ExistingTypes
-
-
+            If SameType(i, Arguments, ReturnType) Then
+                Return i
+            End If
         Next
 
         'Do not exist -> new one
-        Return New FuncType(Arguments, ReturnType)
+        Dim Type As FuncType = New FuncType(Arguments, ReturnType)
+        ExistingTypes.Add(Type)
+        Type.Compile()
+        Return Type
 
     End Function
 
@@ -84,7 +94,7 @@
         Next
 
         'Compare return type
-        If Target.ReturnType = ReturnType Then
+        If Not Target.ReturnType = ReturnType Then
             Return False
         End If
 

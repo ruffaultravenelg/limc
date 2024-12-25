@@ -42,6 +42,12 @@
             Defines.Add(Define)
         End Sub
 
+        'Compile command
+        Private CompileCommand As String = ""
+        Public Sub SetCompileCommand(Command As String)
+            CompileCommand = Command
+        End Sub
+
         'Write
         Public Sub Write(Stream As IO.StreamWriter)
 
@@ -53,9 +59,11 @@
             Stream.WriteLine("")
             Stream.WriteLine(vbTab & "You are the only responsible for this file and his content.")
             Stream.WriteLine("")
-            Stream.WriteLine(vbTab & "Compile using :")
-            Stream.WriteLine(vbTab & vbTab & "gcc source.c -o prog")
-            Stream.WriteLine("")
+            If Not CompileCommand = "" Then
+                Stream.WriteLine(vbTab & "Compile using :")
+                Stream.WriteLine(vbTab & vbTab & CompileCommand)
+                Stream.WriteLine("")
+            End If
             Stream.WriteLine("*/")
 
             'Write imports
@@ -134,7 +142,7 @@
             AddImport("#include <string.h>")
             AddImport("#include <stdbool.h>")
             AddImport("#include <stdint.h>")
-            AddImport("#include """ & Compiler.TGC_PATH & """")
+            AddImport("#include """ & Compiler.TGC_H_PATH & """")
 
             'Add context structure
             AddStructure(New C.Structure(CONTEXT_STRUCTURENAME, {
@@ -158,7 +166,7 @@
                 "for (size_t i = 0; i < sizeof(fn_name_map) / sizeof(fn_name_map[0]); i++)",
                 vbTab & "if (fn_name_map[i].id == id)",
                 vbTab & vbTab & "return fn_name_map[i].name;",
-                "return ""<unknown>"";"
+                "return ""[unknown]"";"
             }))
 
             'Add panic function
