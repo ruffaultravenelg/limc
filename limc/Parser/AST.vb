@@ -75,15 +75,24 @@
                 Tokens.Next()
             End If
 
+            'Save state
+            Dim State As Integer = Tokens.SaveState()
+
             'Get constructs
             Dim Construct As ConstructNode = Nothing
             For Each ParsingFunction In CONSTRUCTS
+
+                'Load state
+                Tokens.LoadState(State)
+
+                'Test parsing function
                 Try
                     Construct = ParsingFunction()
                     Exit For
                 Catch ex As NotTheRightElement
                     Continue For
                 End Try
+
             Next
 
             'Append or error
@@ -394,7 +403,6 @@
 
     End Function
 
-
     'Get internal type
     Private Function GetInternalType() As Source.InteralType
 
@@ -454,17 +462,25 @@
             'Save token
             Tokens.Next()
             Dim StartLocation As Location = Tokens.Current.Location
-            'TODO: save token index state
+
+            'Save state
+            Dim State As Integer = Tokens.SaveState()
 
             'Get statement
             Dim Statement As StatementNode = Nothing
             For Each ParsingFunction In AcceptedStatements
+
+                'Load state
+                Tokens.LoadState(State)
+
+                'Try parsing function
                 Try
                     Statement = ParsingFunction(Indentation)
                     Exit For
                 Catch ex As NotTheRightElement
                     Continue For
                 End Try
+
             Next
 
             'Append or error

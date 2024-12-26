@@ -46,6 +46,8 @@ Module Program
         Console.WriteLine("Flags:")
         Console.WriteLine("  -h, --help     Display this help message")
         Console.WriteLine("  -v, --version  Display version")
+        Console.WriteLine("  -l, --libs     Change libs path to specified directory")
+        Console.WriteLine("  -g, --gcc      Set gcc executable path")
     End Sub
 
     'Display version

@@ -17,7 +17,7 @@
         C.Generator.InitAlwaysHereStuff()
 
         'Create main thread function (entry point)
-        C.Generator.AddFunction(New C.Function("int main(int argc, char** arv)", {
+        C.Generator.AddFunction(New C.Function("int main(int argc, char** argv)", {
             "",
             "tgc_t gc;",
             "tgc_start(&gc, &argc);",

@@ -1,53 +1,53 @@
 ﻿Public Class IteratorAdapter(Of T As ILocated)
-    Private ReadOnly Enumerator As IEnumerator(Of T)
 
-    Private _HasNext As Boolean
-    Private LastValue As T
-    Private LastLastValue As T
+    Private Index As Integer = 0
+    Private Source As IEnumerable(Of T)
 
-    Public Sub New(source As IEnumerable(Of T))
-        If source Is Nothing Then
-            Throw New ArgumentNullException(NameOf(source))
+    Public Sub New(Source As IEnumerable(Of T))
+        If Source Is Nothing Then
+            Throw New ArgumentNullException(NameOf(Source))
         End If
-        Enumerator = source.GetEnumerator()
-
-        Enumerator.MoveNext()
-        LastLastValue = Nothing
-        LastValue = Enumerator.Current
-        _HasNext = Enumerator.MoveNext()
-
+        Me.Source = Source
+        Index = -1
+        [Next]()
     End Sub
 
     Public ReadOnly Property Last As T
         Get
-            Return LastLastValue
+            Return Source(Index - 1)
         End Get
     End Property
 
+    Private _Current As T
     Public ReadOnly Property Current As T
         Get
-            Return LastValue
+            Return _Current
         End Get
     End Property
 
     Public ReadOnly Property HasNext As Boolean
         Get
-            Return _HasNext
+            Return Index + 1 < Source.Count
         End Get
     End Property
 
-    Public Function [Next]() As T
+    Public Sub [Next]()
 
         If Not HasNext Then
             Throw New SyntaxException("A element was expected after this token", Current.Location)
         End If
 
-        LastLastValue = LastValue
-        LastValue = Enumerator.Current
-        _HasNext = Enumerator.MoveNext()
+        Index += 1
+        _Current = Source(Index)
 
-        Return LastValue
+    End Sub
 
+    Public Function SaveState() As Integer
+        Return Index
     End Function
+    Public Sub LoadState(State As Integer)
+        Me.Index = State - 1
+        [Next]()
+    End Sub
 
 End Class
