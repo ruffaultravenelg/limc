@@ -52,7 +52,7 @@
 
             'Create arguments
             For Each Argument As Source.Argument In Me.Base.Arguments
-                Scope.WriteVariableDeclaration(Argument.Name, Argument.Type.GetTargetedType(Scope))
+                Scope.RegisterVariable(Argument.Name, Argument.Type.GetTargetedType(Scope))
             Next
 
         End Sub

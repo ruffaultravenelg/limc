@@ -20,9 +20,15 @@
     'Compile
     Public Overrides Sub Compile()
 
+        'Set arguments
+        Dim Arguments As String = C.Generator.CONTEXT_STRUCTURENAME & "*"
+        For Each Arg As Lim.Type In ArgumentTypes
+            Arguments &= ", " & Arg.CompiledName
+        Next
+
         'Generate structure
         C.Generator.AddStructure(New C.Structure(CompiledName, {
-            If(ReturnType Is Nothing, "void", ReturnType.CompiledName) & " (*fn)(" & String.Join(", ", ArgumentTypes.Select(Function(T As Lim.Type) T.CompiledName)) & ")"
+            If(ReturnType Is Nothing, "void", ReturnType.CompiledName) & " (*fn)(" & Arguments & ")"
         }))
 
         'Generate default function

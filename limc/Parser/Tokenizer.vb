@@ -7,7 +7,12 @@
     Private File As Lim.SourceFile
 
     'Tokenize a line
-    Public Function TokenizeLine(Line As String, LineNumber As Integer, File As Lim.SourceFile) As List(Of Token)
+    Public Function TokenizeLine(Line As String, LineNumber As Integer, File As Lim.SourceFile) As IEnumerable(Of Token)
+
+        'Source line
+        If Line.StartsWith("$") Then
+            Return {New Token(Token.TokenType.SYNTAX_SOURCE, Line.Substring(1), New PreciseLocation(File, LineNumber, 0, Line.Length))}
+        End If
 
         'If the line contains a comment '//' -> remove it
         If Line.Contains("//") Then

@@ -2,7 +2,7 @@
 
     'Constants
     Private ReadOnly CONSTRUCTS As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetImport, AddressOf GetFunction, AddressOf GetInternalType}
-    Private ReadOnly FUNCTION_STATEMENTS As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetLet, AddressOf GetCallStatement}
+    Private ReadOnly FUNCTION_STATEMENTS As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetLet, AddressOf GetSourceStatement, AddressOf GetCallStatement}
 
     'Properties
     Private Tokens As IteratorAdapter(Of Token)
@@ -548,6 +548,23 @@
 
         'Return node
         Return New Source.CallStatement(Expression)
+
+    End Function
+
+    'Get source statement
+    Private Function GetSourceStatement(CurrentIndentation As Integer)
+
+        'Source sign ($)
+        If Not Tokens.Current.Type = Token.TokenType.SYNTAX_SOURCE Then
+            Throw New NotTheRightElement()
+        End If
+
+        'Get source
+        Dim Source As String = Tokens.Current.Value
+        Tokens.Next()
+
+        'Return node
+        Return New Source.SourceStatement(Tokens.Last.Location, Source)
 
     End Function
 

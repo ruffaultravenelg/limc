@@ -61,6 +61,7 @@
         SYNTAX_COMMA
         SYNTAX_COLON
         SYNTAX_DOUBLECOLON
+        SYNTAX_SOURCE
 
         KEYWORD_FUNC
         KEYWORD_CLASS
