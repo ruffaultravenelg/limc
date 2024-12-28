@@ -22,4 +22,11 @@
         Return "type" & TypeCount
     End Function
 
+    'Getter
+    Private GetterCount As Integer = 0
+    Public Overrides Function GenerateGetterName() As String
+        GetterCount += 1
+        Return "getter" & GetterCount
+    End Function
+
 End Class

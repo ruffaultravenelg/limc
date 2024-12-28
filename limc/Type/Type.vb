@@ -1,6 +1,4 @@
-﻿Imports System.Runtime.InteropServices
-
-Namespace Lim
+﻿Namespace Lim
 
     '
     ' A type represent a way to store data and interact with it.
@@ -133,6 +131,29 @@ Namespace Lim
 
         'Assignation
         Public MustOverride Function Assignation(Variable As String, Value As String) As String
+
+        'Getter
+        Private Getters As New Dictionary(Of String, GetterComponent)
+
+        'Compile a call to a getter
+        Public Function CallGetter(Name As String, Obj As String) As String
+            Return Getters(Name).CompileCall(Obj)
+        End Function
+
+        'Do getter exist
+        Public Function HasGetter(Name As String) As Boolean
+            Return Getters.ContainsKey(Name)
+        End Function
+
+        'Get getter type
+        Public Function GetGetterType(Name As String) As Lim.Type
+            Return Getters(Name).Type
+        End Function
+
+        'Register a new getter
+        Protected Sub RegisterGetter(Name As String, Getter As GetterComponent)
+            Getters.Add(Name, Getter)
+        End Sub
 
     End Class
 

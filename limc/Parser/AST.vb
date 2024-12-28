@@ -590,53 +590,81 @@
 
     'Get expression
     Private Function GetExpression() As ExpressionNode
-        Return GetCall()
+        Return GetCallChildIdx()
     End Function
 
-    'Get call
-    Private Function GetCall() As ExpressionNode
+    'Get call / child / index
+    Private Function GetCallChildIdx() As ExpressionNode
 
         'Get target
         Dim Target As ExpressionNode = GetFactor()
 
-        'If it's not a call
-        If Not Tokens.Current.Type = Token.TokenType.SYNTAX_LEFT_PARENTHESIS Then
-            Return Target
-        End If
-
-        'Empty lol
-        Tokens.Next()
-        If Tokens.Current.Type = Token.TokenType.SYNTAX_RIGHT_PARENTHESIS Then
-            Tokens.Next()
-            Return New Source.CallNode(LocationFrom(Target.Location), Target, {})
-        End If
-
-        'Values
-        Dim PassedArguments As New List(Of ExpressionNode)
+        'Some goofy loop
         While True
+            Select Case Tokens.Current.Type
 
-            'Get argument
-            PassedArguments.Add(GetExpression())
+                Case Token.TokenType.SYNTAX_LEFT_PARENTHESIS 'CALL
 
-            'End
-            If Tokens.Current.Type = Token.TokenType.SYNTAX_RIGHT_PARENTHESIS Then
-                Tokens.Next()
-                Exit While
-            End If
+                    'Empty lol
+                    Tokens.Next()
+                    If Tokens.Current.Type = Token.TokenType.SYNTAX_RIGHT_PARENTHESIS Then
+                        Tokens.Next()
+                        Return New Source.CallNode(LocationFrom(Target.Location), Target, {})
+                    End If
 
-            'coma
-            If Tokens.Current.Type = Token.TokenType.SYNTAX_COMMA Then
-                Tokens.Next()
-                Continue While
-            End If
+                    'Values
+                    Dim PassedArguments As New List(Of ExpressionNode)
+                    While True
 
-            'Error
-            Throw New SyntaxException("The characters ')' or ',' were expected here.", Tokens.Current.Location)
+                        'Get argument
+                        PassedArguments.Add(GetExpression())
 
+                        'End
+                        If Tokens.Current.Type = Token.TokenType.SYNTAX_RIGHT_PARENTHESIS Then
+                            Tokens.Next()
+                            Exit While
+                        End If
+
+                        'coma
+                        If Tokens.Current.Type = Token.TokenType.SYNTAX_COMMA Then
+                            Tokens.Next()
+                            Continue While
+                        End If
+
+                        'Error
+                        Throw New SyntaxException("The characters ')' or ',' were expected here.", Tokens.Current.Location)
+
+                    End While
+
+                    'Create node
+                    Target = New Source.CallNode(LocationFrom(Target.Location), Target, PassedArguments)
+
+
+                Case Token.TokenType.SYNTAX_DOT 'CHILD
+
+                    'Pass dot
+                    Tokens.Next()
+
+                    'Not a word
+                    If Not Tokens.Current.Type = Token.TokenType.WORD Then
+                        Throw New SyntaxException("A propertie name was expected here", Tokens.Current.Location)
+                    End If
+
+                    'Get word
+                    Dim Propertie As String = Tokens.Current.Value
+                    Tokens.Next()
+
+                    'Create node
+                    Target = New Source.ChildNode(LocationFrom(Target.Location), Target, Propertie)
+
+                Case Else 'END
+                    Exit While
+
+            End Select
         End While
 
-        'Return
-        Return New Source.CallNode(LocationFrom(Target.Location), Target, PassedArguments)
+        'Return this
+        Return Target
 
     End Function
 

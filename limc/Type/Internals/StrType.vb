@@ -1,4 +1,6 @@
 ﻿' Represent a string (char*)
+Imports limc.Lim
+
 Public Class StrType
     Inherits Lim.Type
     Implements Lim.InternalType
@@ -17,6 +19,10 @@ Public Class StrType
 
     'Compile
     Public Overrides Sub Compile()
+
+        'Add "len" getter
+        RegisterGetter("len", New HardCodedGetterComponent(Me, Lim.Type.Int, {"if (self == NULL) return 0;", "return strlen(self);"}))
+
     End Sub
 
     'Default value

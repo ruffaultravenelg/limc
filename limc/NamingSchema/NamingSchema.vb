@@ -3,5 +3,6 @@
     Public MustOverride Function GenerateTypeName() As String
     Public MustOverride Function GenerateFunctionName() As String
     Public MustOverride Function GenerateVariableName() As String
+    Public MustOverride Function GenerateGetterName() As String
 
 End Class
