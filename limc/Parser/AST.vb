@@ -2,7 +2,7 @@
 
     'Constants
     Private ReadOnly CONSTRUCTS As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetImport, AddressOf GetFunction, AddressOf GetInternalType}
-    Private ReadOnly FUNCTION_STATEMENTS As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetLet, AddressOf GetSourceStatement, AddressOf GetCallStatement}
+    Private ReadOnly FUNCTION_STATEMENTS As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetLet, AddressOf GetSourceStatement, AddressOf GetReturnStatement, AddressOf GetCallStatement}
 
     'Properties
     Private Tokens As IteratorAdapter(Of Token)
@@ -568,6 +568,26 @@
 
     End Function
 
+    'Get return statement
+    Private Function GetReturnStatement(CurrentIndentation As Integer) As Source.ReturnStatement
+
+        'Save location
+        Dim StartLocation As Location = Tokens.Current.Location
+
+        'If return keyword
+        If Not Tokens.Current.Type = Token.TokenType.KEYWORD_RETURN Then
+            Throw New NotTheRightElement()
+        End If
+
+        'Get value
+        Tokens.Next()
+        Dim Value As ExpressionNode = GetExpression()
+
+        'Create node
+        Return New Source.ReturnStatement(LocationFrom(StartLocation), Value)
+
+    End Function
+
     'Get expression
     Private Function GetExpression() As ExpressionNode
         Return GetCall()
@@ -630,6 +650,12 @@
         If Tokens.Current.Type = Token.TokenType.VALUE_INT Then
             Tokens.Next()
             Return New Source.IntNode(FirstToken.Location, FirstToken.Value)
+        End If
+
+        'String
+        If Tokens.Current.Type = Token.TokenType.VALUE_STRING Then
+            Tokens.Next()
+            Return New Source.StrNode(FirstToken.Location, FirstToken.Value)
         End If
 
         'Element

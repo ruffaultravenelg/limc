@@ -29,6 +29,18 @@
             End If
         End Function
 
+        'Contains return
+        Public ReadOnly Property ContainsReturnStatement As Boolean
+            Get
+                For Each Statement As StatementNode In Body
+                    If Statement.ContainsReturnStatement Then
+                        Return True
+                    End If
+                Next
+                Return False
+            End Get
+        End Property
+
     End Class
 
 End Namespace

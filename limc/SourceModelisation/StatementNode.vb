@@ -9,4 +9,7 @@
     'Compile
     Public MustOverride Sub Compile(Scope As Scope)
 
+    'Contains return statement
+    Public MustOverride ReadOnly Property ContainsReturnStatement As Boolean
+
 End Class

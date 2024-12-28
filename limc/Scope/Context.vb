@@ -55,7 +55,7 @@ Public Class Context
         End Get
     End Property
 
-    'Declare variable
+    'Register the existance of a variable
     Public Function RegisterVariable(Name As String, Type As Lim.Type) As Lim.Variable
 
         'Create variable
@@ -70,5 +70,22 @@ Public Class Context
         Return Variable
 
     End Function
+
+    'Get returnable scope
+    Public ReadOnly Property ReturnableScope As ReturnableScope
+        Get
+
+            'Search for returnable scope
+            For Each Parent As Context In Parents
+                If TypeOf Parent Is ReturnableScope Then
+                    Return Parent
+                End If
+            Next
+
+            'Not found
+            Return Nothing
+
+        End Get
+    End Property
 
 End Class

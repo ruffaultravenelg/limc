@@ -1,4 +1,6 @@
-﻿Namespace Lim
+﻿Imports System.Runtime.InteropServices
+
+Namespace Lim
 
     '
     ' A type represent a way to store data and interact with it.
@@ -16,6 +18,45 @@
                     End If
                 End If
                 Return _Int
+            End Get
+        End Property
+
+        Private Shared _Float As Type = Nothing
+        Public Shared ReadOnly Property Float As Type
+            Get
+                If _Float Is Nothing Then
+                    _Float = Lim.SourceFile.STD.GetAType("int", {})
+                    If _Float Is Nothing Then
+                        Throw New SimpleException("Incomplete library", "Float type not found in the standard library (" & IO.Path.Combine(ArgumentHandler.LibsDirectory, "std.lim") & ").")
+                    End If
+                End If
+                Return _Float
+            End Get
+        End Property
+
+        Private Shared _Str As Type = Nothing
+        Public Shared ReadOnly Property Str As Type
+            Get
+                If _Str Is Nothing Then
+                    _Str = Lim.SourceFile.STD.GetAType("str", {})
+                    If _Str Is Nothing Then
+                        Throw New SimpleException("Incomplete library", "Str type not found in the standard library (" & IO.Path.Combine(ArgumentHandler.LibsDirectory, "std.lim") & ").")
+                    End If
+                End If
+                Return _Str
+            End Get
+        End Property
+
+        Private Shared _Bool As Type = Nothing
+        Public Shared ReadOnly Property Bool As Type
+            Get
+                If _Bool Is Nothing Then
+                    _Bool = Lim.SourceFile.STD.GetAType("bool", {})
+                    If _Bool Is Nothing Then
+                        Throw New SimpleException("Incomplete library", "Bool type not found in the standard library (" & IO.Path.Combine(ArgumentHandler.LibsDirectory, "std.lim") & ").")
+                    End If
+                End If
+                Return _Bool
             End Get
         End Property
 

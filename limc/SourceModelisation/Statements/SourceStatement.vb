@@ -12,6 +12,7 @@ Namespace Source
         Public Sub New(Location As Location, Source As String)
             MyBase.New(Location)
             Me.Source = Source
+            ContainsReturnStatement = Source.Contains("return ")
         End Sub
 
         'Compile
@@ -52,11 +53,14 @@ Namespace Source
             Dim variables As New List(Of String)
 
             For Each match As Match In matches
-                variables.Add(match.Groups(1).Value) ' Add match without the  $
+                variables.Add(match.Groups(1).Value) ' Add match without the $
             Next
 
             Return variables.Distinct()
         End Function
+
+        'Contains return statement
+        Public Overrides ReadOnly Property ContainsReturnStatement As Boolean
 
     End Class
 

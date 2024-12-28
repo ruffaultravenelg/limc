@@ -11,7 +11,11 @@
 
         'Source line
         If Line.StartsWith("$") Then
-            Return {New Token(Token.TokenType.SYNTAX_SOURCE, Line.Substring(1), New PreciseLocation(File, LineNumber, 0, Line.Length))}
+            If Line.StartsWith("$ ") Then
+                Return {New Token(Token.TokenType.SYNTAX_SOURCE, Line.Substring(2), New PreciseLocation(File, LineNumber, 0, Line.Length))}
+            Else
+                Return {New Token(Token.TokenType.SYNTAX_SOURCE, Line.Substring(1), New PreciseLocation(File, LineNumber, 0, Line.Length))}
+            End If
         End If
 
         'If the line contains a comment '//' -> remove it

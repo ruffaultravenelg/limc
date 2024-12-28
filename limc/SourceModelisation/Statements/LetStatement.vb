@@ -57,6 +57,9 @@
 
         End Sub
 
+        'Contains return statement
+        Public Overrides ReadOnly Property ContainsReturnStatement As Boolean = False
+
     End Class
 
 End Namespace
