@@ -70,7 +70,7 @@
             Next
 
             'Create arguments
-            For Each Argument As Source.Argument In Me.Base.Arguments
+            For Each Argument As Source.KeyNameType In Me.Base.Arguments
                 Context.RegisterVariable(Argument.Name, Argument.Type.GetTargetedType(Context))
             Next
 

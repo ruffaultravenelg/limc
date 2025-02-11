@@ -1,7 +1,4 @@
-﻿
-Imports limc.Source
-
-Namespace Lim
+﻿Namespace Lim
 
     Public Class SourceFile
 

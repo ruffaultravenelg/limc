@@ -1,7 +1,7 @@
 ﻿Public Class AST
 
     'Constants
-    Private ReadOnly CONSTRUCTS As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetImport, AddressOf GetFunction, AddressOf GetInternalType}
+    Private ReadOnly CONSTRUCTS As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetImport, AddressOf GetFunction, AddressOf GetInternalType, AddressOf GetStructure}
     Private ReadOnly FUNCTION_STATEMENTS As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetLet, AddressOf GetSourceStatement, AddressOf GetReturnStatement, AddressOf GetCallStatement}
 
     'Properties
@@ -113,6 +113,50 @@
 
     End Function
 
+    'Get passed generic types
+    Private Function GetPassedGenericTypes() As IEnumerable(Of Source.Type)
+
+        'Create result
+        Dim Result As New List(Of Source.Type)
+
+        'Nothing to do
+        If Not Tokens.Current.Type = Token.TokenType.OPERATOR_LESSTHAN Then
+            Return Result
+        End If
+        Tokens.Next() 'Advance '<'
+
+        'If empty '>'
+        If Tokens.Current.Type = Token.TokenType.OPERATOR_MORETHAN Then
+            Tokens.Next() 'skip '>'
+            Return Result
+        End If
+
+        'Loop for passed types
+        While True
+
+            'Get type
+            Result.Add(GetAType())
+
+            'Check end
+            If Tokens.Current.Type = Token.TokenType.OPERATOR_MORETHAN Then
+                Tokens.Next()
+                Exit While
+            End If
+
+            'Check comma
+            If Tokens.Current.Type = Token.TokenType.SYNTAX_COMMA Then
+                Tokens.Next()
+            Else
+                Throw New SyntaxException("A comma or a '>' was expected here.", Tokens.Current.Location)
+            End If
+
+        End While
+
+        'Return result
+        Return Result
+
+    End Function
+
     'Get type
     Private Function GetAType() As Source.Type
 
@@ -139,33 +183,7 @@
         End If
 
         'Get passed generic types
-        Dim PassedGenericTypes As New List(Of Source.Type)
-        If Tokens.Current.Type = Token.TokenType.OPERATOR_LESSTHAN Then
-            Tokens.Next()
-            If Not Tokens.Current.Type = Token.TokenType.OPERATOR_MORETHAN Then
-                While True
-
-                    'Get type
-                    PassedGenericTypes.Add(GetAType())
-
-                    'Check end
-                    If Tokens.Current.Type = Token.TokenType.OPERATOR_MORETHAN Then
-                        Tokens.Next()
-                        Exit While
-                    End If
-
-                    'Check comma
-                    If Tokens.Current.Type = Token.TokenType.SYNTAX_COMMA Then
-                        Tokens.Next()
-                    Else
-                        Throw New SyntaxException("A comma or a '>' was expected here.", Tokens.Current.Location)
-                    End If
-
-                End While
-            Else
-                Tokens.Next()
-            End If
-        End If
+        Dim PassedGenericTypes As IEnumerable(Of Source.Type) = GetPassedGenericTypes()
 
         'fun<><>
         If Name = "fun" Then
@@ -198,10 +216,10 @@
     End Function
 
     'Get arguments
-    Private Function GetArguments() As IEnumerable(Of Source.Argument)
+    Private Function GetArguments() As IEnumerable(Of Source.KeyNameType)
 
         'Create result
-        Dim Result As New List(Of Source.Argument)
+        Dim Result As New List(Of Source.KeyNameType)
 
         'If nothing
         If Not Tokens.Current.Type = Token.TokenType.SYNTAX_LEFT_PARENTHESIS Then
@@ -240,7 +258,7 @@
             Dim Type As Source.Type = GetAType()
 
             'Add
-            Result.Add(New Source.Argument(LocationFrom(StartLocation), Name, Type))
+            Result.Add(New Source.KeyNameType(LocationFrom(StartLocation), Name, Type))
 
             'Check end
             If Tokens.Current.Type = Token.TokenType.SYNTAX_RIGHT_PARENTHESIS Then
@@ -338,7 +356,7 @@
         Dim GenericTypes As IEnumerable(Of Source.GenericType) = GetGenericTypes()
 
         'Get arguments
-        Dim Arguments As IEnumerable(Of Source.Argument) = GetArguments()
+        Dim Arguments As IEnumerable(Of Source.KeyNameType) = GetArguments()
 
         'Get return type
         Dim ReturnType As Source.Type = Nothing
@@ -352,6 +370,36 @@
 
         'Return function
         Return New Source.Function(LocationFrom(StartLocation), Name, GenericTypes, Arguments, ReturnType, Body)
+
+    End Function
+
+    'Get structure
+    Private Function GetStructure() As Source.Struct
+
+        'Save start location
+        Dim StartLocation As Location = Tokens.Current.Location
+
+        'Check "struct" keyword
+        If Not Tokens.Current.Type = Token.TokenType.KEYWORD_STRUCT Then
+            Throw New NotTheRightElement()
+        End If
+        Tokens.Next()
+
+        'Get name
+        If Not Tokens.Current.Type = Token.TokenType.WORD Then
+            Throw New SyntaxException("A name was expected here.", Tokens.Current.Location)
+        End If
+        Dim Name As String = Tokens.Current.Value
+        Tokens.Next()
+
+        'Get generic types
+        Dim GenericTypes As IEnumerable(Of Source.GenericType) = GetGenericTypes()
+
+        'Get arguments
+        Dim Arguments As IEnumerable(Of Source.KeyNameType) = GetArguments()
+
+        'Return structure
+        Return New Source.Struct(LocationFrom(StartLocation), Name, GenericTypes, Arguments)
 
     End Function
 
@@ -410,7 +458,7 @@
         Dim StartLocation As Location = Tokens.Current.Location
 
         'Check "internal" word
-        If Not Tokens.Current.Type = Token.TokenType.WORD AndAlso Tokens.Current.Value.ToString().ToLower() = "internal" Then
+        If Not (Tokens.Current.Type = Token.TokenType.WORD AndAlso Tokens.Current.Value.ToString().ToLower() = "internal") Then
             Throw New NotTheRightElement()
         End If
 
@@ -688,11 +736,13 @@
 
         'Element
         If Tokens.Current.Type = Token.TokenType.WORD Then
+
+            'Get name
             Dim File As String = ""
             Dim Value As String = FirstToken.Value
-
             Tokens.Next()
 
+            'If the name was a library name
             If Tokens.Current.Type = Token.TokenType.SYNTAX_DOUBLECOLON Then
                 Tokens.Next()
                 If Not Tokens.Current.Type = Token.TokenType.WORD Then
@@ -703,7 +753,17 @@
                 Tokens.Next()
             End If
 
-            Return New Source.ElementNode(LocationFrom(FirstToken.Location), File, Value)
+            'If there is NO generic types
+            If Not Tokens.Current.Type = Token.TokenType.OPERATOR_LESSTHAN Then
+                Return New Source.ElementNode(LocationFrom(FirstToken.Location), File, Value)
+            End If
+
+            'Get passed generic types
+            Dim PassedGenericTypes As IEnumerable(Of Type) = GetPassedGenericTypes()
+
+            'Return
+            Return New Source.GenericElementNode(LocationFrom(FirstToken.Location), File, Value, PassedGenericTypes)
+
 
         End If
 

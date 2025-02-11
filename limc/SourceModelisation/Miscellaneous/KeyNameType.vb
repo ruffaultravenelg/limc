@@ -1,6 +1,6 @@
 ﻿Namespace Source
 
-    Public Class Argument
+    Public Class KeyNameType
         Inherits Node
 
         'Properties
@@ -20,7 +20,7 @@
         End Function
 
         'List of argument
-        Public Shared Function ListToString(List As IEnumerable(Of Source.Argument)) As String
+        Public Shared Function ListToString(List As IEnumerable(Of Source.KeyNameType)) As String
             Return "(" & String.Join(", ", List.Select(Function(Argument) Argument.ToString())) & ")"
         End Function
 
