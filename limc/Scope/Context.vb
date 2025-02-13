@@ -71,6 +71,22 @@ Public Class Context
 
     End Function
 
+    'Register the existance of a variable with a custom compiled name
+    Public Function RegisterVariable(Name As String, CompiledName As String, Type As Lim.Type) As Lim.Variable
+
+        'Create variable
+        Dim Variable As New Lim.Variable(CompiledName, Type)
+
+        'Add it to context
+        If Not LocalVariables.TryAdd(Name, Variable) Then
+            Return Nothing 'If the variable is not added -> return nothing
+        End If
+
+        'Return varaible
+        Return Variable
+
+    End Function
+
     'Get returnable scope
     Public ReadOnly Property ReturnableScope As ReturnableScope
         Get

@@ -15,7 +15,7 @@ Public Class StrType
     Public Overrides ReadOnly Property Name As String = "str"
 
     'Passed generic types
-    Public Overrides ReadOnly Property ArgumentTypes As IEnumerable(Of Lim.Type) = {}
+    Public Overrides ReadOnly Property PassedGenericTypes As IEnumerable(Of Lim.Type) = {}
 
     'Compile
     Public Overrides Sub Compile()

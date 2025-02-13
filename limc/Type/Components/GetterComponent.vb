@@ -49,4 +49,19 @@
 
     End Class
 
+    Public Class StructureFieldGetterComponent
+        Inherits Lim.GetterComponent
+
+        Private CompiledName As String
+
+        Public Sub New(ParentType As Lim.Type, GetterReturnType As Lim.Type, CompiledName As String)
+            MyBase.New(ParentType, GetterReturnType)
+            Me.CompiledName = CompiledName
+        End Sub
+
+        Public Overrides Function CompileCall(Obj As String) As String
+            Return $"({Obj}).{CompiledName}"
+        End Function
+    End Class
+
 End Namespace

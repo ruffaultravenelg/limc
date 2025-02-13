@@ -398,6 +398,11 @@
         'Get arguments
         Dim Arguments As IEnumerable(Of Source.KeyNameType) = GetArguments()
 
+        'No arguments
+        If Arguments.Count = 0 Then
+            Throw New SyntaxException("A structure need at least one fields.", Tokens.Current.Location)
+        End If
+
         'Return structure
         Return New Source.Struct(LocationFrom(StartLocation), Name, GenericTypes, Arguments)
 

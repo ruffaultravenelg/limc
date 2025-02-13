@@ -26,7 +26,7 @@ Lim a été avant tout conçu comme un projet ludique, sans la prétention de ri
 - [X] Fonctions
 - [X] Structures
 - [X] Ajout direct de sources
-- [X] Classes
+- [ ] Classes
 - [ ] Collecteur de déchets (Garbage Collector, pour l'instant assuré par [tgc](https://github.com/orangeduck/tgc) mais sera à terme remplacé par une implémentation propre)
 - [X] Système d'import/export
 - [X] Types génériques

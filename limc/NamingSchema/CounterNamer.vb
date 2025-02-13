@@ -29,4 +29,11 @@
         Return "getter" & GetterCount
     End Function
 
+    'Field
+    Private FieldCount As Integer = 0
+    Public Overrides Function GenerateFieldName() As String
+        FieldCount += 1
+        Return "field" & FieldCount
+    End Function
+
 End Class

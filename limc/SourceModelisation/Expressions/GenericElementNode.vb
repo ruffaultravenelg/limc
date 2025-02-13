@@ -54,10 +54,7 @@
                 Dim TypesCorrespondances As IEnumerable(Of Lim.Type) = Location.File.GetAType(File, Value, PassedTypes)
 
                 'Filter only structs ones
-
                 Throw New SyntaxException("No functions named """ & Value & """ is accecible.", Location)
-
-
 
             End If
 

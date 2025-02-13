@@ -4,5 +4,6 @@
     Public MustOverride Function GenerateFunctionName() As String
     Public MustOverride Function GenerateVariableName() As String
     Public MustOverride Function GenerateGetterName() As String
+    Public MustOverride Function GenerateFieldName() As String
 
 End Class

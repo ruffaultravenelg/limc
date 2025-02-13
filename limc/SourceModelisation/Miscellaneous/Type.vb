@@ -125,7 +125,7 @@ Namespace Source
             End If
 
             'Get func type
-            Return FuncType.From(CompiledPassedGenericTypes, CompiledReturnType)
+            Return Lim.FuncType.From(CompiledPassedGenericTypes, CompiledReturnType)
 
         End Function
 

@@ -3,6 +3,12 @@
     Public Class CallNode
         Inherits ExpressionNode
 
+        '
+        ' Could be :
+        '   - A call to a function
+        '   - A structure initialization
+        '
+
         'Value
         Private Target As ExpressionNode
         Private PassedArguments As IEnumerable(Of ExpressionNode)
@@ -17,22 +23,46 @@
         'Get the return type
         Public Overrides Function GetReturnType(Context As Context) As Lim.Type
 
-            'Get target return type
+            '--------------------------------
+            '--- Structure initialisation ---
+            '--------------------------------
+
+            If TypeOf Target Is IStructureName Then
+
+                'Cast
+                Dim Struct As Lim.StructType = DirectCast(Target, IStructureName).ResolveStructure(Context)
+
+                If Struct IsNot Nothing Then
+                    Return Struct
+                End If
+
+            End If
+
+            '---------------------
+            '--- Function Call ---
+            '---------------------
+
             Dim TargetReturnType As Lim.Type = Target.GetReturnType(Context)
 
-            'Check if function
-            If TypeOf TargetReturnType IsNot FuncType Then
-                Throw New TypeException("A procedure was expected here.", Target.Location)
-            End If
-            Dim TargetedFunction As FuncType = TargetReturnType
+            If TypeOf TargetReturnType Is Lim.FuncType Then
 
-            'Check if the fun return something
-            If TargetedFunction.ReturnType = Nothing Then
-                Throw New TypeException("This procedure can't be called as an expression, since it doesn't return a value.", Target.Location)
+                'Cast
+                Dim TargetedFunction As Lim.FuncType = TargetReturnType
+
+                'Check return type
+                If TargetedFunction.ReturnType = Nothing Then
+                    Throw New TypeException("This procedure can't be called as an expression, since it doesn't return a value.", Target.Location)
+                End If
+
+                'Return Target return value
+                Return TargetedFunction.ReturnType
+
             End If
 
-            'Return Target return value
-            Return TargetedFunction.ReturnType
+            '---------------------
+            '--- Nothing found ---
+            '---------------------
+            Throw New TypeException("A procedure or a structure name was expected here.", Target.Location)
 
         End Function
 
@@ -42,25 +72,58 @@
         End Function
         Public Overloads Function Compile(Scope As Scope, CareAboutReturn As Boolean) As String
 
-            'Get target return type
+            '--------------------------------
+            '--- Structure initialisation ---
+            '--------------------------------
+
+            If TypeOf Target Is IStructureName Then
+
+                'Cast
+                Dim Struct As Lim.StructType = DirectCast(Target, IStructureName).ResolveStructure(Scope)
+
+                If Struct IsNot Nothing Then
+
+                    'Compile struct values
+                    Dim Args As String = CompileArguments(Struct.FieldsTypes(), Scope)
+                    If Args.StartsWith(", ") Then
+                        Args = Args.Substring(2)
+                    End If
+
+                    'Instanciate
+                    Return "(" & Struct.CompiledName & "){" & Args & "}"
+
+                End If
+
+            End If
+
+            '---------------------
+            '--- Function Call ---
+            '---------------------
+
             Dim TargetReturnType As Lim.Type = Target.GetReturnType(Scope)
 
-            'Check if function
-            If TypeOf TargetReturnType IsNot FuncType Then
-                Throw New TypeException("A procedure was expected here.", Target.Location)
+            If TypeOf TargetReturnType Is Lim.FuncType Then
+
+                'Cast
+                Dim TargetedFunction As Lim.FuncType = TargetReturnType
+
+                'Check if the fun return something
+                If CareAboutReturn AndAlso TargetedFunction.ReturnType = Nothing Then
+                    Throw New TypeException("This procedure can't be called as an expression, since it doesn't return a value.", Target.Location)
+                End If
+
+                'Compile all arguments
+                Dim Args As String = CompileArguments(TargetedFunction.PassedGenericTypes, Scope)
+
+                'Return a call
+                Return $"{Target.Compile(Scope)}.fn(&ctx{Args})"
+
             End If
-            Dim TargetedFunction As FuncType = TargetReturnType
 
-            'Check if the fun return something
-            If CareAboutReturn AndAlso TargetedFunction.ReturnType = Nothing Then
-                Throw New TypeException("This procedure can't be called as an expression, since it doesn't return a value.", Target.Location)
-            End If
-
-            'Compile all arguments
-            Dim Args As String = CompileArguments(TargetedFunction.ArgumentTypes, Scope)
-
-            'Return a call
-            Return $"{Target.Compile(Scope)}.fn(&ctx{Args})"
+            '---------------------
+            '--- Nothing found ---
+            '---------------------
+            Throw New TypeException("A procedure or a structure name was expected here.", Target.Location)
 
         End Function
 
@@ -69,7 +132,7 @@
 
             'Argument count
             If Not PassedArguments.Count = Model.Count Then
-                Throw New SyntaxException($"The procedure requires {Model.Count} arguments, whereas you provide {PassedArguments.Count}.", Location)
+                Throw New SyntaxException($"{Model.Count} arguments were expected where you gave {PassedArguments.Count}.", Location)
             End If
 
             'Compile each arguments
