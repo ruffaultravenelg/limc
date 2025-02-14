@@ -9,7 +9,7 @@
         'Passed generic types
         Public Overrides ReadOnly Property PassedGenericTypes As IEnumerable(Of Lim.Type) = {}
 
-        'The return type of the fun type (fun<str, int><[HERE]>)
+        'The return type of the fun type (fun<exmpl, exmpl><[HERE]>)
         Public ReadOnly Property ReturnType As Lim.Type
 
         'Constructor
@@ -30,14 +30,14 @@
 
             'Generate structure
             C.Generator.AddStructure(New C.Structure(CompiledName, {
-            If(ReturnType Is Nothing, "void", ReturnType.CompiledName) & " (*fn)(" & Arguments & ")"
-        }))
+                If(ReturnType Is Nothing, "void", ReturnType.CompiledName) & " (*fn)(" & Arguments & ")"
+            }))
 
             'Generate default function
             C.Generator.AddFunction(New C.Function(CompiledName & "_default", {CompiledName & " unused"}, If(ReturnType Is Nothing, "void", ReturnType.CompiledName), {
-            "",
-            "lim_panic(&ctx, ""Call on a null " & ToString() & """);"
-        }))
+                "",
+                "lim_panic(&ctx, ""Call on a null " & ToString() & """);"
+            }))
 
         End Sub
 
@@ -46,7 +46,7 @@
             Return Wrap(CompiledName & "_default")
         End Function
 
-        'Compile wrapper
+        'Compile a static function into a FuncType value
         Public Function Wrap(Fn As String) As String
             Return "((" & CompiledName & "){.fn = " & Fn & "})"
         End Function

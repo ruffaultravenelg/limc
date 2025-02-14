@@ -48,7 +48,7 @@
                 Dim FieldType As Lim.Type = Field.Type.GetTargetedType(Context)
 
                 'Register a new getter
-                Me.RegisterGetter(Field.Name, New Lim.StructureFieldGetterComponent(Me, FieldType, FieldCompiledName))
+                Me.Getters.RegisterGetter(Field.Name, New Lim.StructureFieldGetterInvoker(FieldType, FieldCompiledName))
 
                 'Create a new variable for internal methods
                 Context.RegisterVariable(Field.Name, FieldCompiledName, FieldType)

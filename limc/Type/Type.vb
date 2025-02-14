@@ -126,34 +126,25 @@
             End If
         End Function
 
-        'Default value
+        '---------------------
+        '--- DEFAULT VALUE ---
+        '---------------------
+        'Returns a C expression that is the default value of this type
+        '   Exemple :
+        '           int     -> 0
+        '           user_t* -> NULL
         Public MustOverride Function DefaultValue() As String
 
-        'Assignation
+        '----------------------------
+        '--- VARIABLE ASSIGNATION ---
+        '----------------------------
+        ' Returns a string that is a C line that assign "Value" to the variable named "Variable"
         Public MustOverride Function Assignation(Variable As String, Value As String) As String
 
-        'Getter
-        Private Getters As New Dictionary(Of String, GetterComponent)
-
-        'Compile a call to a getter
-        Public Function CallGetter(Name As String, Obj As String) As String
-            Return Getters(Name).CompileCall(Obj)
-        End Function
-
-        'Do getter exist
-        Public Function HasGetter(Name As String) As Boolean
-            Return Getters.ContainsKey(Name)
-        End Function
-
-        'Get getter type
-        Public Function GetGetterType(Name As String) As Lim.Type
-            Return Getters(Name).Type
-        End Function
-
-        'Register a new getter
-        Protected Sub RegisterGetter(Name As String, Getter As GetterComponent)
-            Getters.Add(Name, Getter)
-        End Sub
+        '---------------
+        '--- GETTERS ---
+        '---------------
+        Public ReadOnly Property Getters As New GetterComponent()
 
     End Class
 

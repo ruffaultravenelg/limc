@@ -160,6 +160,26 @@
             Return Correspondances
 
         End Function
+        Public Function GetFunctions(ImportName As String, Name As String, GenericTypes As IEnumerable(Of Lim.Type)) As IEnumerable(Of Lim.Function)
+
+            'Search if the import exist
+            If Not NammedImportedFiles.ContainsKey(ImportName) Then
+                Return Nothing
+            End If
+
+            'Check for exported results
+            Dim Result As New List(Of Lim.Function)
+            For Each Func As Lim.Function In NammedImportedFiles(ImportName).Functions.GetCorrespondances(Name, GenericTypes)
+                If Func.Base.Exported Then
+                    Result.Add(Func)
+                End If
+            Next
+
+            'Return the result
+            Return Result
+
+        End Function
+
         Public Function GetFunction(Name As String, GenericTypes As IEnumerable(Of Lim.Type), Arguments As IEnumerable(Of Lim.Type)) As Lim.Function
 
             'Search in the current file
@@ -180,23 +200,21 @@
             Return Nothing
 
         End Function
-        Public Function GetFunctions(ImportName As String, Name As String, GenericTypes As IEnumerable(Of Lim.Type)) As IEnumerable(Of Lim.Function)
+        Public Function GetFunction(ImportName As String, Name As String, GenericTypes As IEnumerable(Of Lim.Type), Arguments As IEnumerable(Of Lim.Type)) As Lim.Function
 
             'Search if the import exist
             If Not NammedImportedFiles.ContainsKey(ImportName) Then
                 Return Nothing
             End If
 
-            'Check for exported results
-            Dim Result As New List(Of Lim.Function)
-            For Each Func As Lim.Function In NammedImportedFiles(ImportName).Functions.GetCorrespondances(Name, GenericTypes)
-                If Func.Base.Exported Then
-                    Result.Add(Func)
-                End If
-            Next
+            'Search function in the imported file
+            Dim Func As Lim.Function = NammedImportedFiles(ImportName).Functions.GetCorrespondance(Name, GenericTypes, Arguments)
+            If Func IsNot Nothing AndAlso Func.Base.Exported Then
+                Return Func
+            End If
 
-            'Return the result
-            Return Result
+            'Not found
+            Return Nothing
 
         End Function
 

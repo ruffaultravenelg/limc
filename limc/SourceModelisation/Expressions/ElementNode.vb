@@ -11,6 +11,7 @@
     Public Class ElementNode
         Inherits ExpressionNode
         Implements IStructureName
+        Implements IProcedureDirectAccess
 
         'Value
         Private File As String
@@ -175,6 +176,50 @@
             Else
                 Return New ElementNotFoundException($"No function or structure named ""{Value}"" is accessible in the ""{File}"" namespace.", Location)
             End If
+        End Function
+
+        ' If this is a procedure, get it's return type
+        Function GetProcedureReturnedType(Context As Context, PassedArguments As IEnumerable(Of Lim.Type)) As Lim.Type Implements IProcedureDirectAccess.GetProcedureReturnedType
+
+            'TODO: get method
+
+            'Try getting a function
+            Dim Func As Lim.Function = GetFunctionWithArguments(Context, PassedArguments)
+            If Func IsNot Nothing Then
+                Return Func.ReturnType
+            End If
+
+            'Nothing found 
+            Return Nothing
+
+        End Function
+
+        Function CompileProcedureCall(Scope As Scope, Passedarguments As IEnumerable(Of ExpressionNode)) As String Implements IProcedureDirectAccess.CompileProcedureCall
+
+            'TODO: get method
+
+            'Try getting a function
+            Dim ArgumentTypes As IEnumerable(Of Lim.Type) = Passedarguments.Select(Function(Expr As ExpressionNode) Expr.GetReturnType(Scope))
+            Dim Func As Lim.Function = GetFunctionWithArguments(Scope, ArgumentTypes)
+            If Func IsNot Nothing Then
+                Dim Args As String = Source.CallNode.CompileArguments(Func.Arguments, Passedarguments, Scope, Location)
+                Return Func.CompiledName & "(&ctx" & Args & ")"
+            End If
+
+            'Nothing founnd
+            Return Nothing
+
+        End Function
+
+        'Get functions with arguments
+        Private Function GetFunctionWithArguments(Context As Context, Arguments As IEnumerable(Of Lim.Type)) As Lim.Function
+
+            If File = "" Then
+                Return Location.File.GetFunction(Value, {}, Arguments)
+            Else
+                Return Location.File.GetFunction(File, Value, {}, Arguments)
+            End If
+
         End Function
 
     End Class

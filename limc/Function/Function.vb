@@ -34,7 +34,7 @@
         Private Context As New Context
 
         'Function return type
-        Private ReadOnly Property ReturnType As Lim.Type
+        Public ReadOnly Property ReturnType As Lim.Type
             Get
 
                 'Get returnable scope

@@ -20,12 +20,12 @@
             Dim ParentType As Lim.Type = Parent.GetReturnType(Context)
 
             'No getter
-            If Not ParentType.HasGetter(Propertie) Then
+            If Not ParentType.Getters.HasGetter(Propertie) Then
                 Throw New SyntaxException($"The ""{ParentType}"" type has no getter named ""{Propertie}"".", Location)
             End If
 
             'Return getter type
-            Return ParentType.GetGetterType(Propertie)
+            Return ParentType.Getters.GetGetterType(Propertie)
 
         End Function
 
@@ -36,12 +36,12 @@
             Dim ParentType As Lim.Type = Parent.GetReturnType(Scope)
 
             'No getter
-            If Not ParentType.HasGetter(Propertie) Then
+            If Not ParentType.Getters.HasGetter(Propertie) Then
                 Throw New SyntaxException($"The ""{ParentType}"" type has no getter named ""{Propertie}"".", Location)
             End If
 
             'Return getter type
-            Return ParentType.CallGetter(Propertie, Parent.Compile(Scope))
+            Return ParentType.Getters.CallGetter(Propertie, Parent.Compile(Scope))
 
         End Function
 

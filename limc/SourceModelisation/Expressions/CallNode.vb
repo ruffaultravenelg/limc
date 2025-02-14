@@ -23,10 +23,22 @@
         'Get the return type
         Public Overrides Function GetReturnType(Context As Context) As Lim.Type
 
+            '----------------------------
+            '--- Direct function call ---
+            '----------------------------
+            If TypeOf Target Is IProcedureDirectAccess Then
+
+                Dim ArgumentTypes As IEnumerable(Of Lim.Type) = PassedArguments.Select(Function(Expr As ExpressionNode) Expr.GetReturnType(context))
+                Dim FuncReturnType As Lim.Type = DirectCast(Target, IProcedureDirectAccess).GetProcedureReturnedType(Context, ArgumentTypes)
+                If FuncReturnType IsNot Nothing Then
+                    Return FuncReturnType
+                End If
+
+            End If
+
             '--------------------------------
             '--- Structure initialisation ---
             '--------------------------------
-
             If TypeOf Target Is IStructureName Then
 
                 'Cast
@@ -72,6 +84,18 @@
         End Function
         Public Overloads Function Compile(Scope As Scope, CareAboutReturn As Boolean) As String
 
+            '----------------------------
+            '--- Direct function call ---
+            '----------------------------
+            If TypeOf Target Is IProcedureDirectAccess Then
+
+                Dim FuncReturnType As String = DirectCast(Target, IProcedureDirectAccess).CompileProcedureCall(Scope, PassedArguments)
+                If FuncReturnType IsNot Nothing Then
+                    Return FuncReturnType
+                End If
+
+            End If
+
             '--------------------------------
             '--- Structure initialisation ---
             '--------------------------------
@@ -84,7 +108,7 @@
                 If Struct IsNot Nothing Then
 
                     'Compile struct values
-                    Dim Args As String = CompileArguments(Struct.FieldsTypes(), Scope)
+                    Dim Args As String = Source.CallNode.CompileArguments(Struct.FieldsTypes(), PassedArguments, Scope, Location)
                     If Args.StartsWith(", ") Then
                         Args = Args.Substring(2)
                     End If
@@ -113,7 +137,7 @@
                 End If
 
                 'Compile all arguments
-                Dim Args As String = CompileArguments(TargetedFunction.PassedGenericTypes, Scope)
+                Dim Args As String = Source.CallNode.CompileArguments(TargetedFunction.PassedGenericTypes, PassedArguments, Scope, Location)
 
                 'Return a call
                 Return $"{Target.Compile(Scope)}.fn(&ctx{Args})"
@@ -128,22 +152,22 @@
         End Function
 
         'Compile arguments
-        Private Function CompileArguments(Model As IEnumerable(Of Lim.Type), Context As Context) As String
+        Public Shared Function CompileArguments(Model As IEnumerable(Of Lim.Type), PassedArguments As IEnumerable(Of ExpressionNode), Scope As Scope, NodeLocation As Location) As String
 
             'Argument count
             If Not PassedArguments.Count = Model.Count Then
-                Throw New SyntaxException($"{Model.Count} arguments were expected where you gave {PassedArguments.Count}.", Location)
+                Throw New SyntaxException($"{Model.Count} arguments were expected where you gave {PassedArguments.Count}.", NodeLocation)
             End If
 
             'Compile each arguments
             Dim Result As String = ""
             For i As Integer = 0 To Model.Count - 1
 
-                If Not Model(i) = PassedArguments(i).GetReturnType(Context) Then
-                    Throw New TypeException($"The specified argument is of type ""{PassedArguments(i).GetReturnType(Context)}"" whereas a ""{Model(i)}"" type was expected.", PassedArguments(i).Location)
+                If Not Model(i) = PassedArguments(i).GetReturnType(Scope) Then
+                    Throw New TypeException($"The specified argument is of type ""{PassedArguments(i).GetReturnType(Scope)}"" whereas a ""{Model(i)}"" type was expected.", PassedArguments(i).Location)
                 End If
 
-                Result &= ", " & PassedArguments(i).Compile(Context)
+                Result &= ", " & PassedArguments(i).Compile(Scope)
 
             Next
 
