@@ -87,21 +87,19 @@ Public Class Context
 
     End Function
 
-    'Get returnable scope
-    Public ReadOnly Property ReturnableScope As ReturnableScope
-        Get
+    'Get specific scope
+    Public Function GetScope(Of T As Context)() As T
 
-            'Search for returnable scope
-            For Each Parent As Context In Parents
-                If TypeOf Parent Is ReturnableScope Then
-                    Return Parent
-                End If
-            Next
+        'Search for returnable scope
+        For Each Parent As Context In Parents
+            If TypeOf Parent Is T Then
+                Return Parent
+            End If
+        Next
 
-            'Not found
-            Return Nothing
+        'Not found
+        Return Nothing
 
-        End Get
-    End Property
+    End Function
 
 End Class

@@ -8,13 +8,15 @@ Namespace Source
         Public Overrides ReadOnly Property Name As String
         Public ReadOnly Property Properties As IEnumerable(Of Source.KeyNameType)
         Public Overrides ReadOnly Property GenericTypes As IEnumerable(Of GenericType)
+        Public ReadOnly Property Methods As IEnumerable(Of Source.Function)
 
         'Constructor
-        Public Sub New(Location As Location, Name As String, GenericTypes As IEnumerable(Of GenericType), Properties As IEnumerable(Of Source.KeyNameType))
+        Public Sub New(Location As Location, Name As String, GenericTypes As IEnumerable(Of GenericType), Properties As IEnumerable(Of Source.KeyNameType), Methods As IEnumerable(Of Source.Function))
             MyBase.New(Location)
             Me.Name = Name
             Me.GenericTypes = GenericTypes
             Me.Properties = Properties
+            Me.Methods = Methods
         End Sub
 
         'To string

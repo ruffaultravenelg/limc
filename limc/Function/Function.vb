@@ -31,14 +31,14 @@
         End Property
 
         'Fonction inner context
-        Private Context As New Context
+        Private Context As Context
 
         'Function return type
         Public ReadOnly Property ReturnType As Lim.Type
             Get
 
                 'Get returnable scope
-                Dim ReturnScope As ReturnableScope = Context.ReturnableScope
+                Dim ReturnScope As ReturnableContext = Context.GetScope(Of ReturnableContext)
 
                 'No returnable scope -> doesn't return a value
                 If ReturnScope Is Nothing Then
@@ -56,13 +56,16 @@
         End Property
 
         'Constructor -> Mustn't start compiling because it's instance is not yet added to the FunctionContainer
-        Public Sub New(Base As Source.Function, GenericTypes As IEnumerable(Of Lim.Type))
+        Public Sub New(Base As Source.Function, GenericTypes As IEnumerable(Of Lim.Type), Optional ParentContext As Context = Nothing)
 
             'Set base source
             Me.Base = Base
 
             'Create compiled name
             Me.CompiledName = C.Generator.Namer.GenerateFunctionName()
+
+            'Create context
+            Me.Context = New Context(ParentContext)
 
             'Add generic types
             For i As Integer = 0 To GenericTypes.Count - 1
@@ -83,9 +86,9 @@
             If Base.ContainsReturnStatement Then
 
                 If Base.ReturnType IsNot Nothing Then
-                    Context = New ReturnableScope(Context, Base.ReturnType.GetTargetedType(Context)) 'set the type explicitly writen
+                    Context = New ReturnableContext(Context, Base.ReturnType.GetTargetedType(Context)) 'set the type explicitly writen
                 Else
-                    Context = New ReturnableScope(Context) 'say that there is a type but we don't now it for now
+                    Context = New ReturnableContext(Context) 'say that there is a type but we don't now it for now
                 End If
 
             End If
@@ -98,7 +101,12 @@
             Next
 
             'Add this function to the final file
-            C.Generator.AddFunction(New C.Function(CompiledName, Context.LocalVariables.Values.Select(Function(Var As Lim.Variable) Var.Type.CompiledName & " " & Var.CompiledName), If(ReturnType Is Nothing, "void", ReturnType.CompiledName), Scope.Build()))
+            Dim Arguments As New List(Of String)
+            If Base.IsMethod Then
+                Arguments.Add($"{Base.ParentType.CompiledName} self")
+            End If
+            Arguments.AddRange(Context.LocalVariables.Values.Select(Function(Var As Lim.Variable) Var.Type.CompiledName & " " & Var.CompiledName))
+            C.Generator.AddFunction(New C.Function(CompiledName, Arguments, If(ReturnType Is Nothing, "void", ReturnType.CompiledName), Scope.Build()))
 
         End Sub
 

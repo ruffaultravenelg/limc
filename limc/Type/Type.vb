@@ -5,7 +5,9 @@
     '
     Public MustInherit Class Type
 
-        'Main types
+        '---------------------
+        '--- GENERIC TYPES ---
+        '---------------------
         Private Shared _Int As Type = Nothing
         Public Shared ReadOnly Property Int As Type
             Get
@@ -58,6 +60,10 @@
             End Get
         End Property
 
+        '-----------------------
+        '--- TYPE PROPERTIES ---
+        '-----------------------
+
         'Compiled name
         Private _CompiledName As String
         Public ReadOnly Property CompiledName As String
@@ -82,7 +88,9 @@
         'Base
         Public ReadOnly Property Base As TypeConstruct
 
-        'Constructor
+        '-------------------
+        '--- CONSTRUCTOR ---
+        '-------------------
         Public Sub New(Base As TypeConstruct)
 
             'Set base
@@ -97,10 +105,14 @@
 
         End Sub
 
-        'Compile type
+        '-------------------------
+        '--- COMPILATION RULES ---
+        '-------------------------
         Public MustOverride Sub Compile()
 
-        'Equality
+        '-------------------------
+        '--- EQUALITY OPERATOR ---
+        '-------------------------
         Public Shared Operator =(a As Type, b As Type) As Boolean
             If a Is Nothing Then
                 If b Is Nothing Then
@@ -117,7 +129,9 @@
             Return Not a = b
         End Operator
 
-        'To string
+        '-----------------
+        '--- TO STRING ---
+        '-----------------
         Public Overrides Function ToString() As String
             If PassedGenericTypes.Count = 0 Then
                 Return Name

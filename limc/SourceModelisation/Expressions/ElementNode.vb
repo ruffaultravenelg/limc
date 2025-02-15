@@ -4,9 +4,9 @@
     ' A variable -> myVar
     ' A function -> myFunc
     ' A function -> lib::myFunc
-    ' A structure -> myStruct 'TODO
-    ' A structure -> lib::myStruct 'TODO
-    ' A method -> myMethod 'TODO
+    ' A structure -> myStruct
+    ' A structure -> lib::myStruct
+    ' A method -> myMethod
     '
     Public Class ElementNode
         Inherits ExpressionNode
@@ -172,7 +172,7 @@
         'Make not found excepetion
         Private Function MakeNotFoundExcepetion() As DisplayableException
             If File = "" Then
-                Return New ElementNotFoundException($"No variable, function, method or structure named ""{Value}"" is accessible.", Location)
+                Return New ElementNotFoundException($"No variable, function or structure named ""{Value}"" is accessible.", Location)
             Else
                 Return New ElementNotFoundException($"No function or structure named ""{Value}"" is accessible in the ""{File}"" namespace.", Location)
             End If
@@ -181,32 +181,44 @@
         ' If this is a procedure, get it's return type
         Function GetProcedureReturnedType(Context As Context, PassedArguments As IEnumerable(Of Lim.Type)) As Lim.Type Implements IProcedureDirectAccess.GetProcedureReturnedType
 
-            'TODO: get method
+            ' Try getting a method
+            Dim Method As Lim.Function = GetMethodWitharguments(Context, PassedArguments)
+            If Method IsNot Nothing Then
+                Return Method.ReturnType
+            End If
 
-            'Try getting a function
+            ' Try getting a function
             Dim Func As Lim.Function = GetFunctionWithArguments(Context, PassedArguments)
             If Func IsNot Nothing Then
                 Return Func.ReturnType
             End If
 
-            'Nothing found 
+            ' Nothing found 
             Return Nothing
 
         End Function
 
         Function CompileProcedureCall(Scope As Scope, Passedarguments As IEnumerable(Of ExpressionNode)) As String Implements IProcedureDirectAccess.CompileProcedureCall
 
-            'TODO: get method
-
-            'Try getting a function
+            ' Get passed arguments types
             Dim ArgumentTypes As IEnumerable(Of Lim.Type) = Passedarguments.Select(Function(Expr As ExpressionNode) Expr.GetReturnType(Scope))
+
+            ' Try getting a method
+            Dim Method As Lim.Function = GetMethodWitharguments(Scope, ArgumentTypes)
+            If Method IsNot Nothing Then
+                Dim Args As String = Source.CallNode.CompileArguments(Method.Arguments, Passedarguments, Scope, Location)
+                Return Method.CompiledName & "(&ctx, self" & Args & ")"
+            End If
+
+
+            ' Try getting a function
             Dim Func As Lim.Function = GetFunctionWithArguments(Scope, ArgumentTypes)
             If Func IsNot Nothing Then
                 Dim Args As String = Source.CallNode.CompileArguments(Func.Arguments, Passedarguments, Scope, Location)
                 Return Func.CompiledName & "(&ctx" & Args & ")"
             End If
 
-            'Nothing founnd
+            ' Nothing founnd
             Return Nothing
 
         End Function
@@ -219,6 +231,25 @@
             Else
                 Return Location.File.GetFunction(File, Value, {}, Arguments)
             End If
+
+        End Function
+
+        ' Get a method with arguments
+        Private Function GetMethodWitharguments(Context As Context, Arguments As IEnumerable(Of Lim.Type)) As Lim.Function
+
+            ' Make no sens to have a file indicator for a method
+            If File <> "" Then
+                Return Nothing
+            End If
+
+            ' Get method context
+            Dim MethodContext As MethodContext = Context.GetScope(Of MethodContext)
+            If MethodContext Is Nothing Then
+                Return Nothing
+            End If
+
+            ' Return correspondance
+            Return MethodContext.Functions.GetCorrespondance(Value, {}, Arguments)
 
         End Function
 

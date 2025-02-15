@@ -19,7 +19,7 @@
             Dim ValueType As Lim.Type = Value.GetReturnType(Scope)
 
             'Check with current function return type
-            Dim ReturnableScope As ReturnableScope = Scope.ReturnableScope
+            Dim ReturnableScope As ReturnableContext = Scope.GetScope(Of ReturnableContext)
 
             'No return scope -> error
             If ReturnableScope Is Nothing Then

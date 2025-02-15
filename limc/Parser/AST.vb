@@ -106,7 +106,7 @@
         End While
 
         'Export all constructs if none of them is exported
-        Result.HandleExports()
+        ConstructNode.HandleExports(Result.GetConstructs(Of ConstructNode)())
 
         'Return
         Return Result
@@ -333,8 +333,61 @@
 
     End Function
 
+    'Get methods
+    Private Function GetStructureMethods() As IEnumerable(Of Source.Function)
+
+        'Create result
+        Dim Methods As New List(Of Source.Function)
+
+        'Get constructs
+        While Tokens.HasNext
+
+            'Start line
+            If Not Tokens.Current.Type = Token.TokenType.LINESTART Then
+                Throw New SyntaxException("Unexpected token, expected a line start", Tokens.Current.Location)
+            End If
+
+            'Get indentation
+            Dim Indentation As Integer = Tokens.Current.Value
+            If Indentation = 0 Then
+                Exit While
+            End If
+            If Indentation <> 1 Then
+                Throw New SyntaxException("Indetation must be 1 or 0", Tokens.Current.Location)
+            End If
+
+            'Save location
+            Tokens.Next()
+            Dim StartLocation As Location = Tokens.Current.Location
+
+            'Get exported
+            Dim Exported As Boolean = False
+            If Tokens.Current.Type = Token.TokenType.KEYWORD_EXPORT Then
+                Exported = True
+                Tokens.Next()
+            End If
+
+            'Get method
+            Try
+                Dim Method As Source.Function = GetFunction(1)
+                Method.SetExported(Exported)
+                Methods.Add(Method)
+            Catch ex As NotTheRightElement
+                Throw New SyntaxException("A method was expected here", StartLocation)
+            End Try
+
+        End While
+
+        'Export all constructs if none of them is exported
+        ConstructNode.HandleExports(Methods)
+
+        'Return methods
+        Return Methods
+
+    End Function
+
     'Get function
-    Private Function GetFunction() As Source.Function
+    Private Function GetFunction(Optional FunctionDefinitionIndentation As Integer = 0) As Source.Function
 
         'Save start location
         Dim StartLocation As Location = Tokens.Current.Location
@@ -366,7 +419,7 @@
         End If
 
         'Get body
-        Dim Body As IEnumerable(Of StatementNode) = GetStatements(FUNCTION_STATEMENTS, 1)
+        Dim Body As IEnumerable(Of StatementNode) = GetStatements(FUNCTION_STATEMENTS, FunctionDefinitionIndentation + 1)
 
         'Return function
         Return New Source.Function(LocationFrom(StartLocation), Name, GenericTypes, Arguments, ReturnType, Body)
@@ -403,8 +456,11 @@
             Throw New SyntaxException("A structure need at least one fields.", Tokens.Current.Location)
         End If
 
+        'Get methods
+        Dim Methods As IEnumerable(Of Source.Function) = GetStructureMethods()
+
         'Return structure
-        Return New Source.Struct(LocationFrom(StartLocation), Name, GenericTypes, Arguments)
+        Return New Source.Struct(LocationFrom(StartLocation), Name, GenericTypes, Arguments, Methods)
 
     End Function
 
@@ -764,7 +820,7 @@
             End If
 
             'Get passed generic types
-            Dim PassedGenericTypes As IEnumerable(Of Type) = GetPassedGenericTypes()
+            Dim PassedGenericTypes As IEnumerable(Of Source.Type) = GetPassedGenericTypes()
 
             'Return
             Return New Source.GenericElementNode(LocationFrom(FirstToken.Location), File, Value, PassedGenericTypes)

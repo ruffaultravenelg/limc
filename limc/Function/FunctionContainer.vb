@@ -3,12 +3,17 @@
     'Functions
     Private CompiledFunctions As New Dictionary(Of String, HashSet(Of Lim.Function))
     Private UncompiledFunctions As New Dictionary(Of String, HashSet(Of Source.Function))
+    Private ContextForFunctionCompilation As Context
 
     'Constructor
-    Public Sub New(Functions As IEnumerable(Of Source.Function))
+    Public Sub New(Functions As IEnumerable(Of Source.Function), Optional ContextForFunctionCompilation As Context = Nothing)
+
+        Me.ContextForFunctionCompilation = ContextForFunctionCompilation
+
         For Each Fn As Source.Function In Functions
             AddFunction(Fn)
         Next
+
     End Sub
 
     'Add a function
@@ -77,7 +82,7 @@
         End If
 
         'Create object
-        Dim CompiledFunction As New Lim.Function(Fn, GenericTypes)
+        Dim CompiledFunction As New Lim.Function(Fn, GenericTypes, ContextForFunctionCompilation)
 
         'Create hashset if not exist
         If Not CompiledFunctions.ContainsKey(Fn.Name) Then

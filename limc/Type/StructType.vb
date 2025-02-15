@@ -2,6 +2,7 @@
 
     Public Class StructType
         Inherits Lim.Type
+        Implements IHasSomeMethods
 
         'Name of the struct
         Public Overrides ReadOnly Property Name As String
@@ -11,7 +12,15 @@
         End Property
 
         'Context
-        Private Context As New Context()
+        Private Context As MethodContext
+
+
+        ' Methods
+        Private ReadOnly Property Methods As FunctionContainer Implements IHasSomeMethods.Methods
+            Get
+                Return Context.Functions
+            End Get
+        End Property
 
         'Structure variables types
         Public Overrides ReadOnly Property PassedGenericTypes As IEnumerable(Of Lim.Type)
@@ -27,6 +36,14 @@
         Public Sub New(Base As Source.Struct, PassedGenericTypes As IEnumerable(Of Lim.Type))
             MyBase.New(Base)
             Me.PassedGenericTypes = PassedGenericTypes
+
+            'Set all "functions" to "method"
+            For Each Func As Source.Function In Base.Methods
+                Func.DefineAsMethod(Me)
+            Next
+
+            'Add method context
+            Context = New MethodContext(Nothing, Base.Methods)
 
             'Add context types
             For i As Integer = 0 To PassedGenericTypes.Count - 1
@@ -51,7 +68,7 @@
                 Me.Getters.RegisterGetter(Field.Name, New Lim.StructureFieldGetterInvoker(FieldType, FieldCompiledName))
 
                 'Create a new variable for internal methods
-                Context.RegisterVariable(Field.Name, FieldCompiledName, FieldType)
+                Context.RegisterVariable(Field.Name, $"self.{FieldCompiledName}", FieldType)
 
                 'Create C structure field
                 FieldsCompiledNames.Add($"{FieldType.CompiledName} {FieldCompiledName}")

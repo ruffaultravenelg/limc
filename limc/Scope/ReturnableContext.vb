@@ -1,5 +1,5 @@
 ﻿'Represent a context of a construct that return something (use of the "return" statement)
-Public Class ReturnableScope
+Public Class ReturnableContext
     Inherits Context
 
     'Construcot
