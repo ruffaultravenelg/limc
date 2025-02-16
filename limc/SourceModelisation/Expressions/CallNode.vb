@@ -23,9 +23,9 @@
         'Get the return type
         Public Overrides Function GetReturnType(Context As Context) As Lim.Type
 
-            '----------------------------
-            '--- Direct function call ---
-            '----------------------------
+            '-----------------------------
+            '--- Direct procedure call ---
+            '-----------------------------
             If TypeOf Target Is IProcedureDirectAccess Then
 
                 Dim ArgumentTypes As IEnumerable(Of Lim.Type) = PassedArguments.Select(Function(Expr As ExpressionNode) Expr.GetReturnType(context))

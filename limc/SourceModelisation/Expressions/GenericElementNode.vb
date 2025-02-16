@@ -40,7 +40,7 @@
 
                 'Too many functions
                 If Correspondances.Count > 1 Then
-                    Throw New SyntaxException("More than one functions can be access by this statement, please specifie wich one", Location)
+                    Throw New SyntaxException("More than one function can be accessed by this expression, please specify which one.", Location)
                 End If
 
                 'Return function pointer
@@ -63,7 +63,7 @@
 
                 'Too many functions
                 If FileCorrespondances.Count > 1 Then
-                    Throw New SyntaxException("More than one functions can be access by this statement, please specifie wich one", Location)
+                    Throw New SyntaxException("More than one function can be accessed by this expression, please specify which one.", Location)
                 End If
 
                 'Return function pointer
@@ -129,7 +129,7 @@
             '------------------------------------------
             '--- A function -> myFunc / lib::myFunc ---
             '------------------------------------------
-            Dim Func As Lim.Function = GetFunction(Scope, PassedGenericTypes)
+            Dim Func As Lim.Function = GetFunction(Scope, PassedTypes)
             If Func IsNot Nothing Then
                 Return Func.PointerType.Wrap(Func.CompiledName)
             End If
@@ -144,7 +144,7 @@
         'Make not found excepetion
         Private Function MakeNotFoundExcepetion() As DisplayableException
             If File = "" Then
-                Return New ElementNotFoundException($"No function, method or structure named ""{Value}"" is accessible.", Location)
+                Return New ElementNotFoundException($"No function or structure named ""{Value}"" is accessible.", Location)
             Else
                 Return New ElementNotFoundException($"No function or structure named ""{Value}"" is accessible in the ""{File}"" namespace.", Location)
             End If

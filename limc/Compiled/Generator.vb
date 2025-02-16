@@ -57,7 +57,7 @@
             Stream.WriteLine(vbTab & "File compiled by Lim compiler.")
             Stream.WriteLine(vbTab & "Written by Gémino Ruffault--Ravenel the 22/12/2024")
             Stream.WriteLine("")
-            Stream.WriteLine(vbTab & "You are the only responsible for this file and his content.")
+            Stream.WriteLine(vbTab & "You are solely responsible for this file and its contents.")
             Stream.WriteLine("")
             If Not CompileCommand = "" Then
                 Stream.WriteLine(vbTab & "Compile using :")

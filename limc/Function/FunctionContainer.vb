@@ -114,7 +114,11 @@
 
         'Get all compiled functions
         If CompiledFunctions.ContainsKey(Name) Then
-            Correspondances.AddRange(CompiledFunctions(Name))
+            For Each CompiledFunction As Lim.Function In CompiledFunctions(Name)
+                If TypeListAreTheSame(CompiledFunction.GenericTypes, GenericTypes) Then
+                    Correspondances.Add(CompiledFunction)
+                End If
+            Next
         End If
 
         'Return value
@@ -129,7 +133,8 @@
         Dim Correspondances As New List(Of Lim.Function)
 
         'Search the one that correspond
-        For Each NameCorrespondance As Lim.Function In GetCorrespondances(Name, GenericTypes)
+        Dim t = GetCorrespondances(Name, GenericTypes)
+        For Each NameCorrespondance As Lim.Function In t
             If FunctionMatchArguments(NameCorrespondance, Arguments) Then
                 Correspondances.Add(NameCorrespondance)
             End If
@@ -142,7 +147,7 @@
 
         'Multiple correspondance -> error
         If Correspondances.Count > 1 Then
-            Throw New SyntaxException("To functions have the same signatures", Correspondances.First.Base.Location)
+            Throw New SyntaxException("Two functions have the same signatures", Correspondances.First.Base.Location)
         End If
 
         'No correspondance

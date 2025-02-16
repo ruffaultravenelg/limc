@@ -763,8 +763,15 @@
                     Dim Propertie As String = Tokens.Current.Value
                     Tokens.Next()
 
+                    'Generic types ?
+                    Dim GenericTypes As IEnumerable(Of Source.Type) = GetPassedGenericTypes()
+
                     'Create node
-                    Target = New Source.ChildNode(LocationFrom(Target.Location), Target, Propertie)
+                    If GenericTypes.Count = 0 Then
+                        Target = New Source.ChildNode(LocationFrom(Target.Location), Target, Propertie)
+                    Else
+                        Target = New Source.GenericChildNode(LocationFrom(Target.Location), Target, Propertie, GenericTypes)
+                    End If
 
                 Case Else 'END
                     Exit While

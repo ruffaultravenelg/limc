@@ -32,13 +32,11 @@
 
         'Fonction inner context
         Private Context As Context
+        Private ReturnScope As ReturnableContext = Nothing
 
         'Function return type
         Public ReadOnly Property ReturnType As Lim.Type
             Get
-
-                'Get returnable scope
-                Dim ReturnScope As ReturnableContext = Context.GetScope(Of ReturnableContext)
 
                 'No returnable scope -> doesn't return a value
                 If ReturnScope Is Nothing Then
@@ -83,18 +81,21 @@
         Public Sub Compile()
 
             'Compile the function return something
-            If Base.ContainsReturnStatement Then
-
+            Dim ReturnableContext As Context = Me.Context
+            If Base.ContainsReturnStatement OrElse Base.ReturnType IsNot Nothing Then
                 If Base.ReturnType IsNot Nothing Then
-                    Context = New ReturnableContext(Context, Base.ReturnType.GetTargetedType(Context)) 'set the type explicitly writen
+                    If (Not Base.ContainsReturnStatement) AndAlso Base.Body.Count > 0 Then
+                        Throw New SyntaxException($"No ""return"" instruction is present, although the function is defined to return a ""{Base.ReturnType.ToString()}"" value.", Base.ReturnType.Location)
+                    End If
+                    ReturnScope = New ReturnableContext(Context, Base.ReturnType.GetTargetedType(Context)) 'set the type explicitly writen
                 Else
-                    Context = New ReturnableContext(Context) 'say that there is a type but we don't now it for now
+                    ReturnScope = New ReturnableContext(Context) 'say that there is a type but we don't now it for now
                 End If
-
+                ReturnableContext = ReturnScope
             End If
 
             'Compile body
-            Dim Scope As New Scope(Context)
+            Dim Scope As New Scope(ReturnableContext)
             For Each Statement As StatementNode In Base.Body
                 Scope.WriteLine()
                 Statement.Compile(Scope)
@@ -109,6 +110,18 @@
             C.Generator.AddFunction(New C.Function(CompiledName, Arguments, If(ReturnType Is Nothing, "void", ReturnType.CompiledName), Scope.Build()))
 
         End Sub
+
+        Public Overrides Function ToString() As String
+
+            Dim GenericTypes_STR As String = ""
+            For Each T As Lim.Type In GenericTypes
+                GenericTypes_STR &= ", " & T.ToString()
+            Next
+            If GenericTypes_STR.StartsWith(", ") Then
+                GenericTypes_STR = "<" & GenericTypes_STR.Substring(2) & ">"
+            End If
+            Return Base.Name & GenericTypes_STR '& Source.KeyNameType.ListToString(Arguments)
+        End Function
 
     End Class
 
