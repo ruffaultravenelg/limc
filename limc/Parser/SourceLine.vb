@@ -29,7 +29,7 @@
         'Read the file
         Dim Lines As String() = IO.File.ReadAllLines(File.FullFilePath)
 
-        'Create the result
+        'Create the resultx
         Dim Result As New List(Of SourceLine)
         For Index = 0 To Lines.Count - 1
             Dim Line As New SourceLine(Lines(Index), Index, File)

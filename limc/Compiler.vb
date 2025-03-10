@@ -4,8 +4,17 @@
     Public ReadOnly Property TGC_H_PATH As String = IO.Path.Combine(AppContext.BaseDirectory, "sources", "tgc.h")
     Public ReadOnly Property TGC_C_PATH As String = IO.Path.Combine(AppContext.BaseDirectory, "sources", "tgc.c")
 
+    'Environnment folder
+    Private ModulesDirectory As String = Nothing
+
     'Compile a file to a output source file
     Friend Sub Compile(Input As String, Output As String)
+
+        'Get environment
+        Dim ExpectedModuleFolder As String = IO.Path.Combine(IO.Path.GetDirectoryName(IO.Path.GetFullPath(Input)), "modules")
+        If IO.Directory.Exists(ExpectedModuleFolder) Then
+            ModulesDirectory = ExpectedModuleFolder
+        End If
 
         'Parse file
         Dim Source As Lim.SourceFile = Lim.SourceFile.Load(Input)
@@ -51,6 +60,32 @@
 
         'Return compile commande
         Return $"{GCC} {FilesToCompiles} -o {Output}"
+
+    End Function
+
+    'Get library filepath
+    'Return Nothing if not found
+    Public Function GetLibraryPath(Name As String)
+
+        'Check in libs
+        Dim LibPath As String = IO.Path.Combine(ArgumentHandler.LibsDirectory, Name & ".lim")
+        If IO.File.Exists(LibPath) Then
+            Return LibPath
+        End If
+
+        'No modules -> end here
+        If ModulesDirectory = Nothing Then
+            Return Nothing
+        End If
+
+        'Check in modules
+        Dim ModuleFile As String = IO.Path.Combine(ModulesDirectory, Name, Name & ".lim")
+        If IO.File.Exists(ModuleFile) Then
+            Return ModuleFile
+        End If
+
+        ' Nothing found
+        Return Nothing
 
     End Function
 

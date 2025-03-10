@@ -83,18 +83,14 @@
                 'Get the full filepath
                 Dim Filepath As String
                 If Statement.Library Then
-                    Filepath = IO.Path.GetFullPath(IO.Path.Combine(ArgumentHandler.LibsDirectory, Statement.Filename & ".lim"))
+                    Filepath = Compiler.GetLibraryPath(Statement.Filename)
+                    If Filepath Is Nothing Then
+                        Throw New ImportException($"Unable to locate the '{Statement.Filename}' module, try installing it with `lim install {Statement.Filename}`.", Statement.Location)
+                    End If
                 Else
                     Filepath = IO.Path.GetFullPath(Statement.Filename, IO.Path.GetDirectoryName(FullFilePath))
-                End If
-
-                'Check if the file exists
-                If Not IO.File.Exists(Filepath) Then
-                    If Statement.Library Then
-                        Console.WriteLine(Filepath)
-                        Throw New SyntaxException("The """ & Statement.Filename & """ library has not been installed.", Statement.Location)
-                    Else
-                        Throw New SyntaxException("The file """ & Statement.Filename & """ does not exist", Statement.Location)
+                    If Not IO.File.Exists(Filepath) Then
+                        Throw New ImportException($"Cannot locate ""{Statement.Filename}"" from ""{Filename}""", Statement.Location)
                     End If
                 End If
 

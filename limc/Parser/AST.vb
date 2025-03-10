@@ -453,7 +453,7 @@
 
         'No arguments
         If Arguments.Count = 0 Then
-            Throw New SyntaxException("A structure need at least one fields.", Tokens.Current.Location)
+            Throw New SyntaxException("A structure need at least one fields.", Tokens.Last.Location)
         End If
 
         'Get methods
