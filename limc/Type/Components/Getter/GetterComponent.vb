@@ -8,11 +8,6 @@
         ' Getters
         Private Getters As New Dictionary(Of String, GetterInvoker)
 
-        ' Constructor
-        Public Sub New()
-
-        End Sub
-
         'Compile a call to a getter
         Public Function CallGetter(Name As String, Obj As String) As String
             Return Getters(Name).CompileCall(Obj)

@@ -6,8 +6,8 @@ Namespace Source
         Implements IProcedureDirectAccess
 
         'Value
-        Private Parent As ExpressionNode
-        Private Propertie As String
+        Public ReadOnly Property Parent As ExpressionNode
+        Public ReadOnly Property Propertie As String
 
         'Constructor
         Public Sub New(Location As Location, Parent As ExpressionNode, Propertie As String)

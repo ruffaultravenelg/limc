@@ -14,8 +14,8 @@
         Implements IProcedureDirectAccess
 
         'Value
-        Private File As String
-        Private Value As String
+        Public ReadOnly Property File As String
+        Public ReadOnly Property Value As String
 
         'Constructor
         Public Sub New(Location As Location, File As String, Value As String)

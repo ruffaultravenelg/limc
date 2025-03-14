@@ -2,7 +2,7 @@
 
     'Constants
     Private ReadOnly CONSTRUCTS As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetImport, AddressOf GetFunction, AddressOf GetInternalType, AddressOf GetStructure}
-    Private ReadOnly FUNCTION_STATEMENTS As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetLet, AddressOf GetSourceStatement, AddressOf GetReturnStatement, AddressOf GetCallStatement}
+    Private ReadOnly FUNCTION_STATEMENTS As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetSourceStatement, AddressOf GetLet, AddressOf GetReturnStatement, AddressOf GetCallStatement, AddressOf GetAssign}
 
     'Properties
     Private Tokens As IteratorAdapter(Of Token)
@@ -641,6 +641,47 @@
 
         'Return node
         Return New Source.LetStatement(LocationFrom(StartLocation), Name, Type, Value)
+
+    End Function
+
+    'Get assign statement
+    Private Function GetAssign(CurrentIndentation As Integer)
+
+        'Save start location
+        Dim StartLocation As Location = Tokens.Current.Location
+
+        'Check variable name
+        Dim Target As ExpressionNode = GetExpression()
+
+        'Simple assignation
+        If Not Tokens.Current.Type = Token.TokenType.OPERATOR_EQUAL Then
+            Throw New NotTheRightElement()
+        End If
+        Tokens.Next()
+
+        'Get new value
+        Dim NewValue As ExpressionNode = GetExpression()
+
+        'Assign type
+        If TypeOf Target Is Source.ElementNode Then
+
+            'Simple variable
+            If DirectCast(Target, Source.ElementNode).File <> "" Then
+                Throw New SyntaxException("The name of a variable or an expression was expected here", Target.Location)
+            End If
+            Return New Source.VariableAssignStatement(LocationFrom(StartLocation), DirectCast(Target, Source.ElementNode).Value, NewValue)
+
+        ElseIf TypeOf Target Is Source.ChildNode Then
+
+            Return New Source.AccessorAssignStatement(LocationFrom(StartLocation), Target, NewValue)
+
+        Else
+
+            Throw New NotTheRightElement
+
+        End If
+
+
 
     End Function
 

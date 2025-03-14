@@ -160,6 +160,11 @@
         '---------------
         Public ReadOnly Property Getters As New GetterComponent()
 
+        '---------------
+        '--- SETTERS ---
+        '---------------
+        Public ReadOnly Property Setters As New SetterComponent()
+
     End Class
 
 End Namespace
