@@ -1,4 +1,7 @@
-﻿Public Class AST
+﻿Imports System.Diagnostics.Tracing
+Imports System.Reflection.Metadata
+
+Public Class AST
 
     'Constants
     Private ReadOnly CONSTRUCTS As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetImport, AddressOf GetFunction, AddressOf GetInternalType, AddressOf GetStructure}
@@ -64,7 +67,7 @@
                 Throw New SyntaxException("Indetation must be 0", Tokens.Current.Location)
             End If
 
-            'Save location
+            'Save location for error msg
             Tokens.Next()
             Dim StartLocation As Location = Tokens.Current.Location
 
@@ -333,58 +336,132 @@
 
     End Function
 
-    'Get methods
-    Private Function GetStructureMethods() As IEnumerable(Of Source.Function)
+    'Get let (for structures)
+    Private Function GetPropertie() As Source.PropertieDelcaration
 
-        'Create result
-        Dim Methods As New List(Of Source.Function)
+        'We assume that we are on the "let" keyword
+        Dim StartLocation As Location = Tokens.Current.Location
+        Tokens.Next()
 
-        'Get constructs
-        While Tokens.HasNext
-
-            'Start line
-            If Not Tokens.Current.Type = Token.TokenType.LINESTART Then
-                Throw New SyntaxException("Unexpected token, expected a line start", Tokens.Current.Location)
-            End If
-
-            'Get indentation
-            Dim Indentation As Integer = Tokens.Current.Value
-            If Indentation = 0 Then
-                Exit While
-            End If
-            If Indentation <> 1 Then
-                Throw New SyntaxException("Indetation must be 1 or 0", Tokens.Current.Location)
-            End If
-
-            'Save location
+        'Check for accessors (get, set)
+        Dim [Set] As Boolean = False
+        Dim [Get] As Boolean = False
+        If Tokens.Current.Type = Token.TokenType.SYNTAX_LEFT_PARENTHESIS Then
             Tokens.Next()
-            Dim StartLocation As Location = Tokens.Current.Location
+            If Not Tokens.Current.Type = Token.TokenType.SYNTAX_RIGHT_PARENTHESIS Then
 
-            'Get exported
-            Dim Exported As Boolean = False
-            If Tokens.Current.Type = Token.TokenType.KEYWORD_EXPORT Then
-                Exported = True
+                Select Case Tokens.Current.Type
+                    Case Token.TokenType.KEYWORD_SET
+                        [Set] = True
+                    Case Token.TokenType.KEYWORD_GET
+                        [Get] = True
+                    Case Else
+                        Throw New SyntaxException("A valid accessor name was expected here (get/set)", Tokens.Current.Location)
+                End Select
+
                 Tokens.Next()
+
+                If Not Tokens.Current.Type = Token.TokenType.SYNTAX_RIGHT_PARENTHESIS Then
+
+                    If Not Tokens.Current.Type = Token.TokenType.SYNTAX_COMMA Then
+                        Throw New SyntaxException("A comma or a closing parenthesis was expected here.", Tokens.Current.Location)
+                    End If
+                    Tokens.Next()
+
+                    Select Case Tokens.Current.Type
+                        Case Token.TokenType.KEYWORD_SET
+                            If [Set] Then
+                                Throw New SyntaxException("The ""set"" accessor was already defined just before, remove it.", Tokens.Current.Location)
+                            End If
+                            [Set] = True
+                        Case Token.TokenType.KEYWORD_GET
+                            If [Get] Then
+                                Throw New SyntaxException("The ""get"" accessor was already defined just before, remove it.", Tokens.Current.Location)
+                            End If
+                            [Get] = True
+                        Case Else
+                            Throw New SyntaxException("A valid accessor name was expected here (get/set)", Tokens.Current.Location)
+                    End Select
+
+                    Tokens.Next()
+
+                    If Not Tokens.Current.Type = Token.TokenType.SYNTAX_RIGHT_PARENTHESIS Then
+                        Throw New SyntaxException("Only ""get"" and ""set"" can be specified", Tokens.Current.Location)
+                    End If
+
+                End If
             End If
+        End If
+        Tokens.Next()
 
-            'Get method
-            Try
-                Dim Method As Source.Function = GetFunction(1)
-                Method.SetExported(Exported)
-                Methods.Add(Method)
-            Catch ex As NotTheRightElement
-                Throw New SyntaxException("A method was expected here", StartLocation)
-            End Try
+        ' Get variable name
+        If Not Tokens.Current.Type = Token.TokenType.WORD Then
+            Throw New SyntaxException("A propertie name was expected here.", Tokens.Current.Location)
+        End If
+        Dim VariableName As String = Tokens.Current.Value
 
-        End While
+        ' Get type
+        Tokens.Next()
+        If Not Tokens.Current.Type = Token.TokenType.SYNTAX_COLON Then
+            Throw New SyntaxException("A colon was expected, in strutures types must be specified for properties.", Tokens.Current.Location)
+        End If
+        Tokens.Next()
+        Dim Type As Source.Type = GetAType()
 
-        'Export all constructs if none of them is exported
-        ConstructNode.HandleExports(Methods)
+        'Check for equal (error)
+        If Tokens.Current.Type = Token.TokenType.OPERATOR_EQUAL Then
+            Throw New SyntaxException("Properties cannot be defined with a default value, please use the constructor", Tokens.Current.Location)
+        End If
 
-        'Return methods
-        Return Methods
+        'Create and return the object
+        Return New Source.PropertieDelcaration(LocationFrom(StartLocation), VariableName, Type, [Set], [Get])
 
     End Function
+
+    'Populate a structure body
+    Private Sub PopulateStructure(Properties As List(Of Source.KeyNameType), Methods As List(Of Source.Function), ByRef Constructor As Source.Function)
+        While True
+
+            'Check newline
+            If Not Tokens.Current.Type = Token.TokenType.LINESTART Then
+                Throw New SyntaxException("A new line was expected here", Tokens.Current.Location)
+            End If
+
+            'Check indentation
+            If Tokens.Current.Value < 1 Then
+                Exit While
+            End If
+            If Not Tokens.Current.Value = 1 Then
+                Throw New SyntaxException("A indentation level of 1 was expected here.", Tokens.Current.Location)
+            End If
+
+            Tokens.Next()
+
+            Select Case Tokens.Current.Type
+
+                Case Token.TokenType.KEYWORD_LET
+                    Properties.Add(GetPropertie())
+
+                Case Token.TokenType.KEYWORD_FUNC
+                    Dim Method As Source.Function = GetFunction(1)
+                    If Method.Name = "new" Then
+                        If Constructor IsNot Nothing Then
+                            Throw New SyntaxException("Multiple constructors are defined for the same structure.", Method.Location)
+                        Else
+                            Constructor = Method
+                        End If
+                    Else
+                        Method.SetExported(True)
+                        Methods.Add(Method)
+                    End If
+
+                Case Else
+                    Throw New SyntaxException("A valid structure construct was expected here", Tokens.Current.Location)
+
+            End Select
+
+        End While
+    End Sub
 
     'Get function
     Private Function GetFunction(Optional FunctionDefinitionIndentation As Integer = 0) As Source.Function
@@ -448,19 +525,22 @@
         'Get generic types
         Dim GenericTypes As IEnumerable(Of Source.GenericType) = GetGenericTypes()
 
-        'Get arguments
-        Dim Arguments As IEnumerable(Of Source.KeyNameType) = GetArguments()
+        'Get oneline properties
+        ' -> struct point(x:int, y:int)'
+        Dim Properties As IEnumerable(Of Source.KeyNameType) = GetArguments()
+
+        'Populate de structure
+        Dim Methods As New List(Of Source.Function)
+        Dim Constructor As Source.Function = Nothing
+        PopulateStructure(Properties, Methods, Constructor)
 
         'No arguments
-        If Arguments.Count = 0 Then
+        If Properties.Count = 0 Then
             Throw New SyntaxException("A structure need at least one fields.", Tokens.Last.Location)
         End If
 
-        'Get methods
-        Dim Methods As IEnumerable(Of Source.Function) = GetStructureMethods()
-
         'Return structure
-        Return New Source.Struct(LocationFrom(StartLocation), Name, GenericTypes, Arguments, Methods)
+        Return New Source.Struct(LocationFrom(StartLocation), Name, GenericTypes, Properties, Methods)
 
     End Function
 
@@ -784,7 +864,7 @@
                         'Error
                         Throw New SyntaxException("The characters ')' or ',' were expected here.", Tokens.Current.Location)
 
-                    End While
+                        End While
 
                     'Create node
                     Target = New Source.CallNode(LocationFrom(Target.Location), Target, PassedArguments)

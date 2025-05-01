@@ -14,7 +14,6 @@
         'Context
         Private Context As MethodContext
 
-
         ' Methods
         Private ReadOnly Property Methods As FunctionContainer Implements IHasSomeMethods.Methods
             Get
@@ -58,6 +57,11 @@
             Dim FieldsCompiledNames As New List(Of String)
             For Each Field As Source.KeyNameType In DirectCast(Base, Source.Struct).Properties
 
+                'Check if propertie name already exist
+                If Me.Getters.HasGetter(Field.Name) Then
+                    Throw New ElementAlreadyExistException(Field.Location, Field.Name, ElementAlreadyExistException.ELEMENT_PROPERTIE)
+                End If
+
                 'Define a compiled name
                 Dim FieldCompiledName As String = C.Generator.Namer.GenerateFieldName()
 
@@ -65,8 +69,17 @@
                 Dim FieldType As Lim.Type = Field.Type.GetTargetedType(Context)
 
                 'Register a new getter & setter
-                Me.Getters.RegisterGetter(Field.Name, New Lim.StructureFieldGetterInvoker(FieldType, FieldCompiledName))
-                Me.Setters.RegisterSetter(Field.Name, New Lim.StructureFieldSetterInvoker(FieldType, FieldCompiledName))
+                If TypeOf Field Is Source.PropertieDelcaration Then
+                    If DirectCast(Field, Source.PropertieDelcaration).GET Then
+                        Me.Getters.RegisterGetter(Field.Name, New Lim.StructureFieldGetterInvoker(FieldType, FieldCompiledName))
+                    End If
+                    If DirectCast(Field, Source.PropertieDelcaration).SET Then
+                        Me.Setters.RegisterSetter(Field.Name, New Lim.StructureFieldSetterInvoker(FieldType, FieldCompiledName))
+                    End If
+                Else
+                    Me.Getters.RegisterGetter(Field.Name, New Lim.StructureFieldGetterInvoker(FieldType, FieldCompiledName))
+                    Me.Setters.RegisterSetter(Field.Name, New Lim.StructureFieldSetterInvoker(FieldType, FieldCompiledName))
+                End If
 
                 'Create a new variable for internal methods
                 Context.RegisterVariable(Field.Name, $"self.{FieldCompiledName}", FieldType)

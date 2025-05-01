@@ -24,8 +24,8 @@
         End Function
 
         'Register a new setter
-        Public Sub RegisterSetter(Name As String, GetterInvoker As SetterInvoker)
-            Setters.Add(Name, GetterInvoker)
+        Public Sub RegisterSetter(Name As String, SetterInvoker As SetterInvoker)
+            Setters.Add(Name, SetterInvoker)
         End Sub
 
     End Class
