@@ -72,6 +72,11 @@ Namespace Source
             Dim GenericTypes As IEnumerable(Of Lim.Type) = CompilePassedGenericTypes(Context)
             Dim Method As Lim.Function = FunctionContainer.GetCorrespondance(Propertie, GenericTypes, PassedArguments)
 
+            'If method is not found
+            If Method Is Nothing Then
+                Return Nothing
+            End If
+
             ' Check if method is exported
             If Not Method.Base.Exported Then
                 Return Nothing

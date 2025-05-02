@@ -12,12 +12,21 @@
         End Property
 
         'Context
+        Private GenericTypesContext As Context
         Private Context As MethodContext
 
         ' Methods
         Private ReadOnly Property Methods As FunctionContainer Implements IHasSomeMethods.Methods
             Get
                 Return Context.Functions
+            End Get
+        End Property
+        Private Constructors As FunctionContainer
+
+        ' Inline properties
+        Private ReadOnly Property IsInlineProperties As Boolean
+            Get
+                Return DirectCast(Base, Source.Struct).InlineProperties.Count > 0
             End Get
         End Property
 
@@ -42,42 +51,56 @@
             Next
 
             'Add method context
-            Context = New MethodContext(Nothing, Base.Methods)
+            GenericTypesContext = New Context(Nothing)
+            Context = New MethodContext(GenericTypesContext, Base.Methods)
 
             'Add context types
             For i As Integer = 0 To PassedGenericTypes.Count - 1
-                Context.GenericTypes.TryAdd(Base.GenericTypes(i).Name, PassedGenericTypes(i))
+                GenericTypesContext.GenericTypes.TryAdd(Base.GenericTypes(i).Name, PassedGenericTypes(i))
             Next
+
+            'Add constructors
+            Me.Constructors = New FunctionContainer(Base.Constructors, Context)
 
         End Sub
 
         Public Overrides Sub Compile()
 
-            'Compile fields
-            Dim FieldsCompiledNames As New List(Of String)
-            For Each Field As Source.KeyNameType In DirectCast(Base, Source.Struct).Properties
+            'Struct source
+            Dim StructSource As Source.Struct = DirectCast(Base, Source.Struct)
 
-                'Check if propertie name already exist
-                If Me.Getters.HasGetter(Field.Name) Then
-                    Throw New ElementAlreadyExistException(Field.Location, Field.Name, ElementAlreadyExistException.ELEMENT_PROPERTIE)
-                End If
+            'Compile fields
+            Dim CompiledCFields As New List(Of String)
+            DefineProperties(StructSource.InlineProperties, CompiledCFields)
+            DefineProperties(StructSource.Properties, CompiledCFields)
+
+            'Compile struct
+            C.Generator.AddStructure(New C.Structure(CompiledName, CompiledCFields))
+
+        End Sub
+
+        ' Take a list of source properties and compile them
+        Private Sub DefineProperties(Properties As IEnumerable(Of Source.IPropertieDefinition), CompiledCFields As List(Of String))
+
+            For Each Field As Source.IPropertieDefinition In Properties
 
                 'Define a compiled name
                 Dim FieldCompiledName As String = C.Generator.Namer.GenerateFieldName()
 
                 'Get field type
-                Dim FieldType As Lim.Type = Field.Type.GetTargetedType(Context)
+                Dim FieldType As Lim.Type = Field.Type.GetTargetedType(GenericTypesContext)
 
                 'Register a new getter & setter
-                If TypeOf Field Is Source.PropertieDelcaration Then
-                    If DirectCast(Field, Source.PropertieDelcaration).GET Then
-                        Me.Getters.RegisterGetter(Field.Name, New Lim.StructureFieldGetterInvoker(FieldType, FieldCompiledName))
+                If Field.GET Then
+                    If Me.Getters.HasGetter(Field.Name) Then
+                        Throw New ElementAlreadyExistException(DirectCast(Field, Node).Location, Field.Name, ElementAlreadyExistException.ELEMENT_GETTER)
                     End If
-                    If DirectCast(Field, Source.PropertieDelcaration).SET Then
-                        Me.Setters.RegisterSetter(Field.Name, New Lim.StructureFieldSetterInvoker(FieldType, FieldCompiledName))
-                    End If
-                Else
                     Me.Getters.RegisterGetter(Field.Name, New Lim.StructureFieldGetterInvoker(FieldType, FieldCompiledName))
+                End If
+                If Field.SET Then
+                    If Me.Setters.HasSetter(Field.Name) Then
+                        Throw New ElementAlreadyExistException(DirectCast(Field, Node).Location, Field.Name, ElementAlreadyExistException.ELEMENT_SETTER)
+                    End If
                     Me.Setters.RegisterSetter(Field.Name, New Lim.StructureFieldSetterInvoker(FieldType, FieldCompiledName))
                 End If
 
@@ -85,12 +108,9 @@
                 Context.RegisterVariable(Field.Name, $"self.{FieldCompiledName}", FieldType)
 
                 'Create C structure field
-                FieldsCompiledNames.Add($"{FieldType.CompiledName} {FieldCompiledName}")
+                CompiledCFields.Add($"{FieldType.CompiledName} {FieldCompiledName}")
 
             Next
-
-            'Compile struct
-            C.Generator.AddStructure(New C.Structure(CompiledName, FieldsCompiledNames))
 
         End Sub
 
@@ -104,6 +124,36 @@
 
         Public Overrides Function Assignation(Variable As String, Value As String) As String
             Return $"{Variable} = {Value};"
+        End Function
+
+        ' Compile inisialiation
+        Public Function Constuct(PassedArguments As IEnumerable(Of ExpressionNode), Scope As Scope, Location As Location) As String
+            If IsInlineProperties Then
+
+                'Compile struct values
+                Dim Args As String = Source.CallNode.CompileArguments(FieldsTypes(), PassedArguments, Scope, Location)
+                If Args.StartsWith(", ") Then
+                    Args = Args.Substring(2)
+                End If
+
+                'Instanciate
+                Return "(" & CompiledName & "){" & Args & "}"
+
+            Else
+
+                'Get the constructor
+                Dim Constructor As Lim.Function = Constructors.GetCorrespondance("new", {}, ExpressionNode.GetTypesOfExpressions(PassedArguments, Scope))
+                If Constructor Is Nothing Then
+                    Throw New SyntaxException($"No constructors has this signature in the ""{ToString()}"" structure.", Location)
+                End If
+
+                'Compile all arguments
+                Dim Args As String = Source.CallNode.CompileArguments(Constructor.Arguments, PassedArguments, Scope, Location)
+
+                'Return a call
+                Return $"{Constructor.CompiledName}(&ctx{Args})"
+
+            End If
         End Function
 
     End Class

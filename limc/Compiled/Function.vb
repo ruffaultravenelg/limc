@@ -26,7 +26,7 @@
 
             'Create body
             Dim NewBody As New List(Of String)
-            NewBody.Add("")
+            'NewBody.Add("")
             NewBody.Add("INIT_" & CONTEXT_NAME.ToUpper() & "(parent_" & CONTEXT_NAME & ", " & Contexted.Count.ToString() & ");")
             NewBody.AddRange(Body)
             Me.Body = NewBody
@@ -65,6 +65,29 @@
             Next
             Stream.WriteLine("};")
         End Sub
+
+        'Write function call
+        Public Shared Function WriteCall(FunctionName As String, ParamArray Arguments() As String) As String
+            Dim finalArgs As String = "&" & CONTEXT_NAME
+
+            For Each arg As String In Arguments
+                If String.IsNullOrWhiteSpace(arg) Then Continue For
+
+                ' Supprimer les espaces de début
+                arg = arg.TrimStart()
+
+                ' Ajouter une virgule si nécessaire
+                If finalArgs.Length > 0 AndAlso Not finalArgs.EndsWith(", ") AndAlso Not arg.StartsWith(",") Then
+                    finalArgs &= ", "
+                ElseIf finalArgs.Length > 0 AndAlso Not finalArgs.EndsWith(" ") AndAlso arg.StartsWith(",") Then
+                    finalArgs &= " "
+                End If
+
+                finalArgs &= arg
+            Next
+
+            Return $"{FunctionName}({finalArgs})"
+        End Function
 
     End Class
 

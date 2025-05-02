@@ -28,7 +28,7 @@
             '-----------------------------
             If TypeOf Target Is IProcedureDirectAccess Then
 
-                Dim ArgumentTypes As IEnumerable(Of Lim.Type) = PassedArguments.Select(Function(Expr As ExpressionNode) Expr.GetReturnType(context))
+                Dim ArgumentTypes As IEnumerable(Of Lim.Type) = PassedArguments.Select(Function(Expr As ExpressionNode) Expr.GetReturnType(Context))
                 Dim FuncReturnType As Lim.Type = DirectCast(Target, IProcedureDirectAccess).GetProcedureReturnedType(Context, ArgumentTypes)
                 If FuncReturnType IsNot Nothing Then
                     Return FuncReturnType
@@ -89,9 +89,9 @@
             '----------------------------
             If TypeOf Target Is IProcedureDirectAccess Then
 
-                Dim FuncReturnType As String = DirectCast(Target, IProcedureDirectAccess).CompileProcedureCall(Scope, PassedArguments)
-                If FuncReturnType IsNot Nothing Then
-                    Return FuncReturnType
+                Dim CompiledFuncCall As String = DirectCast(Target, IProcedureDirectAccess).CompileProcedureCall(Scope, PassedArguments)
+                If CompiledFuncCall IsNot Nothing Then
+                    Return CompiledFuncCall
                 End If
 
             End If
@@ -99,23 +99,13 @@
             '--------------------------------
             '--- Structure initialisation ---
             '--------------------------------
-
             If TypeOf Target Is IStructureName Then
 
                 'Cast
                 Dim Struct As Lim.StructType = DirectCast(Target, IStructureName).ResolveStructure(Scope)
 
                 If Struct IsNot Nothing Then
-
-                    'Compile struct values
-                    Dim Args As String = Source.CallNode.CompileArguments(Struct.FieldsTypes(), PassedArguments, Scope, Location)
-                    If Args.StartsWith(", ") Then
-                        Args = Args.Substring(2)
-                    End If
-
-                    'Instanciate
-                    Return "(" & Struct.CompiledName & "){" & Args & "}"
-
+                    Return Struct.Constuct(PassedArguments, Scope, Location)
                 End If
 
             End If
@@ -123,7 +113,6 @@
             '---------------------
             '--- Function Call ---
             '---------------------
-
             Dim TargetReturnType As Lim.Type = Target.GetReturnType(Scope)
 
             If TypeOf TargetReturnType Is Lim.FuncType Then
@@ -140,7 +129,7 @@
                 Dim Args As String = Source.CallNode.CompileArguments(TargetedFunction.PassedGenericTypes, PassedArguments, Scope, Location)
 
                 'Return a call
-                Return $"{Target.Compile(Scope)}.fn(&ctx{Args})"
+                Return C.Function.WriteCall($"{Target.Compile(Scope)}.fn", Args)
 
             End If
 
@@ -172,6 +161,18 @@
             Next
 
             'Return result
+            Return Result
+
+        End Function
+
+        Public Shared Function CompileArguments(PassedArguments As IEnumerable(Of ExpressionNode), Scope As Scope) As String
+
+            Dim Result As String = ""
+
+            For Each Arg As ExpressionNode In PassedArguments
+                Result &= ", " & Arg.Compile(Scope)
+            Next
+
             Return Result
 
         End Function

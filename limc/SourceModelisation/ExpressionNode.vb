@@ -12,4 +12,14 @@
     'Compile the expression
     Public MustOverride Function Compile(Scope As Scope) As String
 
+    'Get the types of a list of expressions 
+    Public Shared Function GetTypesOfExpressions(Expressions As IEnumerable(Of ExpressionNode), Context As Context) As IEnumerable(Of Lim.Type)
+        Dim Types As New List(Of Lim.Type)
+        For Each Expr As ExpressionNode In Expressions
+            Types.Add(Expr.GetReturnType(Context))
+        Next
+        Return Types
+    End Function
+
 End Class
+

@@ -86,12 +86,17 @@ Namespace Source
             ' Get method
             Dim Method As Lim.Function = FunctionContainer.GetCorrespondance(Propertie, {}, PassedArguments)
 
+            ' Method not found
+            If Method Is Nothing Then
+                Return Nothing
+            End If
+
             ' Check if method is exported
             If Not Method.Base.Exported Then
                 Return Nothing
             End If
 
-            'Nothing  
+            'Return method  
             Return Method
 
         End Function

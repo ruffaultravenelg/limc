@@ -1,7 +1,4 @@
-﻿Imports System.Diagnostics.Tracing
-Imports System.Reflection.Metadata
-
-Public Class AST
+﻿Public Class AST
 
     'Constants
     Private ReadOnly CONSTRUCTS As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetImport, AddressOf GetFunction, AddressOf GetInternalType, AddressOf GetStructure}
@@ -337,7 +334,7 @@ Public Class AST
     End Function
 
     'Get let (for structures)
-    Private Function GetPropertie() As Source.PropertieDelcaration
+    Private Function GetPropertieConstruct(IsExported As Boolean) As Source.PropertieDeclaration
 
         'We assume that we are on the "let" keyword
         Dim StartLocation As Location = Tokens.Current.Location
@@ -350,6 +347,7 @@ Public Class AST
             Tokens.Next()
             If Not Tokens.Current.Type = Token.TokenType.SYNTAX_RIGHT_PARENTHESIS Then
 
+
                 Select Case Tokens.Current.Type
                     Case Token.TokenType.KEYWORD_SET
                         [Set] = True
@@ -358,6 +356,10 @@ Public Class AST
                     Case Else
                         Throw New SyntaxException("A valid accessor name was expected here (get/set)", Tokens.Current.Location)
                 End Select
+
+                If IsExported Then
+                    Throw New SyntaxException("The property is defined with the ""export"" keyword, meaning it already has all the accessors, making it impossible to define them manually.", Tokens.Current.Location)
+                End If
 
                 Tokens.Next()
 
@@ -391,8 +393,8 @@ Public Class AST
 
                 End If
             End If
+            Tokens.Next()
         End If
-        Tokens.Next()
 
         ' Get variable name
         If Not Tokens.Current.Type = Token.TokenType.WORD Then
@@ -414,12 +416,13 @@ Public Class AST
         End If
 
         'Create and return the object
-        Return New Source.PropertieDelcaration(LocationFrom(StartLocation), VariableName, Type, [Set], [Get])
+        Return New Source.PropertieDeclaration(LocationFrom(StartLocation), VariableName, Type, [Set], [Get])
 
     End Function
 
     'Populate a structure body
-    Private Sub PopulateStructure(Properties As List(Of Source.KeyNameType), Methods As List(Of Source.Function), ByRef Constructor As Source.Function)
+    Private Function PopulateStructure()
+        Dim Constructs As New List(Of ConstructNode)
         While True
 
             'Check newline
@@ -437,34 +440,34 @@ Public Class AST
 
             Tokens.Next()
 
+            Dim Exported As Boolean = False
+            If Tokens.Current.Type = Token.TokenType.KEYWORD_EXPORT Then
+                Exported = True
+                Tokens.Next()
+            End If
+
+            Dim Construct As ConstructNode
             Select Case Tokens.Current.Type
 
                 Case Token.TokenType.KEYWORD_LET
-                    Properties.Add(GetPropertie())
+                    Construct = GetPropertieConstruct(Exported)
 
                 Case Token.TokenType.KEYWORD_FUNC
-                    Dim Method As Source.Function = GetFunction(1)
-                    If Method.Name = "new" Then
-                        If Constructor IsNot Nothing Then
-                            Throw New SyntaxException("Multiple constructors are defined for the same structure.", Method.Location)
-                        Else
-                            Constructor = Method
-                        End If
-                    Else
-                        Method.SetExported(True)
-                        Methods.Add(Method)
-                    End If
+                    Construct = GetFunction(1, True)
 
                 Case Else
                     Throw New SyntaxException("A valid structure construct was expected here", Tokens.Current.Location)
 
             End Select
+            Construct.SetExported(Exported)
+            Constructs.Add(Construct)
 
         End While
-    End Sub
+        Return Constructs
+    End Function
 
     'Get function
-    Private Function GetFunction(Optional FunctionDefinitionIndentation As Integer = 0) As Source.Function
+    Private Function GetFunction(Optional FunctionDefinitionIndentation As Integer = 0, Optional AuthorizeConstructors As Boolean = False) As Source.Function
 
         'Save start location
         Dim StartLocation As Location = Tokens.Current.Location
@@ -476,10 +479,21 @@ Public Class AST
         Tokens.Next()
 
         'Get name
-        If Not Tokens.Current.Type = Token.TokenType.WORD Then
+        Dim Name As String
+        If Tokens.Current.Type = Token.TokenType.WORD Then
+            Name = Tokens.Current.Value
+
+        ElseIf Tokens.Current.Type = Token.TokenType.KEYWORD_NEW Then
+            If AuthorizeConstructors Then
+                Name = "new"
+            Else
+                Throw New SyntaxException("Only structs and classes can have ""new"" functions.", Tokens.Current.Location)
+            End If
+
+        Else
             Throw New SyntaxException("A name was expected here.", Tokens.Current.Location)
+
         End If
-        Dim Name As String = Tokens.Current.Value
         Tokens.Next()
 
         'Get generic types
@@ -525,22 +539,15 @@ Public Class AST
         'Get generic types
         Dim GenericTypes As IEnumerable(Of Source.GenericType) = GetGenericTypes()
 
-        'Get oneline properties
+        'Get inline properties
         ' -> struct point(x:int, y:int)'
-        Dim Properties As IEnumerable(Of Source.KeyNameType) = GetArguments()
+        Dim InlineProperties As IEnumerable(Of Source.KeyNameType) = GetArguments()
 
         'Populate de structure
-        Dim Methods As New List(Of Source.Function)
-        Dim Constructor As Source.Function = Nothing
-        PopulateStructure(Properties, Methods, Constructor)
+        Dim Constructs As IEnumerable(Of ConstructNode) = PopulateStructure()
 
-        'No arguments
-        If Properties.Count = 0 Then
-            Throw New SyntaxException("A structure need at least one fields.", Tokens.Last.Location)
-        End If
-
-        'Return structure
-        Return New Source.Struct(LocationFrom(StartLocation), Name, GenericTypes, Properties, Methods)
+        'Create struct
+        Return New Source.Struct(LocationFrom(StartLocation), Name, GenericTypes, InlineProperties, Constructs)
 
     End Function
 
@@ -864,7 +871,7 @@ Public Class AST
                         'Error
                         Throw New SyntaxException("The characters ')' or ',' were expected here.", Tokens.Current.Location)
 
-                        End While
+                    End While
 
                     'Create node
                     Target = New Source.CallNode(LocationFrom(Target.Location), Target, PassedArguments)

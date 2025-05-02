@@ -30,13 +30,9 @@ Public Class FileAST
         Constructs.Add(Obj)
     End Sub
 
-    'Get a type of construct
-    Public Iterator Function GetConstructs(Of T As ConstructNode)() As IEnumerable(Of T)
-        For Each Obj As ConstructNode In Constructs
-            If TypeOf Obj Is T Then
-                Yield Obj
-            End If
-        Next
+    'Get a type of construct (alias)
+    Public Function GetConstructs(Of T As ConstructNode)() As IEnumerable(Of T)
+        Return ConstructNode.GetConstructsOfType(Of T)(Constructs)
     End Function
 
 End Class

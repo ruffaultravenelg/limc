@@ -33,4 +33,13 @@
 
     End Sub
 
+    'Get a type of construct
+    Public Shared Iterator Function GetConstructsOfType(Of T As ConstructNode)(Dataset As IEnumerable(Of ConstructNode)) As IEnumerable(Of T)
+        For Each Obj As ConstructNode In Dataset
+            If TypeOf Obj Is T Then
+                Yield Obj
+            End If
+        Next
+    End Function
+
 End Class

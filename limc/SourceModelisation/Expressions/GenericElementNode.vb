@@ -193,20 +193,20 @@
 
             'Get passed generic types
             Dim PassedGenericTypes As IEnumerable(Of Lim.Type) = CompilePassedTypes(Scope)
-            Dim ArgumentTypes As IEnumerable(Of Lim.Type) = Passedarguments.Select(Function(Expr As ExpressionNode) Expr.GetReturnType(Scope))
+            Dim ArgumentTypes As IEnumerable(Of Lim.Type) = ExpressionNode.GetTypesOfExpressions(Passedarguments, Scope)
 
             'Try getting a method
             Dim Method As Lim.Function = GetMethodWitharguments(Scope, PassedGenericTypes, ArgumentTypes)
             If Method IsNot Nothing Then
                 Dim Args As String = Source.CallNode.CompileArguments(Method.Arguments, Passedarguments, Scope, Location)
-                Return Method.CompiledName & "(&ctx, self" & Args & ")"
+                Return C.Function.WriteCall(Method.CompiledName, "self", Args)
             End If
 
             'Try getting a function
             Dim Func As Lim.Function = GetFunctionWithArguments(Scope, PassedGenericTypes, ArgumentTypes)
             If Func IsNot Nothing Then
                 Dim Args As String = Source.CallNode.CompileArguments(Func.Arguments, Passedarguments, Scope, Location)
-                Return Func.CompiledName & "(&ctx" & Args & ")"
+                Return C.Function.WriteCall(Func.CompiledName, Args)
             End If
 
             'Nothing founnd
