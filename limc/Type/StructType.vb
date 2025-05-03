@@ -45,14 +45,9 @@
             MyBase.New(Base)
             Me.PassedGenericTypes = PassedGenericTypes
 
-            'Set all "functions" to "method"
-            For Each Func As Source.Function In Base.Methods
-                Func.DefineAsMethod(Me)
-            Next
-
             'Add method context
             GenericTypesContext = New Context(Nothing)
-            Context = New MethodContext(GenericTypesContext, Base.Methods)
+            Context = New MethodContext(GenericTypesContext, Base.Methods, AddressOf MethodBuilder)
 
             'Add context types
             For i As Integer = 0 To PassedGenericTypes.Count - 1
@@ -60,9 +55,20 @@
             Next
 
             'Add constructors
-            Me.Constructors = New FunctionContainer(Base.Constructors, Context)
+            Me.Constructors = New FunctionContainer(Base.Constructors, Context, AddressOf ConstructorBuilder)
 
         End Sub
+
+        'Constructor builder
+        'PassedGenericTypes will always be empty cause this is only constructors, context = Me.Context in this situation
+        Private Function ConstructorBuilder(Source As Source.Function, PassedGenericTypes As IEnumerable(Of Lim.Type), Context As Context) As Lim.Function
+            Return New Lim.StructConstructor(Source, Me.Context, Me)
+        End Function
+
+        'Method builder
+        Private Function MethodBuilder(Source As Source.Function, PassedGenericTypes As IEnumerable(Of Lim.Type), Context As Context) As Lim.Function
+            Return New Lim.Method(Source, PassedGenericTypes, Me.Context, Me)
+        End Function
 
         Public Overrides Sub Compile()
 
@@ -151,7 +157,7 @@
                 Dim Args As String = Source.CallNode.CompileArguments(Constructor.Arguments, PassedArguments, Scope, Location)
 
                 'Return a call
-                Return $"{Constructor.CompiledName}(&ctx{Args})"
+                Return C.Function.WriteCall(Constructor.CompiledName, Args)
 
             End If
         End Function

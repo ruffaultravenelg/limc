@@ -36,7 +36,7 @@
             'Generate default function
             C.Generator.AddFunction(New C.Function(CompiledName & "_default", {CompiledName & " unused"}, If(ReturnType Is Nothing, "void", ReturnType.CompiledName), {
                 "",
-                "lim_panic(&ctx, ""Call on a null " & ToString() & """);"
+                $"lim_panic(&{C.Generator.CONTEXT_NAME}, ""Call on a null ""{ToString()}"" );"
             }))
 
         End Sub

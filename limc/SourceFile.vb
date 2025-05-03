@@ -69,7 +69,7 @@
             HandleImports(Content.GetConstructs(Of Source.Import))
 
             'Get functions
-            Me.Functions = New FunctionContainer(Content.GetConstructs(Of Source.Function))
+            Me.Functions = New FunctionContainer(Content.GetConstructs(Of Source.Function), New Context())
 
             'Get types
             Me.Types = New TypeContainer(Content.GetConstructs(Of TypeConstruct))

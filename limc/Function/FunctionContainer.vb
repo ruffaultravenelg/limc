@@ -4,11 +4,25 @@
     Private CompiledFunctions As New Dictionary(Of String, HashSet(Of Lim.Function))
     Private UncompiledFunctions As New Dictionary(Of String, HashSet(Of Source.Function))
     Private ContextForFunctionCompilation As Context
+    Private InstanciateFunctionPointer As InstanciateFunction
+
+    Public Delegate Function InstanciateFunction(Source As Source.Function, PassedGenericTypes As IEnumerable(Of Lim.Type), Context As Context) As Lim.Function
+
+    'Default instanciate
+    Private Function DefaultInstanciate(Source As Source.Function, PassedGenericTypes As IEnumerable(Of Lim.Type), Context As Context) As Lim.Function
+        Return New Lim.Function(Source, PassedGenericTypes, Context)
+    End Function
 
     'Constructor
-    Public Sub New(Functions As IEnumerable(Of Source.Function), Optional ContextForFunctionCompilation As Context = Nothing)
+    Public Sub New(Functions As IEnumerable(Of Source.Function), ContextForFunctionCompilation As Context, Optional InstanciateFunctionPointer As InstanciateFunction = Nothing)
 
         Me.ContextForFunctionCompilation = ContextForFunctionCompilation
+
+        If InstanciateFunctionPointer Is Nothing Then
+            Me.InstanciateFunctionPointer = AddressOf DefaultInstanciate
+        Else
+            Me.InstanciateFunctionPointer = InstanciateFunctionPointer
+        End If
 
         For Each Fn As Source.Function In Functions
             AddFunction(Fn)
@@ -29,7 +43,7 @@
 
     End Sub
 
-    'Same functions ? according to generic types only
+    'Check if a list of types are the sames
     Private Function TypeListAreTheSame(A As IEnumerable(Of Lim.Type), B As IEnumerable(Of Lim.Type)) As Boolean
 
         'Count
@@ -40,6 +54,25 @@
         'Compare each elements
         For i As Integer = 0 To A.Count - 1
             If A(i) <> B(i) Then
+                Return False
+            End If
+        Next
+
+        'Everything is OK
+        Return True
+
+    End Function
+
+    Private Function TypeListAreTheSame(A As IEnumerable(Of Lim.Type), B As IEnumerable(Of Source.Type)) As Boolean
+
+        'Count
+        If A.Count <> B.Count Then
+            Return False
+        End If
+
+        'Compare each elements
+        For i As Integer = 0 To A.Count - 1
+            If A(i) <> B(i).GetTargetedType(Me.ContextForFunctionCompilation) Then
                 Return False
             End If
         Next
@@ -75,14 +108,25 @@
         'Search if the function was already compiled
         If CompiledFunctions.ContainsKey(Fn.Name) Then
             For Each AlreadyCompiledFunction As Lim.Function In CompiledFunctions(Fn.Name)
-                If TypeListAreTheSame(AlreadyCompiledFunction.GenericTypes, GenericTypes) Then
-                    Return 'A compiled functions have the same name / same generic types => don't compile the source function
+
+                'Generic types are the same
+                If Not TypeListAreTheSame(AlreadyCompiledFunction.GenericTypes, GenericTypes) Then
+                    Continue For
                 End If
+
+                'Arguments are the sames
+                If Not TypeListAreTheSame(AlreadyCompiledFunction.Arguments, Fn.ArgumentsTypes) Then
+                    Continue For
+                End If
+
+                'All match -> same function -> already compiled
+                Exit Sub
+
             Next
         End If
 
         'Create object
-        Dim CompiledFunction As New Lim.Function(Fn, GenericTypes, ContextForFunctionCompilation)
+        Dim CompiledFunction As Lim.Function = Me.InstanciateFunctionPointer(Fn, GenericTypes, ContextForFunctionCompilation)
 
         'Create hashset if not exist
         If Not CompiledFunctions.ContainsKey(Fn.Name) Then

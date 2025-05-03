@@ -51,7 +51,7 @@ Namespace Source
 
             ' Compile
             Dim Args As String = Source.CallNode.CompileArguments(Method.Arguments, Passedarguments, Scope, Location)
-            Return $"{Method.CompiledName}(&ctx, {Parent.Compile(Scope)}{Args})"
+            Return C.Function.WriteCall(Method.CompiledName, Parent.Compile(Scope), Args)
 
         End Function
 

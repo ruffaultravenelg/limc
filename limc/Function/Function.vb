@@ -31,11 +31,11 @@
         End Property
 
         'Fonction inner context
-        Private Context As Context
-        Private ReturnScope As ReturnableContext = Nothing
+        Protected Context As Context
+        Protected ReturnScope As ReturnableContext = Nothing
 
         'Function return type
-        Public ReadOnly Property ReturnType As Lim.Type
+        Public Overridable ReadOnly Property ReturnType As Lim.Type
             Get
 
                 'No returnable scope -> doesn't return a value
@@ -70,15 +70,15 @@
                 Context.GenericTypes.Add(Base.GenericTypes(i).Name, GenericTypes(i))
             Next
 
-            'Create arguments
-            For Each Argument As Source.KeyNameType In Me.Base.Arguments
-                Context.RegisterVariable(Argument.Name, Argument.Type.GetTargetedType(Context))
-            Next
-
         End Sub
 
         'Compile
         Public Sub Compile()
+
+            'Create arguments
+            For Each Argument As Source.KeyNameType In Me.Base.Arguments
+                Context.RegisterVariable(Argument.Name, Argument.Type.GetTargetedType(Context))
+            Next
 
             'Compile the function return something
             Dim ReturnableContext As Context = Me.Context
@@ -96,18 +96,23 @@
 
             'Compile body
             Dim Scope As New Scope(ReturnableContext)
+            BeforeBody(Scope)
             For Each Statement As StatementNode In Base.Body
                 Scope.WriteLine()
                 Statement.Compile(Scope)
             Next
+            AfterBody(Scope)
 
-            'Add this function to the final file
-            Dim Arguments As New List(Of String)
-            If Base.IsMethod Then
-                Arguments.Add($"{Base.ParentType.CompiledName} self")
-            End If
-            Arguments.AddRange(Context.LocalVariables.Values.Select(Function(Var As Lim.Variable) Var.Type.CompiledName & " " & Var.CompiledName))
-            C.Generator.AddFunction(New C.Function(CompiledName, Arguments, If(ReturnType Is Nothing, "void", ReturnType.CompiledName), Scope.Build()))
+            'Create C function for final comppilation
+            C.Generator.AddFunction(
+                New C.Function(
+                    CompiledName,
+                    GenerateArguments(),
+                    If(ReturnType Is Nothing, "void", ReturnType.CompiledName),
+                    Scope.Build(),
+                    ToString()
+                )
+            )
 
         End Sub
 
@@ -120,8 +125,26 @@
             If GenericTypes_STR.StartsWith(", ") Then
                 GenericTypes_STR = "<" & GenericTypes_STR.Substring(2) & ">"
             End If
-            Return Base.Name & GenericTypes_STR '& Source.KeyNameType.ListToString(Arguments)
+            Return Base.Name & GenericTypes_STR & Source.KeyNameType.ListToString(Base.Arguments)
+
         End Function
+
+        '///////////////////////////////
+        '//// INHERIT CUSTOMIZATION ////
+        '///////////////////////////////
+
+        'Generate the full list of arguments for function definition -> {"int arg1", "char* bob"}
+        Protected Overridable Function GenerateArguments() As IEnumerable(Of String)
+            Return Context.LocalVariables.Values.Select(Function(Var As Lim.Variable) Var.Type.CompiledName & " " & Var.CompiledName)
+        End Function
+
+        'Before the code body
+        Protected Overridable Sub BeforeBody(Scope As Scope)
+        End Sub
+
+        'Before the code body
+        Protected Overridable Sub AfterBody(Scope As Scope)
+        End Sub
 
     End Class
 

@@ -5,20 +5,22 @@
         'Properties
         Private Signature As String
         Private Body As IEnumerable(Of String)
+        Private Description As String
 
         'Contexted function count
         Private Shared Contexted As New List(Of String) From {"[Thread Start]"}
 
         'Constructor
-        Public Sub New(Signature As String, Body As IEnumerable(Of String))
+        Public Sub New(Signature As String, Body As IEnumerable(Of String), Optional Description As String = "")
             Me.Signature = Signature
             Me.Body = Body
+            Me.Description = Description
         End Sub
-        Public Sub New(Name As String, Arguments As IEnumerable(Of String), Returntype As String, Body As IEnumerable(Of String))
+        Public Sub New(Name As String, Arguments As IEnumerable(Of String), Returntype As String, Body As IEnumerable(Of String), Optional Description As String = "")
 
             'Create signature
             Signature = Returntype & " " & Name & "("
-            Signature &= CONTEXT_STRUCTURENAME & "* parent_" & CONTEXT_NAME
+            Signature &= CONTEXT_STRUCTURENAME & "* " & CONTEXT_PARENT
             For Each Arg As String In Arguments
                 Signature &= ", " & Arg
             Next
@@ -27,17 +29,24 @@
             'Create body
             Dim NewBody As New List(Of String)
             'NewBody.Add("")
-            NewBody.Add("INIT_" & CONTEXT_NAME.ToUpper() & "(parent_" & CONTEXT_NAME & ", " & Contexted.Count.ToString() & ");")
+            NewBody.Add("INIT_" & CONTEXT_NAME.ToUpper() & "(" & CONTEXT_PARENT & ", " & Contexted.Count.ToString() & ");")
             NewBody.AddRange(Body)
             Me.Body = NewBody
 
             'Add name to contexted
             Contexted.Add(Name)
 
+            'Set description
+            Me.Description = Description
+
         End Sub
 
         'Write signature
         Public Sub WriteSignature(Stream As IO.StreamWriter)
+            If Description.Length > 0 AndAlso ArgumentHandler.Comment_Sources Then
+                Stream.Write("/* " & Description & " */ ")
+            Else
+            End If
             Stream.WriteLine(Signature & ";")
         End Sub
 

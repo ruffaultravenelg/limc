@@ -29,6 +29,15 @@
             End If
         End Function
 
+        'Argument types
+        Public ReadOnly Iterator Property ArgumentsTypes As IEnumerable(Of Source.Type)
+            Get
+                For Each Arg As Source.KeyNameType In Arguments
+                    Yield Arg.Type
+                Next
+            End Get
+        End Property
+
         'Contains return
         Public ReadOnly Property ContainsReturnStatement As Boolean
             Get
@@ -40,22 +49,6 @@
                 Return False
             End Get
         End Property
-
-        'Is this a method (take a self argument)
-        Private _ParentType As Lim.Type = Nothing
-        Public ReadOnly Property IsMethod As Boolean
-            Get
-                Return _ParentType IsNot Nothing
-            End Get
-        End Property
-        Public ReadOnly Property ParentType As Lim.Type
-            Get
-                Return _ParentType
-            End Get
-        End Property
-        Public Sub DefineAsMethod(ParentType As Lim.Type)
-            _ParentType = ParentType
-        End Sub
 
     End Class
 

@@ -4,6 +4,7 @@
         'Context name
         Public Const CONTEXT_NAME As String = "ctx"
         Public Const CONTEXT_STRUCTURENAME As String = CONTEXT_NAME & "_t"
+        Public Const CONTEXT_PARENT As String = "parent_" & CONTEXT_NAME
 
         'Naming shema
         Public ReadOnly Namer As New CounterNamer()
@@ -170,24 +171,24 @@
             }))
 
             'Add panic function
-            AddFunction(New C.Function("void lim_panic(" & CONTEXT_STRUCTURENAME & "* ctx, const char* message)", {
+            AddFunction(New C.Function($"void lim_panic({CONTEXT_STRUCTURENAME}* {CONTEXT_NAME}, const char* message)", {
                 "",
                 "printf(""LIM RUNTIME ERROR: %s\n"", message);",
                 "printf(""stacktrace:\n"");",
-                "while (ctx){",
-                vbTab & "const char* funcname = get_function_name(ctx->func_id);",
+                $"while ({CONTEXT_NAME}){{",
+                vbTab & $"const char* funcname = get_function_name({CONTEXT_NAME}->func_id);",
                 vbTab & "printf("" > %s\n"", funcname);",
-                vbTab & "ctx = ctx->parent;",
+                vbTab & $"{CONTEXT_NAME} = {CONTEXT_NAME}->parent;",
                 "}",
                 "printf(""Program aborted.\n"");",
                 "exit(-1);"
             }))
 
             'Add allocator function
-            AddFunction(New C.Function("void* lim_alloc(" & CONTEXT_STRUCTURENAME & "* ctx, size_t size)", {
+            AddFunction(New C.Function($"void* lim_alloc({CONTEXT_STRUCTURENAME}* {CONTEXT_NAME}, size_t size)", {
                 "",
-                "void* addr = tgc_alloc(ctx->gc, size);",
-                "if (addr == NULL) lim_panic(ctx, ""Not enough memory"");",
+                $"void* addr = tgc_alloc({CONTEXT_NAME}->gc, size);",
+                $"if (addr == NULL) lim_panic({CONTEXT_NAME}, ""Not enough memory"");",
                 "return addr;"
             }))
 

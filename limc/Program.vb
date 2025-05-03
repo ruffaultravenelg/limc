@@ -48,6 +48,7 @@ Module Program
         Console.WriteLine("  -v, --version  Display version")
         Console.WriteLine("  -l, --libs     Change libs path to specified directory")
         Console.WriteLine("  -g, --gcc      Set gcc executable path")
+        Console.WriteLine("  -c, --comment  Add more comments to the C source file")
     End Sub
 
     'Display version

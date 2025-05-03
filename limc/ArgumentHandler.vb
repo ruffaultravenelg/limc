@@ -18,6 +18,9 @@
     'GCC Path
     Public Property GCC As String = "gcc"
 
+    'COMMENTS
+    Public Property Comment_Sources As Boolean = False
+
     'Shared load
     Public Sub LoadArgs(Args As IEnumerable(Of String))
 
@@ -61,6 +64,12 @@
                         Throw New SimpleException("Missing argument", "Flag """ & Arg & """ need an argument.")
                     End If
                     GCC = Args(i)
+                    Continue While
+                End If
+
+                'comment_source
+                If Arg = "-c" OrElse Arg = "--comment" Then
+                    Comment_Sources = True
                     Continue While
                 End If
 

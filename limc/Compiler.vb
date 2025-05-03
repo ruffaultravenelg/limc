@@ -30,8 +30,8 @@
             "",
             "tgc_t gc;",
             "tgc_start(&gc, &argc);",
-            C.Generator.CONTEXT_STRUCTURENAME & " ctx = {.parent = NULL, .gc = &gc, .func_id = 0};",
-            MainFunction.CompiledName & "(&ctx);",
+            $"{C.Generator.CONTEXT_STRUCTURENAME} {C.Generator.CONTEXT_NAME} = {{.parent = NULL, .gc = &gc, .func_id = 0}};",
+            $"{MainFunction.CompiledName}(&{C.Generator.CONTEXT_NAME});",
             "tgc_stop(&gc);",
             "return 0;"
         }))

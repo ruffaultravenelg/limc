@@ -6,9 +6,9 @@ Public Class MethodContext
     Public ReadOnly Property Functions As FunctionContainer
 
     ' Constructor
-    Public Sub New(Parent As Context, UncompiledFunctions As IEnumerable(Of Source.Function))
+    Public Sub New(Parent As Context, UncompiledFunctions As IEnumerable(Of Source.Function), Optional InstanciateFunction As FunctionContainer.InstanciateFunction = Nothing)
         MyBase.New(Parent)
-        Functions = New FunctionContainer(UncompiledFunctions, Me)
+        Functions = New FunctionContainer(UncompiledFunctions, Me, InstanciateFunction)
     End Sub
 
 End Class
