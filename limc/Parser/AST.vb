@@ -416,7 +416,7 @@
         End If
 
         'Create and return the object
-        Return New Source.PropertieDeclaration(LocationFrom(StartLocation), VariableName, Type, [Set], [Get])
+        Return New Source.PropertieDeclaration(LocationFrom(StartLocation), VariableName, Type, [Get], [Set])
 
     End Function
 

@@ -132,7 +132,7 @@
             Return $"{Variable} = {Value};"
         End Function
 
-        ' Compile inisialiation
+        ' Compile inisialiation -> ~ a call to new
         Public Function Constuct(PassedArguments As IEnumerable(Of ExpressionNode), Scope As Scope, Location As Location) As String
             If IsInlineProperties Then
 

@@ -1,6 +1,5 @@
 ﻿Namespace Source
 
-    'Kind of a factory
     Public Class PropertieDeclaration
         Inherits ConstructNode
         Implements IPropertieDefinition
