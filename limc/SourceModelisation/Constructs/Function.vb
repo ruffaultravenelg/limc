@@ -41,12 +41,7 @@
         'Contains return
         Public ReadOnly Property ContainsReturnStatement As Boolean
             Get
-                For Each Statement As StatementNode In Body
-                    If Statement.ContainsReturnStatement Then
-                        Return True
-                    End If
-                Next
-                Return False
+                Return StatementNode.ListContainsReturnStatement(Body)
             End Get
         End Property
 

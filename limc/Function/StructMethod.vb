@@ -1,5 +1,5 @@
 ﻿Namespace Lim
-    Public Class Method
+    Public Class StructMethod
         Inherits Lim.Function
 
         Private ParentStruct As Lim.StructType
@@ -12,7 +12,7 @@
         'Compile argument but add a "self" argument at first
         Protected Overrides Function GenerateArguments() As IEnumerable(Of String)
             Dim Arguments As New List(Of String)
-            Arguments.Add($"{ParentStruct.CompiledName} self") 'Add self
+            Arguments.Add($"{ParentStruct.CompiledName}* self") 'Add self
             Arguments.AddRange(Context.LocalVariables.Values.Select(Function(Var As Lim.Variable) Var.Type.CompiledName & " " & Var.CompiledName))
             Return Arguments
         End Function

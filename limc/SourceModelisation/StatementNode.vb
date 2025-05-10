@@ -12,4 +12,14 @@
     'Contains return statement
     Public MustOverride ReadOnly Property ContainsReturnStatement As Boolean
 
+    'Contains return
+    Public Shared Function ListContainsReturnStatement(Statements As IEnumerable(Of StatementNode)) As Boolean
+        For Each Statement As StatementNode In Statements
+            If Statement.ContainsReturnStatement Then
+                Return True
+            End If
+        Next
+        Return False
+    End Function
+
 End Class

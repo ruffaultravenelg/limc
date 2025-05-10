@@ -455,6 +455,9 @@
                 Case Token.TokenType.KEYWORD_FUNC
                     Construct = GetFunction(1, True)
 
+                Case Token.TokenType.KEYWORD_GET
+                    Construct = GetGetter()
+
                 Case Else
                     Throw New SyntaxException("A valid structure construct was expected here", Tokens.Current.Location)
 
@@ -464,6 +467,34 @@
 
         End While
         Return Constructs
+    End Function
+
+    ' Get getter
+    Private Function GetGetter() As Source.Getter
+
+        Dim StartLocation As Location = Tokens.Current.Location
+        Tokens.Next()
+
+        ' Get name
+        If Not Tokens.Current.Type = Token.TokenType.WORD Then
+            Throw New SyntaxException("A name was expected here", Tokens.Current.Location)
+        End If
+        Dim Name As String = Tokens.Current.Value
+        Tokens.Next()
+
+        ' Return type
+        Dim DefinedType As Source.Type = Nothing
+        If Tokens.Current.Type = Token.TokenType.SYNTAX_COLON Then
+            Tokens.Next()
+            DefinedType = GetAType()
+        End If
+
+        'Body
+        Dim Body As IEnumerable(Of StatementNode) = GetStatements(FUNCTION_STATEMENTS, 2)
+
+        'Create
+        Return New Source.Getter(LocationFrom(StartLocation), Name, DefinedType, Body)
+
     End Function
 
     'Get function

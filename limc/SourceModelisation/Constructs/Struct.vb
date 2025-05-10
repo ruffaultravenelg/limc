@@ -1,5 +1,4 @@
 ﻿Namespace Source
-
     Public Class Struct
         Inherits TypeConstruct
 
@@ -11,6 +10,7 @@
         Public Property Properties As IEnumerable(Of Source.PropertieDeclaration)
         Public Property Methods As IEnumerable(Of Source.Function)
         Public Property Constructors As IEnumerable(Of Source.Function)
+        Public Property Getters As IEnumerable(Of Source.Getter)
 
 
         'Inline properties definitions -> struct point(x:int, y:int)
@@ -44,6 +44,8 @@
                 Throw New SyntaxException("It's impossible to define properties both inline and in the structure body.", Properties(0).Location)
             End If
 
+            Getters = ConstructNode.GetConstructsOfType(Of Source.Getter)(Constructs)
+
         End Sub
 
         'To string
@@ -56,5 +58,4 @@
         End Function
 
     End Class
-
 End Namespace
