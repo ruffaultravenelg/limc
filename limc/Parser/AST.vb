@@ -458,6 +458,9 @@
                 Case Token.TokenType.KEYWORD_GET
                     Construct = GetGetter()
 
+                Case Token.TokenType.KEYWORD_SET
+                    Construct = GetSetter()
+
                 Case Else
                     Throw New SyntaxException("A valid structure construct was expected here", Tokens.Current.Location)
 
@@ -494,6 +497,47 @@
 
         'Create
         Return New Source.Getter(LocationFrom(StartLocation), Name, DefinedType, Body)
+
+    End Function
+
+    ' Set getter
+    Private Function GetSetter() As Source.Setter
+
+        Dim StartLocation As Location = Tokens.Current.Location
+        Tokens.Next()
+
+        ' Get name
+        If Not Tokens.Current.Type = Token.TokenType.WORD Then
+            Throw New SyntaxException("A name was expected here", Tokens.Current.Location)
+        End If
+        Dim Name As String = Tokens.Current.Value
+        Tokens.Next()
+
+        'Variable name
+        If Not Tokens.Current.Type = Token.TokenType.SYNTAX_LEFT_PARENTHESIS Then
+            Throw New SyntaxException("A setter expects an argument representing the new value. Therefore the ""("" character was awaited here.", Tokens.Current.Location)
+        End If
+        Tokens.Next()
+        If Not Tokens.Current.Type = Token.TokenType.WORD Then
+            Throw New SyntaxException("The parameter name was expected here.", Tokens.Current.Location)
+        End If
+        Dim ParameterName As String = Tokens.Current.Value
+        Tokens.Next()
+        If Not Tokens.Current.Type = Token.TokenType.SYNTAX_COLON Then
+            Throw New SyntaxException("The parameter type is expected here. It must be preceded by the "":"" character.", Tokens.Current.Location)
+        End If
+        Tokens.Next()
+        Dim ParamterType As Source.Type = GetAType()
+        If Not Tokens.Current.Type = Token.TokenType.SYNTAX_RIGHT_PARENTHESIS Then
+            Throw New SyntaxException("A setter takes only one parameter, the "")"" character was therefore expected here.", Tokens.Current.Location)
+        End If
+        Tokens.Next()
+
+        'Body
+        Dim Body As IEnumerable(Of StatementNode) = GetStatements(FUNCTION_STATEMENTS, 2)
+
+        'Create
+        Return New Source.Setter(LocationFrom(StartLocation), Name, ParameterName, ParamterType, Body)
 
     End Function
 

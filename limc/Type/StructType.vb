@@ -84,6 +84,9 @@
             For Each Getter As Source.Getter In StructSource.Getters
                 DefineGetter(Getter)
             Next
+            For Each Setter As Source.Setter In StructSource.Setters
+                DefineSetter(Setter)
+            Next
 
             'Compile struct
             C.Generator.AddStructure(New C.Structure(CompiledName, CompiledCFields))
@@ -117,7 +120,6 @@
                 Statement.Compile(Scope)
             Next
 
-
             'Get return type
             Dim GetterType As Lim.Type
             Try
@@ -140,6 +142,43 @@
 
             'Register
             Getters.RegisterGetter(Getter.Name, New FunctionGetter(GetterType, CompiledFunctionName))
+
+        End Sub
+
+
+        'Compile a setter
+        Private Sub DefineSetter(Setter As Source.Setter)
+
+            'Same name errors
+            If Me.Setters.HasSetter(Setter.Name) Then
+                Throw New ElementAlreadyExistException(Setter.Location, Setter.Name, ElementAlreadyExistException.ELEMENT_SETTER)
+            End If
+
+            'Compile argument
+            Dim SetterType As Lim.Type = Setter.ValueType.GetTargetedType(Me.GenericTypesContext)
+            Dim Scope As New Scope(Me.Context)
+            Dim NewValueVariable As Lim.Variable = Scope.RegisterVariable(Setter.ValueVariableName, SetterType)
+
+            'Compile body
+            For Each Statement As StatementNode In Setter.Body
+                Scope.WriteLine()
+                Statement.Compile(Scope)
+            Next
+
+            'Create C function for final comppilation
+            Dim CompiledFunctionName As String = C.Generator.Namer.GenerateSetterName()
+            C.Generator.AddFunction(
+                New C.Function(
+                    CompiledFunctionName,
+                    {$"{Me.CompiledName} self, {NewValueVariable.Type.CompiledName} {NewValueVariable.CompiledName}"},
+                    "void",
+                    Scope.Build(),
+                    $"SET {ToString()}.{Setter.Name}"
+                )
+            )
+
+            'Register
+            Setters.RegisterSetter(Setter.Name, New FunctionSetter(SetterType, CompiledFunctionName))
 
         End Sub
 

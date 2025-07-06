@@ -11,6 +11,7 @@
         Public Property Methods As IEnumerable(Of Source.Function)
         Public Property Constructors As IEnumerable(Of Source.Function)
         Public Property Getters As IEnumerable(Of Source.Getter)
+        Public Property Setters As IEnumerable(Of Source.Setter)
 
 
         'Inline properties definitions -> struct point(x:int, y:int)
@@ -45,6 +46,7 @@
             End If
 
             Getters = ConstructNode.GetConstructsOfType(Of Source.Getter)(Constructs)
+            Setters = ConstructNode.GetConstructsOfType(Of Source.Setter)(Constructs)
 
         End Sub
 

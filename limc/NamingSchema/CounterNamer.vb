@@ -29,6 +29,13 @@
         Return "getter" & GetterCount
     End Function
 
+    'Setter
+    Private SetterCount As Integer = 0
+    Public Overrides Function GenerateSetterName() As String
+        SetterCount += 1
+        Return "setter" & SetterCount
+    End Function
+
     'Field
     Private FieldCount As Integer = 0
     Public Overrides Function GenerateFieldName() As String
