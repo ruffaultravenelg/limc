@@ -756,7 +756,7 @@
 
             'Append or error
             If Statement Is Nothing Then
-                Throw New SyntaxException("Unexpected token, expected a statement", StartLocation)
+                Throw New SyntaxException("Unexpected token, expected a statement", LocationFrom(StartLocation))
             Else
                 Result.Add(Statement)
             End If
@@ -1034,7 +1034,6 @@
 
             'Return
             Return New Source.GenericElementNode(LocationFrom(FirstToken.Location), File, Value, PassedGenericTypes)
-
 
         End If
 

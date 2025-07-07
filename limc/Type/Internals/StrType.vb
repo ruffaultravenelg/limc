@@ -21,7 +21,7 @@ Public Class StrType
     Public Overrides Sub Compile()
 
         'Add "len" getter
-        Me.Getters.RegisterGetter("len", New HardcodedGetterInvoker(Me, Lim.Type.Int, {"if (self == NULL) return 0;", "return strlen(self);"}))
+        Me.RegisterGetter(New Lim.HardcodedGetter("len", Lim.Type.Int, Me, {"if (self == NULL) return 0;", "return strlen(self);"}))
 
     End Sub
 

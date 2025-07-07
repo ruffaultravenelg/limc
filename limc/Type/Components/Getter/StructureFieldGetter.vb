@@ -1,18 +1,22 @@
-﻿Namespace Lim
+﻿
+Namespace Lim
 
-    Public Class StructureFieldGetterInvoker
+    Public Class StructureFieldGetter
+        Implements Lim.IGetter
 
-        Inherits Lim.GetterInvoker
+        Public ReadOnly Property Name As String Implements IGetter.Name
+        Public ReadOnly Property Type As Type Implements IGetter.Type
 
-        Private StructureField_CompiledName As String
+        Private Field_CompiledName As String
 
-        Public Sub New(GetterReturnType As Lim.Type, FieldCompiledName As String)
-            MyBase.New(GetterReturnType)
-            Me.StructureField_CompiledName = FieldCompiledName
+        Public Sub New(Name As String, Type As Lim.Type, Field_CompiledName As String)
+            Me.Name = Name
+            Me.Type = Type
+            Me.Field_CompiledName = Field_CompiledName
         End Sub
 
-        Public Overrides Function CompileCall(Obj As String) As String
-            Return $"{Obj}.{StructureField_CompiledName}"
+        Public Function CompileCall(Scope As Scope, ParentObject As ExpressionNode) As String Implements IGetter.CompileCall
+            Return $"{ParentObject.Compile(Scope)}.{Field_CompiledName}"
         End Function
     End Class
 

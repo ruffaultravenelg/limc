@@ -1,5 +1,4 @@
-﻿Imports System.Threading
-Imports limc.Lim
+﻿Imports limc.Lim
 
 Namespace Source
     Public Class ChildNode
@@ -24,12 +23,12 @@ Namespace Source
             Dim ParentType As Lim.Type = Parent.GetReturnType(Context)
 
             'No getter
-            If Not ParentType.Getters.HasGetter(Propertie) Then
+            If ParentType.Getter(Propertie) Is Nothing Then
                 Throw New SyntaxException($"The ""{ParentType}"" type has no getter named ""{Propertie}"".", Location)
             End If
 
             'Return getter type
-            Return ParentType.Getters.GetGetterType(Propertie)
+            Return ParentType.Getter(Propertie).Type
 
         End Function
 
@@ -40,12 +39,12 @@ Namespace Source
             Dim ParentType As Lim.Type = Parent.GetReturnType(Scope)
 
             'No getter
-            If Not ParentType.Getters.HasGetter(Propertie) Then
+            If ParentType.Getter(Propertie) Is Nothing Then
                 Throw New SyntaxException($"The ""{ParentType}"" type has no getter named ""{Propertie}"".", Location)
             End If
 
-            'Return getter type
-            Return ParentType.Getters.CallGetter(Propertie, Parent.Compile(Scope))
+            'Return getter call
+            Return ParentType.Getter(Propertie).CompileCall(Scope, Parent)
 
         End Function
 

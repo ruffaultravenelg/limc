@@ -158,7 +158,22 @@
         '---------------
         '--- GETTERS ---
         '---------------
-        Public ReadOnly Property Getters As New GetterComponent()
+        Private Getters As New Dictionary(Of String, Lim.IGetter)
+        Public ReadOnly Property Getter(Name As String) As Lim.IGetter
+            Get
+                If Getters.ContainsKey(Name) Then
+                    Return Getters(Name)
+                End If
+                Return Nothing
+            End Get
+        End Property
+        Protected Sub RegisterGetter(Getter As Lim.IGetter)
+            If (Getters.ContainsKey(Getter.Name)) Then
+                Throw New ElementAlreadyExistException(Me.Base.Location, Getter.Name, ElementAlreadyExistException.ELEMENT_GETTER)
+            End If
+            Getters.Add(Getter.Name, Getter)
+        End Sub
+
 
         '---------------
         '--- SETTERS ---

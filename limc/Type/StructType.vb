@@ -82,7 +82,7 @@
 
             'Compile getters (TODO: lazy compile for getters & setters)
             For Each Getter As Source.Getter In StructSource.Getters
-                DefineGetter(Getter)
+                RegisterGetter(New StructureHandwritenGetter(Getter, CompiledName, Context))
             Next
             For Each Setter As Source.Setter In StructSource.Setters
                 DefineSetter(Setter)
@@ -92,59 +92,6 @@
             C.Generator.AddStructure(New C.Structure(CompiledName, CompiledCFields))
 
         End Sub
-
-        'Compile a getter
-        Private Sub DefineGetter(Getter As Source.Getter)
-
-            'Same name errors
-            If Me.Getters.HasGetter(Getter.Name) Then
-                Throw New ElementAlreadyExistException(Getter.Location, Getter.Name, ElementAlreadyExistException.ELEMENT_GETTER)
-            End If
-
-            'Compile the return type
-            If Not StatementNode.ListContainsReturnStatement(Getter.Body) Then
-                Throw New SyntaxException("A getter must return a value. However, this getter does not contain a ""return"" statement.", Getter.Location)
-            End If
-
-            Dim ReturnableContext As ReturnableContext
-            If Getter.DefinedType IsNot Nothing Then
-                ReturnableContext = New ReturnableContext(Context, Getter.DefinedType.GetTargetedType(Context))
-            Else
-                ReturnableContext = New ReturnableContext(Context) 'say that there is a type but we don't now it for now
-            End If
-
-            'Compile body
-            Dim Scope As New Scope(ReturnableContext)
-            For Each Statement As StatementNode In Getter.Body
-                Scope.WriteLine()
-                Statement.Compile(Scope)
-            Next
-
-            'Get return type
-            Dim GetterType As Lim.Type
-            Try
-                GetterType = ReturnableContext.ConstructReturnType
-            Catch ex As ReturnTypeNotKnownYet
-                Throw New SyntaxException("The return type cannot be inferred from the getter, therefore it must be explicitly stated in the getter definition.", Getter.Location)
-            End Try
-
-            'Create C function for final comppilation
-            Dim CompiledFunctionName As String = C.Generator.Namer.GenerateGetterName()
-            C.Generator.AddFunction(
-                New C.Function(
-                    CompiledFunctionName,
-                    {$"{Me.CompiledName}* self"},
-                    GetterType.CompiledName,
-                    Scope.Build(),
-                    $"GET {ToString()}.{Getter.Name}"
-                )
-            )
-
-            'Register
-            Getters.RegisterGetter(Getter.Name, New StructFunctionGetter(GetterType, CompiledFunctionName))
-
-        End Sub
-
 
         'Compile a setter
         Private Sub DefineSetter(Setter As Source.Setter)
@@ -195,10 +142,7 @@
 
                 'Register a new getter & setter
                 If Field.GET Then
-                    If Me.Getters.HasGetter(Field.Name) Then
-                        Throw New ElementAlreadyExistException(DirectCast(Field, Node).Location, Field.Name, ElementAlreadyExistException.ELEMENT_GETTER)
-                    End If
-                    Me.Getters.RegisterGetter(Field.Name, New Lim.StructureFieldGetterInvoker(FieldType, FieldCompiledName))
+                    Me.RegisterGetter(New StructureFieldGetter(Field.Name, FieldType, FieldCompiledName))
                 End If
                 If Field.SET Then
                     If Me.Setters.HasSetter(Field.Name) Then
