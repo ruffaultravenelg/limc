@@ -21,19 +21,19 @@
             Dim TargetType As Lim.Type = Target.Parent.GetReturnType(Scope)
 
             'Has setter ?
-            If Not TargetType.Setters.HasSetter(Target.Propertie) Then
+            Dim Setter As Lim.ISetter = TargetType.Setter(Target.Propertie)
+            If Setter Is Nothing Then
                 Throw New SyntaxException($"the ""{TargetType.ToString()}"" type does not have a setter named ""{Target.Propertie}"".", Target.Location)
             End If
 
             'Test types
             Dim NewValueType As Lim.Type = NewValue.GetReturnType(Scope)
-            Dim ExpectedType As Lim.Type = TargetType.Setters.GetSetterType(Target.Propertie)
-            If Not ExpectedType = NewValueType Then
-                Throw New TypeException($"the ""{ExpectedType.ToString()}"" type was expected instead of a ""{NewValueType.ToString()}"".", NewValue.Location)
+            If Not Setter.Type = NewValueType Then
+                Throw New TypeException($"the ""{Setter.Type.ToString()}"" type was expected instead of a ""{NewValueType.ToString()}"".", NewValue.Location)
             End If
 
             'Compile
-            TargetType.Setters.CompileAssignation(Target.Propertie, Scope, Target.Parent.Compile(Scope), NewValue.Compile(Scope))
+            Setter.CompileCall(Scope, Target.Parent, NewValue)
 
         End Sub
 

@@ -82,50 +82,14 @@
 
             'Compile getters (TODO: lazy compile for getters & setters)
             For Each Getter As Source.Getter In StructSource.Getters
-                RegisterGetter(New StructureHandwritenGetter(Getter, CompiledName, Context))
+                RegisterGetter(New StructureHandwritenGetter(Getter, CompiledName, Context, ToString()))
             Next
             For Each Setter As Source.Setter In StructSource.Setters
-                DefineSetter(Setter)
+                RegisterSetter(New StructureHandwritenSetter(Setter, CompiledName, Context, ToString()))
             Next
 
             'Compile struct
             C.Generator.AddStructure(New C.Structure(CompiledName, CompiledCFields))
-
-        End Sub
-
-        'Compile a setter
-        Private Sub DefineSetter(Setter As Source.Setter)
-
-            'Same name errors
-            If Me.Setters.HasSetter(Setter.Name) Then
-                Throw New ElementAlreadyExistException(Setter.Location, Setter.Name, ElementAlreadyExistException.ELEMENT_SETTER)
-            End If
-
-            'Compile argument
-            Dim SetterType As Lim.Type = Setter.ValueType.GetTargetedType(Me.GenericTypesContext)
-            Dim Scope As New Scope(Me.Context)
-            Dim NewValueVariable As Lim.Variable = Scope.RegisterVariable(Setter.ValueVariableName, SetterType)
-
-            'Compile body
-            For Each Statement As StatementNode In Setter.Body
-                Scope.WriteLine()
-                Statement.Compile(Scope)
-            Next
-
-            'Create C function for final comppilation
-            Dim CompiledFunctionName As String = C.Generator.Namer.GenerateSetterName()
-            C.Generator.AddFunction(
-                New C.Function(
-                    CompiledFunctionName,
-                    {$"{Me.CompiledName}* self, {NewValueVariable.Type.CompiledName} {NewValueVariable.CompiledName}"},
-                    "void",
-                    Scope.Build(),
-                    $"SET {ToString()}.{Setter.Name}"
-                )
-            )
-
-            'Register
-            Setters.RegisterSetter(Setter.Name, New FunctionSetter(SetterType, CompiledFunctionName))
 
         End Sub
 
@@ -142,13 +106,10 @@
 
                 'Register a new getter & setter
                 If Field.GET Then
-                    Me.RegisterGetter(New StructureFieldGetter(Field.Name, FieldType, FieldCompiledName))
+                    RegisterGetter(New StructureFieldGetter(Field.Name, FieldType, FieldCompiledName))
                 End If
                 If Field.SET Then
-                    If Me.Setters.HasSetter(Field.Name) Then
-                        Throw New ElementAlreadyExistException(DirectCast(Field, Node).Location, Field.Name, ElementAlreadyExistException.ELEMENT_SETTER)
-                    End If
-                    Me.Setters.RegisterSetter(Field.Name, New Lim.StructureFieldSetterInvoker(FieldType, FieldCompiledName))
+                    RegisterSetter(New StructureFieldSetter(Field.Name, FieldType, FieldCompiledName))
                 End If
 
                 'Create a new variable for internal methods

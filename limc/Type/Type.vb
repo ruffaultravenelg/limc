@@ -174,11 +174,25 @@
             Getters.Add(Getter.Name, Getter)
         End Sub
 
-
         '---------------
         '--- SETTERS ---
         '---------------
-        Public ReadOnly Property Setters As New SetterComponent()
+        Private Setters As New Dictionary(Of String, Lim.ISetter)
+        Public ReadOnly Property Setter(Name As String) As Lim.ISetter
+            Get
+                If (Setters.ContainsKey(Name)) Then
+                    Return Setters(Name)
+                End If
+                Return Nothing
+            End Get
+        End Property
+        Protected Sub RegisterSetter(Setter As Lim.ISetter)
+            If (Setters.ContainsKey(Setter.Name)) Then
+                Throw New ElementAlreadyExistException(Me.Base.Location, Setter.Name, ElementAlreadyExistException.ELEMENT_SETTER)
+            End If
+            Setters.Add(Setter.Name, Setter)
+        End Sub
+
 
     End Class
 

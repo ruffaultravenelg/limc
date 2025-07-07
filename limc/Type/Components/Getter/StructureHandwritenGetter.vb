@@ -21,8 +21,9 @@ Public Class StructureHandwritenGetter
     Private CompiledFunctionReturnType As Lim.Type = Nothing
     Private ParentStructCompiledName As String
     Private ParentStructContext As Context
+    Private ParentStructToString As String
 
-    Public Sub New(Getter As Source.Getter, ParentStructCompiledName As String, ParentStructContext As Context)
+    Public Sub New(Getter As Source.Getter, ParentStructCompiledName As String, ParentStructContext As Context, ParentStructToString As String)
 
         'Skill issue test
         If Not StatementNode.ListContainsReturnStatement(Getter.Body) Then
@@ -33,6 +34,7 @@ Public Class StructureHandwritenGetter
         Me.Getter = Getter
         Me.ParentStructCompiledName = ParentStructCompiledName
         Me.ParentStructContext = ParentStructContext
+        Me.ParentStructToString = ParentStructToString
 
     End Sub
 
@@ -73,7 +75,7 @@ Public Class StructureHandwritenGetter
                 {$"{ParentStructCompiledName}* self"},
                 CompiledFunctionReturnType.CompiledName,
                 Scope.Build(),
-                $"GET {ToString()}.{Getter.Name}"
+                $"GET {ParentStructToString}.{Getter.Name}"
             )
         )
 
