@@ -1,4 +1,5 @@
-﻿Imports limc.Lim
+﻿Imports System.Threading
+Imports limc.Lim
 
 Namespace Source
     Public Class ChildNode
@@ -56,21 +57,20 @@ Namespace Source
         Private Function CompileProcedureCall(Scope As Scope, Passedarguments As IEnumerable(Of ExpressionNode)) As String Implements IProcedureDirectAccess.CompileProcedureCall
 
             ' Get arguments types
-            Dim ArgumentTypes As IEnumerable(Of Lim.Type) = Passedarguments.Select(Function(Expr As ExpressionNode) Expr.GetReturnType(Scope))
+            Dim ArgumentTypes As IEnumerable(Of Lim.Type) = ExpressionNode.GetTypesOfExpressions(Passedarguments, Scope)
 
             ' Get method
-            Dim Method As Lim.Function = GetMethod(Scope, ArgumentTypes)
+            Dim Method As Lim.Method = GetMethod(Scope, ArgumentTypes)
             If Method Is Nothing Then
                 Return Nothing
             End If
 
-            ' Compile
-            Dim Args As String = Source.CallNode.CompileArguments(Method.Arguments, Passedarguments, Scope, Location)
-            Return C.Function.WriteCall(Method.CompiledName, Parent.Compile(Scope), Args)
+            'Return compiled call
+            Return Method.CompileMethodCall(Scope, Parent, Passedarguments)
 
         End Function
 
-        Private Function GetMethod(Context As Context, PassedArguments As IEnumerable(Of Lim.Type)) As Lim.Function
+        Private Function GetMethod(Context As Context, PassedArguments As IEnumerable(Of Lim.Type)) As Lim.Method
 
             ' Get parent type [HERE].method
             Dim ParentType As Lim.Type = Parent.GetReturnType(Context)
@@ -94,6 +94,11 @@ Namespace Source
             ' Check if method is exported
             If Not Method.Base.Exported Then
                 Return Nothing
+            End If
+
+            ' Check if it is a method
+            If TypeOf Method IsNot Lim.Method Then
+                Throw New NotImplementedException()
             End If
 
             'Return method  

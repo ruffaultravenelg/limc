@@ -87,6 +87,11 @@ Public Class Context
 
     End Function
 
+    'Register a temp variable -> returns the temp variable compiledname
+    Public Function GetTempVariable() As String
+        Return C.Namer.GenerateVariableName()
+    End Function
+
     'Get specific scope
     Public Function GetScope(Of T As Context)() As T
 

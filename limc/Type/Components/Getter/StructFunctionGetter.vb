@@ -1,6 +1,6 @@
 ﻿Namespace Lim
 
-    Public Class FunctionGetter
+    Public Class StructFunctionGetter
 
         Inherits Lim.GetterInvoker
 

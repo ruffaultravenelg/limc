@@ -8,6 +8,13 @@
         Return "var" & VariableCount
     End Function
 
+    'Temp var
+    Private TempVarCount As Integer = 0
+    Public Overrides Function GenerateTempName() As String
+        TempVarCount += 1
+        Return "tmp" & TempVarCount
+    End Function
+
     'Function
     Private FunctionCount As Integer = 0
     Public Overrides Function GenerateFunctionName() As String

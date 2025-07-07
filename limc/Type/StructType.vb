@@ -133,7 +133,7 @@
             C.Generator.AddFunction(
                 New C.Function(
                     CompiledFunctionName,
-                    {$"{Me.CompiledName} self"},
+                    {$"{Me.CompiledName}* self"},
                     GetterType.CompiledName,
                     Scope.Build(),
                     $"GET {ToString()}.{Getter.Name}"
@@ -141,7 +141,7 @@
             )
 
             'Register
-            Getters.RegisterGetter(Getter.Name, New FunctionGetter(GetterType, CompiledFunctionName))
+            Getters.RegisterGetter(Getter.Name, New StructFunctionGetter(GetterType, CompiledFunctionName))
 
         End Sub
 
@@ -170,7 +170,7 @@
             C.Generator.AddFunction(
                 New C.Function(
                     CompiledFunctionName,
-                    {$"{Me.CompiledName} self, {NewValueVariable.Type.CompiledName} {NewValueVariable.CompiledName}"},
+                    {$"{Me.CompiledName}* self, {NewValueVariable.Type.CompiledName} {NewValueVariable.CompiledName}"},
                     "void",
                     Scope.Build(),
                     $"SET {ToString()}.{Setter.Name}"
@@ -208,7 +208,7 @@
                 End If
 
                 'Create a new variable for internal methods
-                Context.RegisterVariable(Field.Name, $"self.{FieldCompiledName}", FieldType)
+                Context.RegisterVariable(Field.Name, $"self->{FieldCompiledName}", FieldType)
 
                 'Create C structure field
                 CompiledCFields.Add($"{FieldType.CompiledName} {FieldCompiledName}")

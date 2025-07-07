@@ -1,8 +1,8 @@
 ﻿Namespace Lim
     Public Class StructMethod
-        Inherits Lim.Function
+        Inherits Lim.Method
 
-        Private ParentStruct As Lim.StructType
+        Public ReadOnly Property ParentStruct As Lim.StructType
 
         Public Sub New(Base As Source.Function, GenericTypes As IEnumerable(Of Type), StructContext As Context, ParentStruct As StructType)
             MyBase.New(Base, {}, StructContext)
@@ -15,6 +15,12 @@
             Arguments.Add($"{ParentStruct.CompiledName}* self") 'Add self
             Arguments.AddRange(Context.LocalVariables.Values.Select(Function(Var As Lim.Variable) Var.Type.CompiledName & " " & Var.CompiledName))
             Return Arguments
+        End Function
+
+        'Compile a call
+        Protected Overrides Function CompileObjectForCall(Scope As Scope, Obj As ExpressionNode) As String
+            Dim ObjectReference As String = Obj.Compile(Scope)
+            Return C.Utils.ResolvePointerOfStaticObject(Scope, ObjectReference, ParentStruct.CompiledName)
         End Function
 
         Public Overrides Function ToString() As String
