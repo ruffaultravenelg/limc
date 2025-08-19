@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "limc": {
+      "commandName": "Project",
+      "workingDirectory": "../debug"
+    }
+  }
+}
