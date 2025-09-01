@@ -1,0 +1,247 @@
+﻿Imports System.IO
+
+Public Module Tokenizer
+
+    Private Const DIGITS As String = "1234567890"
+    Private Const DIGITS_WITH_POINT As String = DIGITS & "."
+    Private Const ALPHABET As String = "azertyuiopmlkjhgfdsqwxcvbn"
+    Private ReadOnly VALID_TEXT_CHARS As String = ALPHABET & ALPHABET.ToUpper() & "_"
+
+    Private Source As SourceFile
+    Private Results As List(Of Token)
+    Private LineNumber As Integer = 0
+
+    Public Function TokenizeFile(Source As SourceFile) As IEnumerable(Of Token)
+        Tokenizer.Source = Source
+        Results = New List(Of Token)
+        LineNumber = 0
+        Using Reader As New StreamReader(Source.Filepath)
+            Do Until Reader.EndOfStream
+                Try
+                    TokenizeLine(Reader.ReadLine())
+                Catch ex As IndexOutOfRangeException
+                    Throw New LocatedError("Line ended too soon", "A token wasn't finished at the end of the line", New Location(Source, LineNumber, Line.Length - 1, Line.Length))
+                End Try
+                LineNumber += 1
+            Loop
+        End Using
+        SanitazeResults()
+        Return Results
+    End Function
+
+
+    'Sanitaze results
+    Public Sub SanitazeResults()
+
+        'Add a newline at the end, to help for the ATS parser
+        Results.Add(New Token(TokenType.LINESTART, New Location(Source, LineNumber - 1, 0, 0), 0))
+
+        'Remove unused newline (multiple newline folowings each others)
+        Dim LastTokenWasANewLine As Boolean = True
+        Dim Index As Integer = 1
+        While Index < Results.Count
+
+            If Results(Index).Type = TokenType.LINESTART Then
+                If LastTokenWasANewLine Then
+                    Results.RemoveAt(Index - 1)
+                Else
+                    Index += 1
+                End If
+                LastTokenWasANewLine = True
+            Else
+                Index += 1
+                LastTokenWasANewLine = False
+            End If
+
+        End While
+
+        'Remove newline after comma
+        Dim LastTokenWasAComma As Boolean = False
+        Index = 0
+        While Index < Results.Count
+
+            If LastTokenWasAComma AndAlso Results(Index).Type = TokenType.LINESTART Then
+                Results.RemoveAt(Index)
+            Else
+                LastTokenWasAComma = Results(Index).Type = TokenType.SYMBOL_COMMA
+                Index += 1
+            End If
+
+        End While
+
+    End Sub
+
+
+    ' Utils for line tokenizer
+    Private Col As Integer
+    Private Line As String
+    Private ReadOnly Property CurrentChar As Char
+        Get
+            Return If(Col < Line.Length, Line(Col), Nothing)
+        End Get
+    End Property
+
+    Private Sub NextChar(Optional Count As Integer = 1)
+        Col += Count
+    End Sub
+
+    Private StartCol As Integer
+    Private Sub SaveCol()
+        StartCol = Col
+    End Sub
+    Private Function LocationFromSave() As Location
+        If Col = StartCol Then
+            Return New Location(Source, LineNumber, StartCol, Col + 1)
+        Else
+            Return New Location(Source, LineNumber, StartCol, Col)
+        End If
+    End Function
+    Private Function LocationFromChar() As Location
+        Return New Location(Source, LineNumber, Col, Col + 1)
+    End Function
+
+    Private Sub AddToken(Type As TokenType, Location As Location)
+        Results.Add(New Token(Type, Location))
+    End Sub
+    Private Sub AddToken(Type As TokenType, Value As Object, Location As Location)
+        Results.Add(New Token(Type, Location, Value))
+    End Sub
+
+    Private Sub TokenizeLine(Line As String)
+
+        'Skip empty and comment lines
+        Dim StrippedLine As String = Line.Trim()
+        If StrippedLine = "" OrElse StrippedLine.StartsWith("//") Then
+            Exit Sub
+        End If
+
+        'Prepare data
+        Col = 0
+        Tokenizer.Line = Line
+
+        'Get LineStart token
+        SaveCol()
+        Dim Indentation As Integer = 0
+        While CurrentChar = vbTab
+            Indentation += 1
+            NextChar()
+        End While
+        Results.Add(New Token(TokenType.LINESTART, LocationFromSave(), Indentation))
+
+        'Loop trought chars to create tokens
+        While Not CurrentChar = Nothing
+
+            'At this point CurrentToken as not been analysed
+
+            'Skiped caracters
+            If CurrentChar = " "c OrElse CurrentChar = vbTab Then
+                NextChar()
+                Continue While
+            End If
+
+            'Number tokens (int, float)
+            If DIGITS.Contains(CurrentChar) Then
+
+                SaveCol()
+                Dim Number As String = ""
+                Dim HasPoint As Boolean = False
+                While DIGITS_WITH_POINT.Contains(CurrentChar)
+                    Number &= CurrentChar
+                    If CurrentChar = "."c Then
+                        If HasPoint Then
+                            Throw New LocatedError("Number with multiple points", "This number already contains a point.", LocationFromChar())
+                        Else
+                            HasPoint = True
+                        End If
+                    End If
+                    NextChar()
+                End While
+
+                Try
+                    If HasPoint Then
+                        AddToken(TokenType.VAL_FLOAT, Convert.ToDouble(Number.Replace(".", ",")), LocationFromSave())
+                    Else
+                        AddToken(TokenType.VAL_INT, Convert.ToInt32(Number), LocationFromSave())
+                    End If
+                Catch ex As FormatException
+                    Throw New LocatedError("Invalid number", $"The number ""{Number}"" is not a valid one.", LocationFromSave())
+                End Try
+
+                Continue While
+
+            End If
+
+            'Text & keywords tokens
+            If VALID_TEXT_CHARS.Contains(CurrentChar) Then
+
+                SaveCol()
+                Dim Text As String = ""
+                While VALID_TEXT_CHARS.Contains(CurrentChar)
+                    Text &= CurrentChar
+                    NextChar()
+                End While
+
+                Dim Loc As Location = LocationFromSave()
+
+                Select Case Text.ToLower()
+
+                    Case "func"
+                        AddToken(TokenType.KEYWORD_FUNC, Loc)
+
+                    Case Else
+                        AddToken(TokenType.TEXT, Text, Loc)
+
+                End Select
+
+                Continue While
+
+
+            End If
+
+            'Final check: characters tokens
+            Select Case CurrentChar
+
+                Case "+"c
+                    AddToken(TokenType.SYMBOL_PLUS, LocationFromChar())
+                Case "-"c
+                    AddToken(TokenType.SYMBOL_MINUS, LocationFromChar())
+                Case "*"c
+                    AddToken(TokenType.SYMBOL_MULTIPLICATE, LocationFromChar())
+                Case "/"c
+                    AddToken(TokenType.SYMBOL_DIVIDE, LocationFromChar())
+                Case "%"c
+                    AddToken(TokenType.SYMBOL_MODULO, LocationFromChar())
+                Case "."c
+                    AddToken(TokenType.SYMBOL_POINT, LocationFromChar())
+                Case ","c
+                    AddToken(TokenType.SYMBOL_COMMA, LocationFromChar())
+                Case "<"c
+                    AddToken(TokenType.SYMBOL_LESSTHAN, LocationFromChar())
+                Case ">"c
+                    AddToken(TokenType.SYMBOL_GREATERTHAN, LocationFromChar())
+                Case "["c
+                    AddToken(TokenType.SYMBOL_LEFT_BRACKETS, LocationFromChar())
+                Case "]"c
+                    AddToken(TokenType.SYMBOL_RIGHT_BRACKETS, LocationFromChar())
+                Case "("c
+                    AddToken(TokenType.SYMBOL_LEFT_PARENTHESIS, LocationFromChar())
+                Case ")"c
+                    AddToken(TokenType.SYMBOL_RIGHT_PARENTHESIS, LocationFromChar())
+                Case ":"c
+                    AddToken(TokenType.SYMBOL_COLON, LocationFromChar())
+                Case "="c
+                    AddToken(TokenType.SYMBOL_EQUAL, LocationFromChar())
+                Case Else
+                    'Final error: unexpected character
+                    Throw New LocatedError("Unexpected character", $"The following character was not expected : ""{CurrentChar}""", LocationFromChar())
+
+            End Select
+
+            'Goto next character, only SELECT CASE finish here, other tokens pass by using CONTINUE WHILE
+            NextChar()
+
+        End While
+
+    End Sub
+
+End Module

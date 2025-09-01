@@ -2,6 +2,7 @@
   "profiles": {
     "limc": {
       "commandName": "Project",
+      "commandLineArgs": "test.lim prog",
       "workingDirectory": "../debug"
     }
   }
