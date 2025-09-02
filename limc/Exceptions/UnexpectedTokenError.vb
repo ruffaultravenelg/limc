@@ -34,6 +34,8 @@
                 Return "An opening bracket was expected here"
             Case TokenType.SYMBOL_RIGHT_BRACKETS
                 Return "A closing bracket was expected here"
+            Case TokenType.LINESTART
+                Return "A new line was expected here"
             Case Else
                 Return "Another element was expected here."
         End Select

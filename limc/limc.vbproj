@@ -16,7 +16,6 @@
 
   <ItemGroup>
     <Folder Include="AST\Nodes\ExpressionNode\" />
-    <Folder Include="AST\Nodes\StatementNode\" />
   </ItemGroup>
 
 </Project>

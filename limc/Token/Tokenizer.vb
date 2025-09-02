@@ -184,17 +184,79 @@ Public Module Tokenizer
                 Dim Loc As Location = LocationFromSave()
 
                 Select Case Text.ToLower()
-
                     Case "func"
                         AddToken(TokenType.KEYWORD_FUNC, Loc)
-
+                    Case "true"
+                        AddToken(TokenType.VAL_BOOL, True, Loc)
+                    Case "false"
+                        AddToken(TokenType.VAL_BOOL, False, Loc)
                     Case Else
                         AddToken(TokenType.TEXT, Text, Loc)
-
                 End Select
 
                 Continue While
 
+
+            End If
+
+            'String
+            If CurrentChar = """"c Then
+
+                SaveCol()
+                NextChar() 'Skip first quote
+                Dim Str As String = ""
+                While Not CurrentChar = """"c
+                    If CurrentChar = Nothing Then
+                        Throw New LocatedError("String not closed", "The string was not closed before the end of the line.", LocationFromSave())
+                    End If
+                    Str &= CurrentChar
+                    NextChar()
+                End While
+                NextChar() 'Skip last quote
+
+                AddToken(TokenType.VAL_STRING, Str, LocationFromSave())
+
+                Continue While
+
+            End If
+
+            'Formated string
+            If CurrentChar = "'"c Then
+
+                SaveCol()
+                NextChar() 'Skip first quote
+                Dim Str As String = ""
+                While Not CurrentChar = "'"c
+                    If CurrentChar = Nothing Then
+                        Throw New LocatedError("String not closed", "The string was not closed before the end of the line.", LocationFromSave())
+                    End If
+                    If CurrentChar = "\"c Then
+                        NextChar()
+                        If CurrentChar = Nothing Then
+                            Throw New LocatedError("String not closed", "The string was not closed before the end of the line.", LocationFromSave())
+                        End If
+                        Select Case CurrentChar
+                            Case "n"c
+                                Str &= vbLf
+                            Case "t"c
+                                Str &= vbTab
+                            Case "\"c
+                                Str &= "\"c
+                            Case "'"c
+                                Str &= "'"c
+                            Case Else
+                                Str &= "\"c & CurrentChar 'Unknown escape, keep it as is
+                        End Select
+                    Else
+                        Str &= CurrentChar
+                    End If
+                    NextChar()
+                End While
+                NextChar() 'Skip last quote
+
+                AddToken(TokenType.VAL_FORMATED_STRING, Str, LocationFromSave())
+
+                Continue While
 
             End If
 
@@ -231,6 +293,8 @@ Public Module Tokenizer
                     AddToken(TokenType.SYMBOL_COLON, LocationFromChar())
                 Case "="c
                     AddToken(TokenType.SYMBOL_EQUAL, LocationFromChar())
+                Case "$"c
+                    AddToken(TokenType.SYMBOL_DOLLAR, LocationFromChar())
                 Case Else
                     'Final error: unexpected character
                     Throw New LocatedError("Unexpected character", $"The following character was not expected : ""{CurrentChar}""", LocationFromChar())
