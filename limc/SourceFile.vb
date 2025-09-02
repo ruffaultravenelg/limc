@@ -7,6 +7,7 @@ Public Class SourceFile
     '===== ALL REGISTERED SOURCE FILE =====
     '======================================
     Private Shared SolutionFiles As New List(Of SourceFile)
+    Private Shared MainFile As SourceFile = Nothing
 
     '======================
     '===== PROPERTIES =====
@@ -19,12 +20,20 @@ Public Class SourceFile
             Return Path.GetFileName(Filepath)
         End Get
     End Property
+    Public ReadOnly Property RelativePath As String
+        Get
+            Return Path.GetRelativePath(Path.GetDirectoryName(MainFile.Filepath), Filepath)
+        End Get
+    End Property
 
     '=======================
     '===== CONSTRUCTOR =====
     '=======================
     Private Sub New(Filepath As String)
         Me.Filepath = Filepath
+        If MainFile Is Nothing Then
+            MainFile = Me
+        End If
     End Sub
 
     Public Shared Function FromFile(Filepath As String) As SourceFile
@@ -56,9 +65,17 @@ Public Class SourceFile
         'Generate AST
         SourceInstance.AST = New AbstractSyntaxTree(Tokens)
 
+        'Create function repository
+        SourceInstance.FunctionRepository = New ProcedureRepository(SourceInstance.AST.Functions, New Context)
+
         'Return object instance
         Return SourceInstance
 
     End Function
+
+    '=====================
+    '===== FUNCTIONS =====
+    '=====================
+    Public FunctionRepository As ProcedureRepository
 
 End Class

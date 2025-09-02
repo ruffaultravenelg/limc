@@ -9,5 +9,9 @@
             Me.Source = Source
         End Sub
 
+        Public Overrides Sub Compile(Scope As Scope)
+            Scope.WriteLine(Source)
+        End Sub
+
     End Class
 End Namespace

@@ -15,7 +15,6 @@ Public Module Compiler
 
     End Sub
 
-
     'C
     Public Sub CompileToC(SourceFilepath As String, Destination As String)
 
@@ -28,10 +27,13 @@ Public Module Compiler
         Dim MainFile As SourceFile = SourceFile.FromFile(SourceFilepath)
 
         'Getting main function from MainFile will trigger lazy-compilation
-        Dim MainFunction
+        Dim MainFunction As Lazy.Function = MainFile.FunctionRepository.FindProcedure("main", {})
+        If MainFunction Is Nothing Then
+            Throw New NotMainFunctionError(MainFile)
+        End If
 
         'Assemble all sources
-        CodeGen.AssembleFile(Destination)
+        CodeGen.AssembleFile(Destination, MainFunction.CompiledFunctionName)
 
     End Sub
 

@@ -128,6 +128,15 @@ Public Module Tokenizer
         End While
         Results.Add(New Token(TokenType.LINESTART, LocationFromSave(), Indentation))
 
+        'Source line
+        If CurrentChar = "$"c Then
+            NextChar()
+            SaveCol()
+            Dim Source As String = Line.Substring(Col, Line.Length - Col).Trim
+            Results.Add(New Token(TokenType.SOURCE_LINE, LocationFromSave(), Source))
+            Exit Sub
+        End If
+
         'Loop trought chars to create tokens
         While Not CurrentChar = Nothing
 
@@ -293,8 +302,6 @@ Public Module Tokenizer
                     AddToken(TokenType.SYMBOL_COLON, LocationFromChar())
                 Case "="c
                     AddToken(TokenType.SYMBOL_EQUAL, LocationFromChar())
-                Case "$"c
-                    AddToken(TokenType.SYMBOL_DOLLAR, LocationFromChar())
                 Case Else
                     'Final error: unexpected character
                     Throw New LocatedError("Unexpected character", $"The following character was not expected : ""{CurrentChar}""", LocationFromChar())

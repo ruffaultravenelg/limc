@@ -25,8 +25,9 @@ Public Class LocatedError
             RenderMultipleLines()
         End If
 
+        'TODO: filename relative to source file
         Console.ForegroundColor = ConsoleColor.DarkRed
-        Console.WriteLine($"<{Location.File.Filename}> line {Location.FromLineNumber + 1} character {Location.FromCol}")
+        Console.WriteLine($"<{Location.File.RelativePath}> line {Location.FromLineNumber + 1} character {Location.FromCol}")
         Console.ResetColor()
 
     End Sub

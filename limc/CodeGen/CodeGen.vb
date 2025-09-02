@@ -3,6 +3,8 @@
 Namespace CodeGen
     Module Handler
 
+        Public ReadOnly Namer As NameGenerator = New NameGenerator()
+
         Private Consts As New HashSet(Of CodeGen.Const)
         Private GlobalVariables As New HashSet(Of CodeGen.GlobalVariable)
         Private Enums As New HashSet(Of CodeGen.Enum)
@@ -29,7 +31,7 @@ Namespace CodeGen
             Functions.Add([Function])
         End Sub
 
-        Public Sub AssembleFile(Filepath As String)
+        Public Sub AssembleFile(Filepath As String, EntryPoint As String)
 
             'Create file
             Dim Writer As New StreamWriter(Filepath)
@@ -40,8 +42,31 @@ Namespace CodeGen
             Writer.WriteLine(vbTab & "Developed by Gémino Ruffault--Ravenel.")
             Writer.WriteLine("*/")
 
+            'Write function signatures
+            For Each Fn In Functions
+                Fn.WriteSignature(Writer)
+            Next
+            Writer.WriteLine()
+
+            'Write functions bodies
+            For Each Fn In Functions
+                Fn.WriteBody(Writer)
+            Next
+
+            'Write entry point
+            WriteEntryPoint(Writer, EntryPoint)
+
             'Close file writer
             Writer.Close()
+
+        End Sub
+
+        Private Sub WriteEntryPoint(Writer As StreamWriter, EntryPoint As String)
+
+            Writer.WriteLine("int main(int argc, char** argv) {")
+            Writer.WriteLine(vbTab & $"{EntryPoint}();")
+            Writer.WriteLine(vbTab & "return 0;")
+            Writer.WriteLine("}")
 
         End Sub
 

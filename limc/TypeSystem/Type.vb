@@ -2,8 +2,8 @@
 
     Public MustInherit Class Type
 
-        Public Overridable Property cRepresentation As String
-
+        Public MustOverride ReadOnly Property cRepresentation As String
+        Public MustOverride Function DefaultValue(Scope As Scope) As String
 
     End Class
 

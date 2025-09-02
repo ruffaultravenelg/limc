@@ -1,0 +1,38 @@
+﻿Namespace CodeGen
+    Public Class NameGenerator
+
+        '=====================
+        '===== FUNCTIONS =====
+        '=====================
+        Public Overridable Function Variable(Optional Info As String = "") As String
+            Return GenerateName()
+        End Function
+        Public Overridable Function [Function](Optional Info As String = "") As String
+            Return GenerateName()
+        End Function
+
+        '============================
+        '===== SIMPLE GENERATOR =====
+        '============================
+
+        Private ElementCounter As Integer = 0
+        Private Function GenerateName() As String
+            ElementCounter += 1
+            Const Chars As String = "abcdefghijklmnopqrstuvwxyz"
+            Dim Result As String = ""
+
+            Dim n As Integer = ElementCounter
+            While n > 0
+                n -= 1
+                Dim index As Integer = n Mod 26
+                Result = Chars(index) & Result
+                n \= 26
+            End While
+
+            Return Result
+        End Function
+
+
+    End Class
+
+End Namespace

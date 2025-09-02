@@ -1,5 +1,5 @@
 ﻿Namespace AST
-    Public Class ConstructNode
+    Public MustInherit Class ConstructNode
         Inherits Node
 
         Public Sub New(Location As Location)

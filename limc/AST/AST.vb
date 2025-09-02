@@ -201,17 +201,13 @@
 
         Private Function GetSourceStatementNode(Indentation As Integer) As SourceStatementNode
 
-            If Not CurrentToken.Type = TokenType.SYMBOL_DOLLAR Then
+            If Not CurrentToken.Type = TokenType.SOURCE_LINE Then
                 Throw New NotTheRightElementException()
             End If
-            PushPosition()
-            Advance()
 
-            CheckTokenType(TokenType.VAL_STRING)
-            Dim Source As String = CurrentToken.Value
+            Dim Node As New SourceStatementNode(CurrentToken.Value, CurrentToken.Location)
             Advance()
-
-            Return New SourceStatementNode(Source, RetrievePosition())
+            Return Node
 
         End Function
 
