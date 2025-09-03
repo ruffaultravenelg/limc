@@ -32,7 +32,6 @@
             Return Result
         End Function
 
-
     End Class
 
 End Namespace

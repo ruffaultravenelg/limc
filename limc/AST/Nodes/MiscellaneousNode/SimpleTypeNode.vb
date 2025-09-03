@@ -12,8 +12,26 @@
         End Sub
 
         Public Overrides Function GetAssociatedType(Context As Context) As TypeSystem.Type
+
+            'Integrated type
+            Select Case TypeName
+                Case "int"
+                    NoGenericType("int")
+                    Return TypeSystem.Type.Int
+            End Select
+
+            'Search for generic types
+
+            'Search for type
             Throw New NotImplementedException()
+
         End Function
+
+        Private Sub NoGenericType(TypeName As String)
+            If TypeGenericTypes.Any() Then
+                Throw New TypeError($"Type '{TypeName}' does not support generic types", Location)
+            End If
+        End Sub
 
     End Class
 

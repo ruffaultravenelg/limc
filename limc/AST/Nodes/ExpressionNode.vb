@@ -7,7 +7,7 @@
         End Sub
 
         Public MustOverride Function GetExpressionReturnType(Context As Context) As TypeSystem.Type
-        Public MustOverride Function CompileExpression(Scope As Scope) As TypeSystem.Type
+        Public MustOverride Function CompileExpression(Scope As Scope) As String
 
     End Class
 End Namespace

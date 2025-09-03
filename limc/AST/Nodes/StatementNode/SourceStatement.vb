@@ -1,5 +1,5 @@
 ﻿Namespace AST
-    Public Class SourceStatementNode
+    Public Class SourceStatement
         Inherits StatementNode
 
         Private Source As String

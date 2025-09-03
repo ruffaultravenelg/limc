@@ -4,7 +4,7 @@
         '======================
         '===== PROPERTIES =====
         '======================
-        Public ReadOnly Property Functions As New List(Of FunctionConstructNode)
+        Public ReadOnly Property Functions As New List(Of FunctionConstruct)
 
         '==================
         '===== TOKENS =====
@@ -36,6 +36,11 @@
                 Else
                     Throw New UnexpectedTokenError(CurrentToken.Location, Message)
                 End If
+            End If
+        End Sub
+        Private Sub IsTheRightToken(TokenType As TokenType)
+            If Not CurrentToken.Type = TokenType Then
+                Throw New NotTheRightElementException()
             End If
         End Sub
 
@@ -164,11 +169,31 @@
         '=======================
         '===== EXPRESSIONS =====
         '=======================
+        Private Function GetFactor() As ExpressionNode
+
+            'One token expressions
+            Dim Tok As Token = CurrentToken
+            Advance()
+
+            Select Case Tok.Type
+                Case TokenType.VAL_INT
+                    Return New IntExpression(Tok.Value, Tok.Location)
+                Case TokenType.TEXT
+                    Return New ElementExpression(Tok.Value, Tok.Location)
+            End Select
+
+            'Error
+            Throw New SyntaxError("A factor expression was expected here.", Tok.Location)
+
+        End Function
+        Private Function GetExpression() As ExpressionNode
+            Return GetFactor()
+        End Function
 
         '======================
         '===== STATEMENTS =====
         '======================
-        Private ReadOnly StatementFunctions As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetSourceStatementNode}
+        Private ReadOnly StatementFunctions As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetSourceStatementNode, AddressOf GetVariableDeclaration, AddressOf GetAssignStatement} 'Assign should be at the end
 
         Private Function GetBody(StatementIndentation As Integer) As IEnumerable(Of StatementNode)
             Dim Body As New List(Of StatementNode)
@@ -186,35 +211,101 @@
 
                 'Search statement
                 Dim LineStartIndex As Integer = TokenIndex
+                Dim StatementToAppend As StatementNode = Nothing
                 For Each ParsingFunction As Func(Of Integer, StatementNode) In StatementFunctions
                     Try
-                        Body.Add(ParsingFunction(StatementIndentation))
+                        StatementToAppend = ParsingFunction(StatementIndentation)
                         Exit For
                     Catch ex As NotTheRightElementException
                         TokenIndex = LineStartIndex
                     End Try
                 Next
 
+                'Error
+                If StatementToAppend IsNot Nothing Then
+                    Body.Add(StatementToAppend)
+                Else
+                    Throw New SyntaxError("A statement was expected here. This is not a statement.", CurrentToken.Location)
+                End If
+
             End While
             Return Body
         End Function
 
-        Private Function GetSourceStatementNode(Indentation As Integer) As SourceStatementNode
+        Private Function GetSourceStatementNode(Indentation As Integer) As SourceStatement
 
             If Not CurrentToken.Type = TokenType.SOURCE_LINE Then
                 Throw New NotTheRightElementException()
             End If
 
-            Dim Node As New SourceStatementNode(CurrentToken.Value, CurrentToken.Location)
+            Dim Node As New SourceStatement(CurrentToken.Value, CurrentToken.Location)
             Advance()
             Return Node
+
+        End Function
+
+        Private Function GetVariableDeclaration() As StatementNode
+
+            If Not CurrentToken.Type = TokenType.KEYWORD_LET Then
+                Throw New NotTheRightElementException()
+            End If
+            PushPosition()
+            Advance()
+
+            'Get name
+            CheckTokenType(TokenType.TEXT, "A variable name was expected here.")
+            Dim VariableName As String = CurrentToken.Value
+            Advance()
+
+            'Get type
+            Dim VariableType As TypeNode = Nothing
+            If CurrentToken.Type = TokenType.SYMBOL_COLON Then
+                Advance()
+                VariableType = GetTypeNode()
+            End If
+
+            'Get value
+            Dim VariableValue As ExpressionNode = Nothing
+            If CurrentToken.Type = TokenType.SYMBOL_EQUAL Then
+                Advance()
+                VariableValue = GetExpression()
+            End If
+
+            'Create node
+            If VariableType IsNot Nothing AndAlso VariableValue Is Nothing Then
+                Return New DeclareVariableWithTypeStatement(VariableName, VariableType, RetrievePosition())
+            ElseIf VariableType Is Nothing AndAlso VariableValue IsNot Nothing Then
+                'Value
+                Return New DeclareVariableWithValueStatement(VariableName, VariableValue, RetrievePosition())
+            ElseIf VariableType IsNot Nothing AndAlso VariableValue IsNot Nothing Then
+                'Type
+                Return New DeclareVariableWithTypeValueStatement(VariableName, VariableType, VariableValue, RetrievePosition())
+            Else
+                Throw New SyntaxError("A variable declaration must contains at least the type of the variable or a default value.", RetrievePosition())
+            End If
+
+        End Function
+
+        Private Function GetAssignStatement() As StatementNode
+
+            Dim TargetVariable As ExpressionNode = GetExpression()
+            IsTheRightToken(TokenType.SYMBOL_EQUAL)
+            Advance()
+
+            Dim NewValue As ExpressionNode = GetExpression()
+
+            If TypeOf TargetVariable Is AST.IAssignable Then
+                Return New VariableAssignationStatement(TargetVariable, NewValue, TargetVariable.Location + NewValue.Location)
+            Else
+                Throw New SyntaxError("This expression is not a variable. No assignment possible.", TargetVariable.Location)
+            End If
 
         End Function
 
         '======================
         '===== CONSTRUCTS =====
         '======================
-        Private Function GetFunctionConstructNode() As FunctionConstructNode
+        Private Function GetFunctionConstructNode() As FunctionConstruct
 
             If Not CurrentToken.Type = TokenType.KEYWORD_FUNC Then
                 Throw New NotTheRightElementException()
@@ -253,7 +344,7 @@
             Dim Body As IEnumerable(Of StatementNode) = GetBody(1)
 
             'Return node
-            Return New FunctionConstructNode(FunctionName, Arguments, ReturnType, Body, RetrievePosition())
+            Return New FunctionConstruct(FunctionName, Arguments, ReturnType, Body, RetrievePosition())
 
         End Function
 

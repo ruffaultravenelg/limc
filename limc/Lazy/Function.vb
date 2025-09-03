@@ -4,7 +4,7 @@ Namespace Lazy
     Public Class [Function]
         Implements CompiledProcedure
 
-        Private FunctionNode As FunctionConstructNode
+        Private FunctionNode As FunctionConstruct
         Private FunctionContext As ReturnableScope
 
         Public ReadOnly Property Name As String Implements CompiledProcedure.Name
@@ -21,7 +21,7 @@ Namespace Lazy
 
         Public ReadOnly CompiledFunctionName As String
 
-        Public Sub New(FunctionNode As FunctionConstructNode, FileContext As Context)
+        Public Sub New(FunctionNode As FunctionConstruct, FileContext As Context)
 
             ' Initialize properties
             Me.FunctionNode = FunctionNode

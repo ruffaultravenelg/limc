@@ -33,4 +33,45 @@
         Return Nothing
     End Function
 
+    Private VariableStore As New Dictionary(Of String, VariableData)
+
+    Public Function TryGetVariable(Name As String) As VariableData
+        For Each Ctx As Context In AllParents
+            If Ctx.VariableStore.ContainsKey(Name) Then
+                Return Ctx.VariableStore(Name)
+            End If
+        Next
+        Return Nothing
+    End Function
+    Public Function GetVariable(Name As String, Location As Location) As VariableData
+        Dim VarData As VariableData = TryGetVariable(Name)
+        If VarData Is Nothing Then
+            Throw New SyntaxError($"Variable not found: {Name}", Location)
+        End If
+        Return VarData
+    End Function
+
+    Public Function CreateVariable(Name As String, Type As TypeSystem.Type) As VariableData
+        Dim VarData As New VariableData(CodeGen.Namer.Variable(Name), Type)
+        VariableStore(Name) = VarData
+        Return VarData
+    End Function
+    Public Function CreateVariable(Name As String, Type As TypeSystem.Type, Location As Location) As VariableData
+        If VariableStore.ContainsKey(Name) Then
+            Throw New VariableAlreadyExistError(Name, Location)
+        End If
+        Return CreateVariable(Name, Type)
+    End Function
+
+    Public Class VariableData
+        Public ReadOnly Property CompiledName As String
+        Public ReadOnly Property Type As TypeSystem.Type
+
+        Public Sub New(CompiledName As String, Type As TypeSystem.Type)
+            Me.CompiledName = CompiledName
+            Me.Type = Type
+        End Sub
+
+    End Class
+
 End Class

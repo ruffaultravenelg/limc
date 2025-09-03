@@ -27,5 +27,6 @@
 
     TEXT
     KEYWORD_FUNC
+    KEYWORD_LET
 
 End Enum

@@ -55,13 +55,6 @@ Public Class SourceFile
         'Read file
         Dim Tokens As IEnumerable(Of Token) = Tokenizer.TokenizeFile(SourceInstance)
 
-        'For Each Tok As Token In Tokens
-        '   If Tok.Type = TokenType.LINESTART Then
-        '       Console.WriteLine()
-        '   End If
-        '   Console.Write(Tok.ToString())
-        'Next
-
         'Generate AST
         SourceInstance.AST = New AbstractSyntaxTree(Tokens)
 

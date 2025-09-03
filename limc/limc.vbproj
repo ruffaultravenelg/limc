@@ -14,8 +14,4 @@
     <OutputPath>..\bin</OutputPath>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="AST\Nodes\ExpressionNode\" />
-  </ItemGroup>
-
 </Project>

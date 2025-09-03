@@ -1,6 +1,5 @@
 Module Program
 
-
     Public Property VERBOSE As Boolean = True
 
     Sub Main(args As String())

@@ -195,6 +195,8 @@ Public Module Tokenizer
                 Select Case Text.ToLower()
                     Case "func"
                         AddToken(TokenType.KEYWORD_FUNC, Loc)
+                    Case "let"
+                        AddToken(TokenType.KEYWORD_LET, Loc)
                     Case "true"
                         AddToken(TokenType.VAL_BOOL, True, Loc)
                     Case "false"

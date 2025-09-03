@@ -1,7 +1,7 @@
 ﻿Imports limc.TypeSystem
 
 Namespace AST
-    Public Class FunctionConstructNode
+    Public Class FunctionConstruct
         Inherits ConstructNode
         Implements UncompiledProcedure
 
@@ -25,6 +25,6 @@ Namespace AST
         Public Function CompileProcedure(CompilingContext As Context) As CompiledProcedure Implements UncompiledProcedure.CompileProcedure
             Return New Lazy.Function(Me, CompilingContext)
         End Function
-    End Class
 
+    End Class
 End Namespace

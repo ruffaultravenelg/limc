@@ -1,4 +1,5 @@
 ﻿Imports System.IO
+Imports System.Text
 
 Public Module Compiler
 
@@ -11,12 +12,12 @@ Public Module Compiler
         CompileToC(SourceFile, TEMP_C_FILE)
 
         'Compile c source code to executable
-        'TODO
+        'CompileToExe(TEMP_C_FILE, Destination)
 
     End Sub
 
     'C
-    Public Sub CompileToC(SourceFilepath As String, Destination As String)
+    Private Sub CompileToC(SourceFilepath As String, Destination As String)
 
         'Delete file if already exist
         If File.Exists(Destination) Then
@@ -36,5 +37,43 @@ Public Module Compiler
         CodeGen.AssembleFile(Destination, MainFunction.CompiledFunctionName)
 
     End Sub
+
+    'Compile to executable
+    Private Sub CompileToExe(SourceC As String, Destination As String)
+
+        Dim Command As String = GetCompilationCommand(SourceC, Destination)
+
+        'Create process
+        Dim Process As New Process()
+        Process.StartInfo.FileName = "cmd.exe"
+        Process.StartInfo.Arguments = "/c " & Command
+        Process.StartInfo.RedirectStandardOutput = True
+        Process.StartInfo.RedirectStandardError = True
+        Process.StartInfo.UseShellExecute = False
+        Process.StartInfo.CreateNoWindow = True
+        Process.Start()
+        Process.WaitForExit()
+        Dim Output As String = Process.StandardOutput.ReadToEnd()
+        Dim [Error] As String = Process.StandardError.ReadToEnd()
+        If Not Process.ExitCode = 0 Then
+            Throw New BasicException("GCC Error", Output & vbCrLf & [Error])
+        End If
+
+    End Sub
+
+    'Get compilation command
+    Public Function GetCompilationCommand(Source As String, Destination As String) As String
+
+        Dim Command As New StringBuilder()
+        Command.Append("gcc")
+        Command.Append(" -o """)
+        Command.Append(Destination)
+        Command.Append(""" """)
+        Command.Append(Source)
+        Command.Append("""")
+
+        Return Command.ToString()
+
+    End Function
 
 End Module
