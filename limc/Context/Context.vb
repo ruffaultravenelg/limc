@@ -74,4 +74,15 @@
 
     End Class
 
+    'Get all name matching element from lower to upper context
+    Public Function RetrieveMatchingElementByName(Name As String) As IEnumerable(Of SearchMatch)
+        Dim Result As New List(Of SearchMatch)
+        For Each Ctx As Context In AllParents
+
+
+
+        Next
+        Return Result
+    End Function
+
 End Class

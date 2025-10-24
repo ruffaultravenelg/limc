@@ -2,9 +2,11 @@
     Inherits Context
 
     Private Lines As New List(Of String)
+    Public ReadOnly Property Location As Location
 
-    Public Sub New(Parent As Context)
+    Public Sub New(Parent As Context, Location As Location)
         MyBase.New(Parent)
+        Me.Location = Location
     End Sub
 
     Public Sub WriteLine(Line As String)

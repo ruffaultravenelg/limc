@@ -7,13 +7,20 @@ Namespace CodeGen
 
         Private Signature As String
         Private Body As IEnumerable(Of String)
+        Private Comment As String
 
-        Public Sub New(Signature As String, Body As IEnumerable(Of String))
+        Public Sub New(Signature As String, Body As IEnumerable(Of String), Optional Comment As String = "")
             Me.Signature = Signature
             Me.Body = Body
+            Me.Comment = Comment
         End Sub
 
         Public Sub WriteSignature(Writer As StreamWriter)
+            If VERBOSE AndAlso Not Comment = "" Then
+                Writer.Write("/* ")
+                Writer.Write(Comment)
+                Writer.Write(" /* ")
+            End If
             Writer.Write(Signature)
             Writer.WriteLine(";")
         End Sub

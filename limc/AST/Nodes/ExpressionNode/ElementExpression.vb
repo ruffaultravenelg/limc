@@ -17,6 +17,7 @@
         Public Overrides Function CompileExpression(Scope As Scope) As String
             Throw New NotImplementedException()
         End Function
+
         Public Sub CompileAssignation(NewValue As ExpressionNode, Scope As Scope) Implements IAssignable.CompileAssignation
 
             'Search variable

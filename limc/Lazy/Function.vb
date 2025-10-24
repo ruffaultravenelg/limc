@@ -1,5 +1,6 @@
 ﻿Imports System.Text
 Imports limc.AST
+
 Namespace Lazy
     Public Class [Function]
         Implements CompiledProcedure
@@ -15,17 +16,31 @@ Namespace Lazy
         Public ReadOnly Property ArgumentTypes As IEnumerable(Of TypeSystem.Type) = New List(Of TypeSystem.Type) Implements CompiledProcedure.ArgumentTypes
         Public ReadOnly Property ReturnType As TypeSystem.Type
             Get
-                Return FunctionContext.ReturnType
+                If FunctionContext.ReturnType IsNot Nothing Then
+                    Return FunctionContext.ReturnType
+                End If
+                If IsCompiling Then
+                    Throw New ProcedureDontReturnValueError(FunctionNode.Location, Name)
+                Else
+                    Return Nothing
+                End If
             End Get
         End Property
 
         Public ReadOnly CompiledFunctionName As String
+        Private IsCompiling As Boolean = True
+
+        Public ReadOnly Property AssociatedFunType As TypeSystem.FunType
+            Get
+                Return TypeSystem.FunType.From(ArgumentTypes, ReturnType)
+            End Get
+        End Property
 
         Public Sub New(FunctionNode As FunctionConstruct, FileContext As Context)
 
             ' Initialize properties
             Me.FunctionNode = FunctionNode
-            Me.FunctionContext = New ReturnableScope(FileContext)
+            Me.FunctionContext = New ReturnableScope(FileContext, FunctionNode.Location)
 
             ' Create a compiled name
             Me.CompiledFunctionName = CodeGen.Namer.Function(Name)
@@ -46,12 +61,12 @@ Namespace Lazy
             For Each Statement In FunctionNode.Body
                 Statement.Compile(FunctionContext)
             Next
+            IsCompiling = False
 
             ' Register function
             CodeGen.RegisterFunction(New CodeGen.Function(GetSignature(), FunctionContext.GetLines()))
 
         End Sub
-
 
         Private Function GetSignature() As String
             Dim Signature As New StringBuilder()

@@ -1,4 +1,6 @@
-﻿Namespace TypeSystem
+﻿Imports System.ComponentModel.Design
+
+Namespace TypeSystem
 
     Public MustInherit Class Type
 
@@ -12,10 +14,16 @@
         End Sub
 
         Public Shared Operator =(a As Type, b As Type) As Boolean
-            Return a.cRepresentation = b.cRepresentation
+            If a Is Nothing AndAlso b Is Nothing Then
+                Return True
+            ElseIf a Is Nothing OrElse b Is Nothing Then
+                Return False
+            Else
+                Return a.cRepresentation = b.cRepresentation
+            End If
         End Operator
         Public Shared Operator <>(a As Type, b As Type) As Boolean
-            Return Not a.cRepresentation = b.cRepresentation
+            Return Not a = b
         End Operator
 
     End Class

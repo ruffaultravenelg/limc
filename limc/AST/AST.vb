@@ -186,8 +186,36 @@
             Throw New SyntaxError("A factor expression was expected here.", Tok.Location)
 
         End Function
+        Private Function GetCallBracketChild() As ExpressionNode
+
+            Dim Expression As ExpressionNode = GetFactor()
+
+            While True
+                If CurrentToken.Type = TokenType.SYMBOL_LEFT_PARENTHESIS Then
+
+                    Advance()
+                    Dim Arguments As New List(Of ExpressionNode)
+                    If Not CurrentToken.Type = TokenType.SYMBOL_RIGHT_PARENTHESIS Then
+                        Arguments.Add(GetExpression())
+                        While CurrentToken.Type = TokenType.SYMBOL_COMMA
+                            Advance()
+                            Arguments.Add(GetExpression())
+                        End While
+                        CheckTokenType(TokenType.SYMBOL_RIGHT_PARENTHESIS, "A comma or a closing parenthesis was expected here.")
+                    End If
+                    Advance()
+                    Expression = New FunctionCallExpression(Expression, Arguments, RetrievePosition())
+
+                Else
+                    Exit While
+                End If
+            End While
+
+            Return Expression
+
+        End Function
         Private Function GetExpression() As ExpressionNode
-            Return GetFactor()
+            Return GetCallBracketChild()
         End Function
 
         '======================

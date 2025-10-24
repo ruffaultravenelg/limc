@@ -5,10 +5,13 @@
         '===== FUNCTIONS =====
         '=====================
         Public Overridable Function Variable(Optional Info As String = "") As String
-            Return GenerateName()
+            Return GenerateName() & "_v"
         End Function
         Public Overridable Function [Function](Optional Info As String = "") As String
-            Return GenerateName()
+            Return GenerateName() & "_f"
+        End Function
+        Public Overridable Function [Struct](Optional Info As String = "") As String
+            Return GenerateName() & "_t"
         End Function
 
         '============================

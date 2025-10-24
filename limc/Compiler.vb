@@ -4,6 +4,7 @@ Imports System.Text
 Public Module Compiler
 
     Private ReadOnly TEMP_C_FILE As String = Path.Combine(Path.GetTempPath(), "limc", "source.c") '%temp%/limc/source.c
+    Public ReadOnly COMPILER_DIRECTORY As String = AppContext.BaseDirectory
 
     ' Main compiling entry point
     Public Sub Compile(SourceFile As String, Destination As String)

@@ -1,4 +1,5 @@
 ﻿Imports System.IO
+Imports System.Security.AccessControl
 
 Namespace CodeGen
     Module Handler
@@ -6,8 +7,9 @@ Namespace CodeGen
         Public ReadOnly Namer As NameGenerator = New NameGenerator()
 
         Private Includes As New List(Of String) From {"#include <stdio.h>", "#include <stdlib.h>", "#include <stdbool.h>"}
-        Private Consts As New HashSet(Of CodeGen.Const)
-        Private GlobalVariables As New HashSet(Of CodeGen.GlobalVariable)
+        Private Macros As New List(Of String)
+        Private Consts As New HashSet(Of String)
+        Private GlobalVariables As New HashSet(Of String)
         Private Enums As New HashSet(Of CodeGen.Enum)
         Private Structs As New HashSet(Of CodeGen.Struct)
         Private Functions As New HashSet(Of CodeGen.Function)
@@ -21,11 +23,15 @@ Namespace CodeGen
             Includes.Add(Include)
         End Sub
 
-        Public Sub RegisterConst([Const] As CodeGen.Const)
+        Public Sub RegisterMacro(Macro As String)
+            Macros.Add(Macro)
+        End Sub
+
+        Public Sub RegisterConst([Const] As String)
             Consts.Add([Const])
         End Sub
 
-        Public Sub RegisterGlobalVariable(GlobalVariable As CodeGen.GlobalVariable)
+        Public Sub RegisterGlobalVariable(GlobalVariable As String)
             GlobalVariables.Add(GlobalVariable)
         End Sub
 
@@ -43,6 +49,12 @@ Namespace CodeGen
 
         Public Sub AssembleFile(Filepath As String, EntryPoint As String)
 
+            'Write garbage collector
+            WriteGarbageCollector()
+
+            'Clean dir
+            Directory.GetParent(Filepath).Create()
+
             'Create file
             Dim Writer As New StreamWriter(Filepath)
 
@@ -52,24 +64,63 @@ Namespace CodeGen
             Writer.WriteLine(vbTab & "Developed by Gémino Ruffault--Ravenel.")
             Writer.WriteLine("*/")
 
+            'Macros
+            WriteTitle(Writer, "Macros")
+            For Each Macro In Macros
+                Writer.WriteLine(Macro)
+            Next
+            Writer.WriteLine()
+
             'Write includes
+            WriteTitle(Writer, "Includes")
             For Each Include In Includes
                 Writer.WriteLine(Include)
             Next
             Writer.WriteLine()
 
+            'Write structure types
+            WriteTitle(Writer, "Structure signature")
+            For Each Struct In Structs
+                Struct.WriteSignature(Writer)
+            Next
+            Writer.WriteLine()
+
+            'Write consts
+            WriteTitle(Writer, "Constants")
+            For Each [Const] In Consts
+                Writer.WriteLine([Const])
+            Next
+            Writer.WriteLine()
+
+            'Write global functions
+            WriteTitle(Writer, "Global variables")
+            For Each GlobalVariable In GlobalVariables
+                Writer.WriteLine(GlobalVariable)
+            Next
+            Writer.WriteLine()
+
             'Write function signatures
+            WriteTitle(Writer, "Function signatures")
             For Each Fn In Functions
                 Fn.WriteSignature(Writer)
             Next
             Writer.WriteLine()
 
             'Write functions bodies
+            WriteTitle(Writer, "Structure bodies")
+            For Each Struct In Structs
+                Struct.Write(Writer)
+            Next
+            Writer.WriteLine()
+
+            'Write functions bodies
+            WriteTitle(Writer, "Function bodies")
             For Each Fn In Functions
                 Fn.WriteBody(Writer)
             Next
 
             'Write entry point
+            WriteTitle(Writer, "Entry point")
             WriteEntryPoint(Writer, EntryPoint)
 
             'Close file writer
@@ -77,12 +128,31 @@ Namespace CodeGen
 
         End Sub
 
+        Private Sub WriteTitle(Writer As StreamWriter, Title As String)
+            Dim TitleLine As String = "///// " & Title & " /////"
+            Writer.WriteLine(StrDup(TitleLine.Length, "/"))
+            Writer.WriteLine(TitleLine)
+            Writer.WriteLine(StrDup(TitleLine.Length, "/"))
+        End Sub
+
         Private Sub WriteEntryPoint(Writer As StreamWriter, EntryPoint As String)
 
             Writer.WriteLine("int main(int argc, char** argv) {")
+            Writer.WriteLine(vbTab & "tgc_start(&gc, &argc);")
             Writer.WriteLine(vbTab & $"{EntryPoint}();")
+            Writer.WriteLine(vbTab & "tgc_stop(&gc);")
             Writer.WriteLine(vbTab & "return 0;")
             Writer.WriteLine("}")
+
+        End Sub
+
+        Private Sub WriteGarbageCollector()
+
+            RegisterInclude("#include """ & Path.Combine(Compiler.COMPILER_DIRECTORY, "tgc", "tgc.h") & """")
+
+            RegisterGlobalVariable("static tgc_t gc;")
+
+            RegisterMacro("#define LIM_ALLOC(size) tgc_alloc(&gc, size);")
 
         End Sub
 
