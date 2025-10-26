@@ -1,11 +1,8 @@
-﻿Imports limc.TypeSystem
-
-Namespace AST
+﻿Namespace AST
     Public Class FunctionConstruct
         Inherits ConstructNode
-        Implements UncompiledProcedure
 
-        Public ReadOnly Property Name As String Implements UncompiledProcedure.Name
+        Public ReadOnly Property Name As String
         Public ReadOnly Property Arguments As IEnumerable(Of ArgumentNode)
         Public ReadOnly Property ReturnType As TypeNode
         Public ReadOnly Property Body As IEnumerable(Of StatementNode)
@@ -18,12 +15,13 @@ Namespace AST
             Me.Body = Body
         End Sub
 
-        Public Function GetArgumentTypes(CompilingContext As Context) As IEnumerable(Of Type) Implements UncompiledProcedure.GetArgumentTypes
-            Return Arguments.Select(Function(arg) arg.ArgumentType.GetAssociatedType(CompilingContext))
-        End Function
-
-        Public Function CompileProcedure(CompilingContext As Context) As CompiledProcedure Implements UncompiledProcedure.CompileProcedure
-            Return New Lazy.Function(Me, CompilingContext)
+        Public Overridable Function DoContainsStatement(Of T As StatementNode)()
+            For Each Statement In Body
+                If Statement.DoContainsStatement(Of T) Then
+                    Return True
+                End If
+            Next
+            Return False
         End Function
 
     End Class

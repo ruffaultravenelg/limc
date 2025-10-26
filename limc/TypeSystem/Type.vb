@@ -1,15 +1,13 @@
-﻿Imports System.ComponentModel.Design
-
-Namespace TypeSystem
+﻿Namespace TypeSystem
 
     Public MustInherit Class Type
 
         Public Shared ReadOnly Property Int As IntType = New IntType()
 
         Public MustOverride ReadOnly Property cRepresentation As String
-        Public MustOverride Function DefaultValue(Scope As Scope) As String
+        Public MustOverride Function DefaultValue(Scope As Context.Scope) As String
 
-        Public Overridable Sub SetVariableValue(Scope As Scope, Variable As String, NewValue As String)
+        Public Overridable Sub SetVariableValue(Scope As Context.Scope, Variable As String, NewValue As String)
             Scope.WriteLine($"{Variable} = {NewValue};")
         End Sub
 

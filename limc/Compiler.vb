@@ -26,16 +26,16 @@ Public Module Compiler
         End If
 
         'Parse main file
-        Dim MainFile As SourceFile = SourceFile.FromFile(SourceFilepath)
+        Dim MainFile As Context.SourceFile = Context.SourceFile.FromFile(SourceFilepath)
 
         'Getting main function from MainFile will trigger lazy-compilation
-        Dim MainFunction As Lazy.Function = MainFile.FunctionRepository.FindProcedure("main", {})
+        Dim MainFunction As Lazy.Function = MainFile.FunctionRepository.RetrieveFunction("main")
         If MainFunction Is Nothing Then
             Throw New NotMainFunctionError(MainFile)
         End If
 
         'Assemble all sources
-        CodeGen.AssembleFile(Destination, MainFunction.CompiledFunctionName)
+        CodeGen.AssembleFile(Destination, MainFunction.FuncScope.CompiledName)
 
     End Sub
 

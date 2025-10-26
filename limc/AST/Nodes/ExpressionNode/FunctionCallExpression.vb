@@ -11,7 +11,7 @@
             Me.PassedArguments = PassedArguments
         End Sub
 
-        Public Overrides Function GetExpressionReturnType(Context As Context) As TypeSystem.Type
+        Public Overrides Function GetExpressionReturnType(Context As Context.Context) As TypeSystem.Type
 
             Dim FunctionType As TypeSystem.Type = Target.GetExpressionReturnType(Context)
             If TypeOf FunctionType IsNot TypeSystem.FunType Then
@@ -22,7 +22,7 @@
 
         End Function
 
-        Public Overrides Function CompileExpression(Scope As Scope) As String
+        Public Overrides Function CompileExpression(Scope As Context.Scope) As String
 
             Dim FunctionType As TypeSystem.Type = Target.GetExpressionReturnType(Scope)
             If TypeOf FunctionType IsNot TypeSystem.FunType Then

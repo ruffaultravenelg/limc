@@ -69,7 +69,7 @@ Namespace TypeSystem
         End Function
 
         Private MethodConstructor As String = ""
-        Public Function GetValueFromMethodNameAndInstance(Scope As Scope, MethodName As String, InstanceReference As String) As String
+        Public Function GetValueFromMethodNameAndInstance(Scope As Context.Scope, MethodName As String, InstanceReference As String) As String
 
             If MethodConstructor = "" Then
                 MethodConstructor = $"new_{cRepresentation}_method"
@@ -90,7 +90,7 @@ Namespace TypeSystem
 
 
         Private ExecuteFunctionName As String = ""
-        Public Function ExecuteFunction(Scope As Scope, ProcedureObject As String, Arguments As IEnumerable(Of ExpressionNode)) As String
+        Public Function ExecuteFunction(Scope As Context.Scope, ProcedureObject As String, Arguments As IEnumerable(Of ExpressionNode)) As String
 
             'Execute function generation
             If ExecuteFunctionName = "" Then
@@ -139,7 +139,7 @@ Namespace TypeSystem
 
         Public Overrides ReadOnly Property cRepresentation As String
 
-        Public Overrides Function DefaultValue(Scope As Scope) As String
+        Public Overrides Function DefaultValue(Scope As Context.Scope) As String
             Return "NULL"
         End Function
 

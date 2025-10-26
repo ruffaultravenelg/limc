@@ -19,7 +19,7 @@ Namespace CodeGen
             If VERBOSE AndAlso Not Comment = "" Then
                 Writer.Write("/* ")
                 Writer.Write(Comment)
-                Writer.Write(" /* ")
+                Writer.Write(" */ ")
             End If
             Writer.Write(Signature)
             Writer.WriteLine(";")

@@ -11,7 +11,7 @@
             Me.Type = Type
         End Sub
 
-        Public Overrides Function GetAssociatedType(Context As Context) As TypeSystem.Type
+        Public Overrides Function GetAssociatedType(Context As Context.Context) As TypeSystem.Type
             Throw New NotImplementedException()
         End Function
 

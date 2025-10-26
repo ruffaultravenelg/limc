@@ -1,5 +1,5 @@
 ﻿Public Structure Location
-    Public File As SourceFile
+    Public File As Context.SourceFile
 
     Public FromLineNumber As Integer
     Public FromCol As Integer
@@ -9,14 +9,14 @@
 
     '[FromCol; ToCol[
 
-    Public Sub New(File As SourceFile, FromLineNumber As Integer, FromCol As Integer, ToLineNumber As Integer, ToCol As Integer)
+    Public Sub New(File As Context.SourceFile, FromLineNumber As Integer, FromCol As Integer, ToLineNumber As Integer, ToCol As Integer)
         Me.File = File
         Me.FromLineNumber = FromLineNumber
         Me.FromCol = FromCol
         Me.ToLineNumber = ToLineNumber
         Me.ToCol = ToCol
     End Sub
-    Public Sub New(File As SourceFile, FromLineNumber As Integer, FromCol As Integer, ToCol As Integer)
+    Public Sub New(File As Context.SourceFile, FromLineNumber As Integer, FromCol As Integer, ToCol As Integer)
         Me.New(File, FromLineNumber, FromCol, FromLineNumber, ToCol)
     End Sub
 

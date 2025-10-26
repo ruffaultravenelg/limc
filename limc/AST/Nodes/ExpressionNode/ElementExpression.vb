@@ -10,18 +10,18 @@
             Me.ElementName = ElementName
         End Sub
 
-        Public Overrides Function GetExpressionReturnType(Context As Context) As TypeSystem.Type
+        Public Overrides Function GetExpressionReturnType(Context As Context.Context) As TypeSystem.Type
             Throw New NotImplementedException()
         End Function
 
-        Public Overrides Function CompileExpression(Scope As Scope) As String
+        Public Overrides Function CompileExpression(Scope As Context.Scope) As String
             Throw New NotImplementedException()
         End Function
 
-        Public Sub CompileAssignation(NewValue As ExpressionNode, Scope As Scope) Implements IAssignable.CompileAssignation
+        Public Sub CompileAssignation(NewValue As ExpressionNode, Scope As Context.Scope) Implements IAssignable.CompileAssignation
 
             'Search variable
-            Dim Variable As Context.VariableData = Scope.GetVariable(ElementName, Location)
+            Dim Variable As VariableData = Scope.GetVariable(ElementName, Location)
 
             'Check type error
             If Variable.Type <> NewValue.GetExpressionReturnType(Scope) Then

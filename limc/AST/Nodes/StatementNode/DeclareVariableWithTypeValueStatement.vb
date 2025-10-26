@@ -13,7 +13,7 @@
             Me.VariableValue = VariableValue
         End Sub
 
-        Public Overrides Sub Compile(Scope As Scope)
+        Public Overrides Sub Compile(Scope As Context.Scope)
 
             Dim WantedType As TypeSystem.Type = VariableType.GetAssociatedType(Scope)
             Dim ValueType As TypeSystem.Type = VariableValue.GetExpressionReturnType(Scope)
@@ -22,7 +22,7 @@
                 Throw New SyntaxError("Type mismatch in variable declaration. Expected " & WantedType.ToString() & " but got " & ValueType.ToString() & ".", VariableValue.Location)
             End If
 
-            Dim VariableInfo As Context.VariableData = Scope.CreateVariable(VariableName, WantedType, Location)
+            Dim VariableInfo As VariableData = Scope.CreateVariable(VariableName, WantedType, Location)
             Scope.WriteLine($"{WantedType.cRepresentation} {VariableInfo.CompiledName} = {VariableValue.CompileExpression(Scope)};")
 
         End Sub

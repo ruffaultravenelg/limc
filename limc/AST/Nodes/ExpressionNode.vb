@@ -6,8 +6,8 @@
             MyBase.New(Location)
         End Sub
 
-        Public MustOverride Function GetExpressionReturnType(Context As Context) As TypeSystem.Type
-        Public MustOverride Function CompileExpression(Scope As Scope) As String
+        Public MustOverride Function GetExpressionReturnType(Context As Context.Context) As TypeSystem.Type
+        Public MustOverride Function CompileExpression(Scope As Context.Scope) As String
 
     End Class
 End Namespace

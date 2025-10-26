@@ -7,18 +7,29 @@
         Me.Type = Type
         Me.Result = Result
     End Sub
-
     Public Enum MatchType
         MATCH_FUNCTION
         MATCH_VARIABLE
     End Enum
 
-    Public ReadOnly Property MatchingFunction As Lazy.Function
+
+    'Variable
+    Public Sub New(Element As VariableData)
+        Me.New(Element, MatchType.MATCH_VARIABLE)
+    End Sub
+    Public ReadOnly Property MatchingVariable As VariableData
         Get
             Return Result
         End Get
     End Property
-    Public ReadOnly Property MatchingVariable As Scope.VariableData
+
+
+    'Function
+    Public Sub New(Element As Lazy.Function)
+        Me.New(Element, MatchType.MATCH_FUNCTION)
+    End Sub
+
+    Public ReadOnly Property MatchingFunction As Lazy.Function
         Get
             Return Result
         End Get
