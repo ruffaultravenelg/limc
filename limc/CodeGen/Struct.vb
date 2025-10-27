@@ -32,7 +32,7 @@ Namespace CodeGen
             End If
             Writer.Write("typedef struct ")
             Writer.Write(Name)
-            Writer.Write("{")
+            Writer.WriteLine("{")
             For Each Field As String In Fields
                 Writer.WriteLine(vbTab & Field)
             Next

@@ -36,8 +36,8 @@
 
         Public Function TryGetVariable(Name As String) As VariableData
             Dim Results As IEnumerable(Of SearchMatch) =
-            RetrieveMatchingElements(Name) _
-            .Where(Function(e) e.Type = SearchMatch.MatchType.MATCH_VARIABLE)
+                RetrieveMatchingElements(Name) _
+                .Where(Function(e) e.Type = SearchMatch.MatchType.MATCH_VARIABLE)
 
             If Results.Count > 0 Then
                 Return Results(0).MatchingVariable
@@ -61,7 +61,14 @@
             Next
             Return Result
         End Function
-
+        Public Function RetrieveMatchingElement(Name As String, Location As Location) As SearchMatch
+            Dim Results As IEnumerable(Of SearchMatch) = RetrieveMatchingElements(Name)
+            If Results.Count > 0 Then
+                Return Results(0)
+            Else
+                Throw New UnknownOrUnreachableElementError(Name, Location)
+            End If
+        End Function
         Protected Overridable Function GetLocalMatchingElement(Name As String) As IEnumerable(Of SearchMatch)
             Return {}
         End Function

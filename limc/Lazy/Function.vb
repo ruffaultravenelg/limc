@@ -6,7 +6,11 @@
         Public ReadOnly Property ArgumentTypes As IEnumerable(Of TypeSystem.Type)
         Public ReadOnly Property ReturnType As TypeSystem.Type
             Get
-                Throw New NotImplementedException()
+                If Node.DoContainsStatement(Of AST.ReturnStatement) Then
+                    Return FuncScope.ReturnType
+                Else
+                    Return Nothing
+                End If
             End Get
         End Property
 

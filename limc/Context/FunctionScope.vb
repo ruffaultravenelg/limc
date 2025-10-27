@@ -1,29 +1,41 @@
-﻿Imports System.Text
-
-Namespace Context
+﻿Namespace Context
     Public Class FunctionScope
         Inherits Scope
 
-        Public ReadOnly Property CompiledName As String
+        Private ReadOnly ArgumentTypes As New List(Of TypeSystem.Type)
+        Private ReadOnly BodyScope As Scope
+        Public ReadOnly Property ReturnType As TypeSystem.Type
+            Get
+                If TypeOf BodyScope Is ReturnableScope Then
+                    Return DirectCast(BodyScope, ReturnableScope).ReturnType
+                Else
+                    Return Nothing
+                End If
+            End Get
+        End Property
+
+        Public ReadOnly GeneratedFunction As CodeGen.Function
 
         Public Sub New(Parent As Context, Node As AST.FunctionConstruct)
             MyBase.New(Parent, Node.Location)
-            CompiledName = CodeGen.Namer.Function(Node.Name)
 
             'Arguments
-            Dim ArgumentString As New StringBuilder
+            Dim Arguments As New List(Of Tuple(Of String, String))
             For Each Arg As AST.ArgumentNode In Node.Arguments
                 Dim Var As VariableData = CreateVariable(Arg.ArgumentName, Arg.ArgumentType.GetAssociatedType(Parent), Arg.Location)
-                If ArgumentString.Length > 0 Then
-                    ArgumentString.Append(", ")
-                End If
-                ArgumentString.Append(Var.Type.cRepresentation)
-                ArgumentString.Append(" "c)
-                ArgumentString.Append(Var.CompiledName)
+                Arguments.Add(New Tuple(Of String, String)(Var.CompiledName, Var.Type.cRepresentation))
+                ArgumentTypes.Add(Var.Type)
             Next
 
+            ' Register this function to final file
+            GeneratedFunction = New CodeGen.Function(
+                Node.Name, ' "myFunction"
+                CodeGen.Namer.Function(Node.Name), ' "ad_f"
+                Arguments ' { ("arg", "type"), ("arg2", "type2"), ... }
+            )
+            CodeGen.RegisterFunction(GeneratedFunction)
+
             'Compile body
-            Dim BodyScope As Scope
             Dim ContainsReturn As Boolean = Node.DoContainsStatement(Of AST.ReturnStatement)
             If ContainsReturn Then
                 BodyScope = New ReturnableScope(Me, Location)
@@ -34,23 +46,17 @@ Namespace Context
                 Statement.Compile(BodyScope)
             Next
 
-            'Create function signature : type name(type arg, ...)
-            Dim Signature As New StringBuilder
-            If ContainsReturn Then
-                Signature.Append(DirectCast(BodyScope, ReturnableScope).ReturnType.cRepresentation)
-            Else
-                Signature.Append("void")
-            End If
-            Signature.Append(" "c)
-            Signature.Append(CompiledName)
-            Signature.Append("("c)
-            Signature.Append(ArgumentString)
-            Signature.Append(")"c)
-
-            ' Register this function to final file
-            CodeGen.RegisterFunction(New CodeGen.Function(Signature.ToString(), BodyScope.GetLines(), Node.Name))
+            GeneratedFunction.SetReturnType(If(ReturnType Is Nothing, "void", DirectCast(BodyScope, ReturnableScope).ReturnType.cRepresentation))
+            GeneratedFunction.AppendBody(BodyScope.GetLines())
 
         End Sub
+
+        'Function type
+        Public ReadOnly Property AssociatedFunctionType As TypeSystem.FunType
+            Get
+                Return TypeSystem.FunType.From(ArgumentTypes, ReturnType)
+            End Get
+        End Property
 
     End Class
 

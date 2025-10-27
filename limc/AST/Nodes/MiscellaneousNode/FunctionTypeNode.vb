@@ -12,9 +12,11 @@
         End Sub
 
         Public Overrides Function GetAssociatedType(Context As Context.Context) As TypeSystem.Type
-            Throw New NotImplementedException()
+            Return TypeSystem.FunType.From(
+                FunctionArgumentTypes.Select(Function(a) a.GetAssociatedType(Context)),
+                If(FunctionReturnType Is Nothing, Nothing, FunctionReturnType.GetAssociatedType(Context))
+            )
         End Function
 
     End Class
-
 End Namespace

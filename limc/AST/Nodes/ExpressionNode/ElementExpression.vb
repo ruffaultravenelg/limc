@@ -11,11 +11,31 @@
         End Sub
 
         Public Overrides Function GetExpressionReturnType(Context As Context.Context) As TypeSystem.Type
-            Throw New NotImplementedException()
+
+            Dim Element As SearchMatch = Context.RetrieveMatchingElement(ElementName, Location)
+
+            If Element.Type = SearchMatch.MatchType.MATCH_VARIABLE Then
+                Return Element.MatchingVariable.Type
+            ElseIf Element.Type = SearchMatch.MatchType.MATCH_FUNCTION Then
+                Return Element.MatchingFunction.FuncScope.AssociatedFunctionType
+            Else
+                Throw New UnknownOrUnreachableElementError(ElementName, Location)
+            End If
+
         End Function
 
         Public Overrides Function CompileExpression(Scope As Context.Scope) As String
-            Throw New NotImplementedException()
+
+            Dim Element As SearchMatch = Scope.RetrieveMatchingElement(ElementName, Location)
+
+            If Element.Type = SearchMatch.MatchType.MATCH_VARIABLE Then
+                Return Element.MatchingVariable.CompiledName
+            ElseIf Element.Type = SearchMatch.MatchType.MATCH_FUNCTION Then
+                Return Element.MatchingFunction.FuncScope.AssociatedFunctionType.GetValueFromFunctionName(Element.MatchingFunction.FuncScope.GeneratedFunction.CompiledName)
+            Else
+                Throw New UnknownOrUnreachableElementError(ElementName, Location)
+            End If
+
         End Function
 
         Public Sub CompileAssignation(NewValue As ExpressionNode, Scope As Context.Scope) Implements IAssignable.CompileAssignation

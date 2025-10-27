@@ -3,8 +3,9 @@ Imports System.Text
 
 Public Module Compiler
 
-    Private ReadOnly TEMP_C_FILE As String = Path.Combine(Path.GetTempPath(), "limc", "source.c") '%temp%/limc/source.c
+    Public ReadOnly TEMP_C_FILE As String = Path.Combine(Path.GetTempPath(), "limc", "source.c") '%temp%/limc/source.c
     Public ReadOnly COMPILER_DIRECTORY As String = AppContext.BaseDirectory
+    Public ReadOnly CFilesToInclude As New List(Of String)
 
     ' Main compiling entry point
     Public Sub Compile(SourceFile As String, Destination As String)
@@ -35,7 +36,7 @@ Public Module Compiler
         End If
 
         'Assemble all sources
-        CodeGen.AssembleFile(Destination, MainFunction.FuncScope.CompiledName)
+        CodeGen.AssembleFile(Destination, MainFunction.FuncScope.GeneratedFunction)
 
     End Sub
 
@@ -72,6 +73,11 @@ Public Module Compiler
         Command.Append(""" """)
         Command.Append(Source)
         Command.Append("""")
+        For Each File As String In CFilesToInclude
+            Command.Append(" """)
+            Command.Append(File)
+            Command.Append("""")
+        Next
 
         Return Command.ToString()
 

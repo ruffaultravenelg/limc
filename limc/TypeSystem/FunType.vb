@@ -8,6 +8,7 @@ Namespace TypeSystem
 
         Private ArgumentTypes As IEnumerable(Of Type)
         Public ReadOnly ReturnType As Type
+        Private ReturnType_C As String
 
         Private FuncPtrType As String
         Private MethodPtrType As String
@@ -16,12 +17,13 @@ Namespace TypeSystem
 
             Me.ArgumentTypes = ArgumentTypes
             Me.ReturnType = ReturnType
+            ReturnType_C = If(ReturnType Is Nothing, "void", ReturnType.cRepresentation)
 
             'Create C struct
             Dim StructName As String = CodeGen.Namer.Struct(ToString())
             Dim Args As String = String.Join(", ", ArgumentTypes.Select(Function(T) T.cRepresentation))
-            FuncPtrType = $"{ReturnType.cRepresentation} (*func)({Args})"
-            MethodPtrType = $"{ReturnType.cRepresentation} (*method)(void*, {Args})"
+            FuncPtrType = $"{ReturnType_C} (*func)({Args})"
+            MethodPtrType = $"{ReturnType_C} (*method)(void*, {Args})"
             Dim Fields As New List(Of String) From {
                 $"union {{{FuncPtrType}; {MethodPtrType};}} u;",
                 "void* instance;"
@@ -53,7 +55,7 @@ Namespace TypeSystem
 
             If FunctionConstructor = "" Then
                 FunctionConstructor = $"new_{cRepresentation}_func"
-                CodeGen.RegisterFunction(New CodeGen.Function(
+                CodeGen.RegisterFunction(New CodeGen.BaseFunction(
                     $"{cRepresentation} {FunctionConstructor}({FuncPtrType})",
                     {
                         $"{cRepresentation} temp = LIM_ALLOC(sizeof({cRepresentation}));",
@@ -73,7 +75,7 @@ Namespace TypeSystem
 
             If MethodConstructor = "" Then
                 MethodConstructor = $"new_{cRepresentation}_method"
-                CodeGen.RegisterFunction(New CodeGen.Function(
+                CodeGen.RegisterFunction(New CodeGen.BaseFunction(
                     $"{cRepresentation} {MethodConstructor}({MethodPtrType}, void* instance)",
                     {
                         $"{cRepresentation} temp = LIM_ALLOC(sizeof({cRepresentation}));",
@@ -104,8 +106,8 @@ Namespace TypeSystem
                 If Args.StartsWith(", ") Then
                     Args = Args.Substring(2)
                 End If
-                CodeGen.RegisterFunction(New CodeGen.Function(
-                    $"{ReturnType.cRepresentation} {ExecuteFunctionName}({cRepresentation} procedure_object{ExecuteFunctionArguments})",
+                CodeGen.RegisterFunction(New CodeGen.BaseFunction(
+                    $"{ReturnType_C} {ExecuteFunctionName}({cRepresentation} procedure_object{ExecuteFunctionArguments})",
                     {
                         "if (procedure_object->instance == NULL)",
                         vbTab & "return procedure_object->u.func(" & Args & ");",
@@ -145,7 +147,7 @@ Namespace TypeSystem
 
         Public Overrides Function ToString() As String
             Dim ArgTypes As String = String.Join(", ", ArgumentTypes.Select(Function(T) T.ToString()))
-            Return $"fun<{ArgTypes}><{ReturnType}>"
+            Return $"fun<{ArgTypes}><{If(ReturnType Is Nothing, "", ReturnType.ToString())}>"
         End Function
 
     End Class

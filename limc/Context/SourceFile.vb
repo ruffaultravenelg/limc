@@ -75,6 +75,20 @@ Namespace Context
         '=====================
         Public Property FunctionRepository As FunctionRepository
 
+        '==========================
+        '===== SEARCH ELEMENT =====
+        '==========================
+        Protected Overrides Function GetLocalMatchingElement(Name As String) As IEnumerable(Of SearchMatch)
+            Dim Matchs As New List(Of SearchMatch)
+
+            Dim Func As Lazy.Function = FunctionRepository.RetrieveFunction(Name)
+            If Func IsNot Nothing Then
+                Matchs.Add(New SearchMatch(Func))
+            End If
+
+            Return Matchs
+        End Function
+
     End Class
 
 End Namespace

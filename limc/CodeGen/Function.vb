@@ -1,40 +1,56 @@
-﻿Imports System.IO
+﻿Imports System.Text
 
 Namespace CodeGen
     Public Class [Function]
+        Inherits BaseFunction
 
-        'TODO compile using VERBOSE or not
+        Private Shared FunctionId As Integer = -1
+        Public Shared ReadOnly FunctionNames As New List(Of String)
 
-        Private Signature As String
-        Private Body As IEnumerable(Of String)
-        Private Comment As String
+        Public ReadOnly Property CompiledName As String
+        Private Args As String
 
-        Public Sub New(Signature As String, Body As IEnumerable(Of String), Optional Comment As String = "")
-            Me.Signature = Signature
-            Me.Body = Body
-            Me.Comment = Comment
-        End Sub
+        Public Sub New(Name As String, CompiledName As String, Arguments As IEnumerable(Of Tuple(Of String, String)))
+            MyBase.New("", New List(Of String), Name)
+            FunctionId += 1
+            FunctionNames.Add("""" & Name & """")
+            Me.CompiledName = CompiledName
 
-        Public Sub WriteSignature(Writer As StreamWriter)
-            If VERBOSE AndAlso Not Comment = "" Then
-                Writer.Write("/* ")
-                Writer.Write(Comment)
-                Writer.Write(" */ ")
-            End If
-            Writer.Write(Signature)
-            Writer.WriteLine(";")
-        End Sub
-        Public Sub WriteBody(Writer As StreamWriter)
-
-            Writer.Write(Signature)
-            Writer.WriteLine("{")
-            For Each Line In Body
-                Writer.WriteLine(vbTab & Line)
+            ' Compile arguments
+            Dim Args As New StringBuilder
+            Args.Append(RuntimeContextStructName)
+            Args.Append(" _")
+            Args.Append(RuntimeContextVariableName)
+            For Each Arg In Arguments
+                Args.Append(", ")
+                Args.Append(Arg.Item2) 'Item2 = type
+                Args.Append(" "c)
+                Args.Append(Arg.Item1) 'Item1 = name
             Next
-            Writer.WriteLine("}")
-            Writer.WriteLine()
+            Me.Args = Args.ToString()
+
+            ' Create signature
+            MyBase.Signature = $"void {CompiledName}({Me.Args})" 'temp void return type in case SetReturnType is never called
+
+            ' Add context creation to body
+            DirectCast(MyBase.Body, List(Of String)).Add($"{RuntimeContextStructName} {RuntimeContextVariableName} = {{&_{RuntimeContextVariableName}, {FunctionId}, {RuntimeContextVariableName}.gc}};")
 
         End Sub
+
+        Public Sub AppendBody(Body As IEnumerable(Of String))
+            DirectCast(MyBase.Body, List(Of String)).AddRange(Body)
+        End Sub
+        Public Sub SetReturnType(ReturnType As String)
+            MyBase.Signature = $"{ReturnType} {CompiledName}({Args})"
+        End Sub
+
+        Public Function WriteCall(Args As IEnumerable(Of String)) As String
+            If Args.Count = 0 Then
+                Return $"{CompiledName}({RuntimeContextVariableName})"
+            Else
+                Return $"{CompiledName}({RuntimeContextVariableName}, {String.Join(", ", Args)})"
+            End If
+        End Function
 
     End Class
 End Namespace
