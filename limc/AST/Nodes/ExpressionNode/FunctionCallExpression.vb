@@ -29,7 +29,7 @@
                 Throw New TypeMismatchError("fun", FunctionType.ToString(), Location)
             End If
 
-            Return DirectCast(FunctionType, TypeSystem.FunType).ExecuteFunction(Scope, Target.CompileExpression(Scope), PassedArguments)
+            Return DirectCast(FunctionType, TypeSystem.FunType).ExecuteProcedure(Scope, Target.CompileExpression(Scope), PassedArguments)
 
         End Function
 

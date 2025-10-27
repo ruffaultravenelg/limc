@@ -36,6 +36,7 @@
             Get
                 If _FuncScope Is Nothing Then
                     _FuncScope = New Context.FunctionScope(Context, Node)
+                    _FuncScope.CompileBody()
                 End If
                 Return _FuncScope
             End Get

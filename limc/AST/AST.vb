@@ -204,7 +204,7 @@
                         CheckTokenType(TokenType.SYMBOL_RIGHT_PARENTHESIS, "A comma or a closing parenthesis was expected here.")
                     End If
                     Advance()
-                    Expression = New FunctionCallExpression(Expression, Arguments, RetrievePosition())
+                    Expression = New FunctionCallExpression(Expression, Arguments, Expression.Location + Tokens(TokenIndex - 1).Location)
 
                 Else
                     Exit While
@@ -221,7 +221,7 @@
         '======================
         '===== STATEMENTS =====
         '======================
-        Private ReadOnly StatementFunctions As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetSourceStatementNode, AddressOf GetVariableDeclaration, AddressOf GetAssignStatement} 'Assign should be at the end
+        Private ReadOnly StatementFunctions As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetSourceStatementNode, AddressOf GetVariableDeclaration, AddressOf GetProcedureCallStatement, AddressOf GetAssignStatement} 'Assign should be at the end
 
         Private Function GetBody(StatementIndentation As Integer) As IEnumerable(Of StatementNode)
             Dim Body As New List(Of StatementNode)
@@ -326,6 +326,18 @@
                 Return New VariableAssignationStatement(TargetVariable, NewValue, TargetVariable.Location + NewValue.Location)
             Else
                 Throw New SyntaxError("This expression is not a variable. No assignment possible.", TargetVariable.Location)
+            End If
+
+        End Function
+
+        Private Function GetProcedureCallStatement() As StatementNode
+
+            Dim expression As ExpressionNode = GetExpression()
+
+            If TypeOf expression Is FunctionCallExpression Then
+                Return New ProcedureCallStatement(expression)
+            Else
+                Throw New NotTheRightElementException()
             End If
 
         End Function

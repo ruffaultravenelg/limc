@@ -26,6 +26,12 @@ Namespace CodeGen
         End Sub
         Public Sub WriteBody(Writer As StreamWriter)
 
+            If VERBOSE AndAlso Not Comment = "" Then
+                Writer.Write("/* ")
+                Writer.Write(Comment)
+                Writer.WriteLine(" */")
+            End If
+
             Writer.Write(Signature)
             Writer.WriteLine("{")
             For Each Line In Body

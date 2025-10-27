@@ -33,7 +33,7 @@ Namespace CodeGen
             MyBase.Signature = $"void {CompiledName}({Me.Args})" 'temp void return type in case SetReturnType is never called
 
             ' Add context creation to body
-            DirectCast(MyBase.Body, List(Of String)).Add($"{RuntimeContextStructName} {RuntimeContextVariableName} = {{&_{RuntimeContextVariableName}, {FunctionId}, {RuntimeContextVariableName}.gc}};")
+            DirectCast(MyBase.Body, List(Of String)).Add($"{RuntimeContextStructName} {RuntimeContextVariableName} = {{&_{RuntimeContextVariableName}, {FunctionId}, _{RuntimeContextVariableName}.gc}};")
 
         End Sub
 

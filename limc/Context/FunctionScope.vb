@@ -15,11 +15,13 @@
         End Property
 
         Public ReadOnly GeneratedFunction As CodeGen.Function
+        Private Node As AST.FunctionConstruct
 
         Public Sub New(Parent As Context, Node As AST.FunctionConstruct)
             MyBase.New(Parent, Node.Location)
+            Me.Node = Node
 
-            'Arguments
+            ' Arguments
             Dim Arguments As New List(Of Tuple(Of String, String))
             For Each Arg As AST.ArgumentNode In Node.Arguments
                 Dim Var As VariableData = CreateVariable(Arg.ArgumentName, Arg.ArgumentType.GetAssociatedType(Parent), Arg.Location)
@@ -35,17 +37,25 @@
             )
             CodeGen.RegisterFunction(GeneratedFunction)
 
-            'Compile body
+            ' Create body scope
             Dim ContainsReturn As Boolean = Node.DoContainsStatement(Of AST.ReturnStatement)
             If ContainsReturn Then
                 BodyScope = New ReturnableScope(Me, Location)
             Else
                 BodyScope = New Scope(Me, Location)
             End If
+
+        End Sub
+
+        ' Compile body (for Lazy.Function)
+        Public Sub CompileBody()
+
+            'Compile to the body scope
             For Each Statement In Node.Body
                 Statement.Compile(BodyScope)
             Next
 
+            'Update the generated function
             GeneratedFunction.SetReturnType(If(ReturnType Is Nothing, "void", DirectCast(BodyScope, ReturnableScope).ReturnType.cRepresentation))
             GeneratedFunction.AppendBody(BodyScope.GetLines())
 
