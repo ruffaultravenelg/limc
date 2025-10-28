@@ -3,16 +3,20 @@
         Inherits ExpressionNode
         Implements IAssignable
 
-        Private ElementName As String
+        Protected ElementName As String
 
         Public Sub New(ElementName As String, Location As Location)
             MyBase.New(Location)
             Me.ElementName = ElementName
         End Sub
 
+        Protected Overridable Function GetMatch(Context As Context.Context) As SearchMatch
+            Return Context.RetrieveMatchingElement(ElementName, Location)
+        End Function
+
         Public Overrides Function GetExpressionReturnType(Context As Context.Context) As TypeSystem.Type
 
-            Dim Element As SearchMatch = Context.RetrieveMatchingElement(ElementName, Location)
+            Dim Element As SearchMatch = GetMatch(Context)
 
             If Element.Type = SearchMatch.MatchType.MATCH_VARIABLE Then
                 Return Element.MatchingVariable.Type
@@ -26,7 +30,7 @@
 
         Public Overrides Function CompileExpression(Scope As Context.Scope) As String
 
-            Dim Element As SearchMatch = Scope.RetrieveMatchingElement(ElementName, Location)
+            Dim Element As SearchMatch = GetMatch(Scope)
 
             If Element.Type = SearchMatch.MatchType.MATCH_VARIABLE Then
                 Return Element.MatchingVariable.CompiledName

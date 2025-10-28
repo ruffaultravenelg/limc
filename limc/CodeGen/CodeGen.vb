@@ -150,6 +150,7 @@ Namespace CodeGen
 
             Writer.WriteLine("int main(int argc, char** argv) {")
             Writer.WriteLine(vbTab & "tgc_t* gc = malloc(sizeof(tgc_t));")
+            Writer.WriteLine(vbTab & "if (gc == NULL) {printf(""LIM RUNTIME ERROR: not enought memory\n""); return -1;}")
             Writer.WriteLine(vbTab & "tgc_start(gc, &argc);")
             Writer.WriteLine(vbTab & $"{RuntimeContextStructName} {RuntimeContextVariableName} = {{NULL, 0, gc}};")
             Writer.WriteLine(vbTab & EntryPoint.WriteCall({}) & ";")
@@ -188,7 +189,7 @@ Namespace CodeGen
             RegisterGlobalVariable("static tgc_t gc;")
 
             RegisterMacro($"#define LIM_ALLOC(size) tgc_alloc({RuntimeContextVariableName}.gc, size);")
-            RegisterMacro("#define LIM_STANDALONE_ALLOC(gc, size) tgc_alloc(gc, size);")
+            RegisterMacro("#define LIM_ALLOC_STANDALONE(gc, size) tgc_alloc(gc, size);")
 
         End Sub
 

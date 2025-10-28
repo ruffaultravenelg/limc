@@ -198,6 +198,8 @@ Public Module Tokenizer
                         AddToken(TokenType.KEYWORD_IMPORT, Loc)
                     Case "use"
                         AddToken(TokenType.KEYWORD_USE, Loc)
+                    Case "as"
+                        AddToken(TokenType.KEYWORD_AS, Loc)
                     Case "export"
                         AddToken(TokenType.KEYWORD_EXPORT, Loc)
                     Case "func"
@@ -308,7 +310,15 @@ Public Module Tokenizer
                 Case ")"c
                     AddToken(TokenType.SYMBOL_RIGHT_PARENTHESIS, LocationFromChar())
                 Case ":"c
-                    AddToken(TokenType.SYMBOL_COLON, LocationFromChar())
+                    NextChar()
+                    Dim Loc As Location = LocationFromChar()
+                    If CurrentChar = ":"c Then
+                        Loc.ToCol += 1
+                        AddToken(TokenType.OP_MODULE_RESOLVER, Loc)
+                    Else
+                        Col -= 1
+                        AddToken(TokenType.SYMBOL_COLON, Loc)
+                    End If
                 Case "="c
                     AddToken(TokenType.SYMBOL_EQUAL, LocationFromChar())
                 Case Else

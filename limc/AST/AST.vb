@@ -1,4 +1,5 @@
 ﻿Imports System.Data.SqlTypes
+Imports System.Globalization
 
 Namespace AST
     Public Class AbstractSyntaxTree
@@ -8,6 +9,7 @@ Namespace AST
         '======================
         Public ReadOnly Property Functions As New List(Of FunctionConstruct)
         Public ReadOnly Property Include_Imports As New List(Of ImportNode)
+        Public ReadOnly Property Include_Uses As New List(Of UseNode)
 
 
         '==================
@@ -35,10 +37,17 @@ Namespace AST
 
         Private Sub CheckTokenType(TokenType As TokenType, Optional Message As String = "")
             If Not CurrentToken.Type = TokenType Then
-                If Message = "" Then
-                    Throw New UnexpectedTokenError(CurrentToken.Location, TokenType)
+                Dim Location As Location
+                If CurrentToken.Type = TokenType.LINESTART AndAlso TokenIndex - 1 >= 0 Then
+                    Location = New Location(Tokens(TokenIndex - 1).Location)
+                    Location.FromCol = Location.ToCol - 1
                 Else
-                    Throw New UnexpectedTokenError(CurrentToken.Location, Message)
+                    Location = CurrentToken.Location
+                End If
+                If Message = "" Then
+                    Throw New UnexpectedTokenError(Location, TokenType)
+                Else
+                    Throw New UnexpectedTokenError(Location, Message)
                 End If
             End If
         End Sub
@@ -149,6 +158,29 @@ Namespace AST
 
                 End If
 
+                'Check for use
+                If CurrentToken.Type = TokenType.KEYWORD_USE Then
+                    Advance()
+
+                    If CurrentToken.Type = TokenType.TEXT Then
+                        Include_Uses.Add(New UseLibNode(CurrentToken.Location, CurrentToken.Value))
+                        Advance()
+                        Continue While
+                    ElseIf CurrentToken.Type = TokenType.VAL_STRING Then
+                        Dim Filepath As String = CurrentToken.Value
+                        Advance()
+                        CheckTokenType(TokenType.KEYWORD_AS, $"Importing a file as a module requires adding a module name. The syntax is as follows:{Environment.NewLine}{vbTab}use ""other.lim"" as other.")
+                        Advance()
+                        CheckTokenType(TokenType.TEXT, $"Importing a file as a module requires adding a module name. The syntax is as follows:{Environment.NewLine}{vbTab}use ""other.lim"" as other.")
+                        Include_Uses.Add(New UsePathNode(StartLocation + CurrentToken.Location, Filepath, CurrentToken.Value))
+                        Advance()
+                        Continue While
+                    End If
+
+                    Throw New SyntaxError("An import must be followed by a path to a ""lim"" file or the name of a library.", CurrentToken.Location)
+
+                End If
+
                 ' Nothing found
                 Retreat()
                 Exit While
@@ -245,13 +277,22 @@ Namespace AST
                 Case TokenType.VAL_INT
                     Return New IntExpression(Tok.Value, Tok.Location)
                 Case TokenType.TEXT
-                    Return New ElementExpression(Tok.Value, Tok.Location)
+                    If CurrentToken.Type = TokenType.OP_MODULE_RESOLVER Then
+                        Advance()
+                        CheckTokenType(TokenType.TEXT, "The name of an element must follow the ""::"" operator. For example, ""math::min.""")
+                        Dim NameTok As Token = CurrentToken
+                        Advance()
+                        Return New ModuleResolverExpression(Tok.Value, NameTok.Value, Tok.Location + NameTok.Location)
+                    Else
+                        Return New ElementExpression(Tok.Value, Tok.Location)
+                    End If
             End Select
 
             'Error
             Throw New SyntaxError("A factor expression was expected here.", Tok.Location)
 
         End Function
+
         Private Function GetCallBracketChild() As ExpressionNode
 
             Dim Expression As ExpressionNode = GetFactor()

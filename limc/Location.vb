@@ -19,6 +19,9 @@
     Public Sub New(File As Context.SourceFile, FromLineNumber As Integer, FromCol As Integer, ToCol As Integer)
         Me.New(File, FromLineNumber, FromCol, FromLineNumber, ToCol)
     End Sub
+    Public Sub New(Location As Location)
+        Me.New(Location.File, Location.FromLineNumber, Location.FromCol, Location.ToLineNumber, Location.ToCol)
+    End Sub
 
     'Addition
     Public Shared Operator +(a As Location, b As Location)
