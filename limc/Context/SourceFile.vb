@@ -79,11 +79,20 @@ Namespace Context
         '===== SEARCH ELEMENT =====
         '==========================
         Protected Overrides Function GetLocalMatchingElement(Name As String) As IEnumerable(Of SearchMatch)
+            Return SearchMatchingElements(Name, False)
+        End Function
+        Private Function SearchMatchingElements(Name As String, FromOutside As Boolean) As IEnumerable(Of SearchMatch)
             Dim Matchs As New List(Of SearchMatch)
 
             Dim Func As Lazy.Function = FunctionRepository.RetrieveFunction(Name)
-            If Func IsNot Nothing Then
+            If Func IsNot Nothing AndAlso (Not FromOutside OrElse Func.Exported) Then
                 Matchs.Add(New SearchMatch(Func))
+            End If
+
+            If Not FromOutside Then
+                For Each Include In AST.Include_Imports
+                    Matchs.AddRange(Include.AssociatedFile.SearchMatchingElements(Name, True))
+                Next
             End If
 
             Return Matchs

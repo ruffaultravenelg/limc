@@ -134,7 +134,7 @@ Public Module Tokenizer
             NextChar()
             SaveCol()
             Dim Source As String = Line.Substring(Col, Line.Length - Col).Trim
-            Results.Add(New Token(TokenType.SOURCE_LINE, LocationFromSave(), Source))
+            Results.Add(New Token(TokenType.SOURCE_LINE, New Location(Tokenizer.Source, LineNumber, StartCol, Line.Length - Col), Source))
             Exit Sub
         End If
 
@@ -194,6 +194,12 @@ Public Module Tokenizer
                 Dim Loc As Location = LocationFromSave()
 
                 Select Case Text.ToLower()
+                    Case "import"
+                        AddToken(TokenType.KEYWORD_IMPORT, Loc)
+                    Case "use"
+                        AddToken(TokenType.KEYWORD_USE, Loc)
+                    Case "export"
+                        AddToken(TokenType.KEYWORD_EXPORT, Loc)
                     Case "func"
                         AddToken(TokenType.KEYWORD_FUNC, Loc)
                     Case "let"

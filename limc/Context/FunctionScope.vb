@@ -38,10 +38,17 @@
             CodeGen.RegisterFunction(GeneratedFunction)
 
             ' Create body scope
-            Dim ContainsReturn As Boolean = Node.DoContainsStatement(Of AST.ReturnStatement)
-            If ContainsReturn Then
+            If Node.ReturnType IsNot Nothing Then
+                ' A return type is explicitly defined
                 BodyScope = New ReturnableScope(Me, Location)
+                DirectCast(BodyScope, ReturnableScope).DefineReturnType(Node.ReturnType.GetAssociatedType(Parent), Me.Location)
+
+            ElseIf Node.DoContainsStatement(Of AST.ReturnStatement) Then
+                ' No explicit return type but the function body contains a "return" statement
+                BodyScope = New ReturnableScope(Me, Location)
+
             Else
+                'No return type
                 BodyScope = New Scope(Me, Location)
             End If
 

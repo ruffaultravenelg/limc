@@ -2,7 +2,7 @@
     Inherits LocatedError
 
     Public Sub New(Location As Location, Message As String)
-        MyBase.New("unexpected token", Message, Location)
+        MyBase.New("Unexpected token", Message, Location)
     End Sub
     Public Sub New(Location As Location, WantedTokenType As TokenType)
         Me.New(Location, GenerateMessageFromTokenType(WantedTokenType))

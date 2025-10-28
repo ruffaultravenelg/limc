@@ -6,11 +6,18 @@
         Public ReadOnly Property ArgumentTypes As IEnumerable(Of TypeSystem.Type)
         Public ReadOnly Property ReturnType As TypeSystem.Type
             Get
-                If Node.DoContainsStatement(Of AST.ReturnStatement) Then
+                If Node.ReturnType IsNot Nothing Then
+                    Return Node.ReturnType.GetAssociatedType(Context)
+                ElseIf Node.DoContainsStatement(Of AST.ReturnStatement) Then
                     Return FuncScope.ReturnType
                 Else
                     Return Nothing
                 End If
+            End Get
+        End Property
+        Public ReadOnly Property Exported As Boolean
+            Get
+                Return Node.Exported
             End Get
         End Property
 

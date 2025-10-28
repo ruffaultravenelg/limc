@@ -18,7 +18,12 @@
                 Throw New TypeMismatchError("fun", FunctionType.ToString(), Location)
             End If
 
-            Return DirectCast(FunctionType, TypeSystem.FunType).ReturnType
+            Dim FunctionReturnType As TypeSystem.Type = DirectCast(FunctionType, TypeSystem.FunType).ReturnType
+            If FunctionReturnType Is Nothing Then
+                Throw New SyntaxError($"The designated function is of type ""{FunctionType.ToString()}"" and does not return a value. However, this expression must return a value.", Target.Location)
+            End If
+
+            Return FunctionReturnType
 
         End Function
 

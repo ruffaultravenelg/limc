@@ -1,10 +1,14 @@
-﻿Namespace AST
+﻿Imports System.Data.SqlTypes
+
+Namespace AST
     Public Class AbstractSyntaxTree
 
         '======================
         '===== PROPERTIES =====
         '======================
         Public ReadOnly Property Functions As New List(Of FunctionConstruct)
+        Public ReadOnly Property Include_Imports As New List(Of ImportNode)
+
 
         '==================
         '===== TOKENS =====
@@ -58,12 +62,16 @@
         '=======================
         '===== CONSTRUCTOR =====
         '=======================
+        Private ReadOnly FileConstructs As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetFunctionConstructNode}
+
         Public Sub New(Tokens As IEnumerable(Of Token))
 
             If Tokens.Count < 2 Then
                 Exit Sub
             End If
             Me.Tokens = Tokens
+
+            HandleIncludes()
 
             While TokenIndex < Tokens.Count - 1
 
@@ -73,21 +81,79 @@
                     Throw New IndentationError(CurrentToken.Location, 0)
                 End If
                 Advance()
-                Dim LineStartIndex As Integer = TokenIndex
+
+                'Exported
+                Dim Exported As Boolean = False
+                If CurrentToken.Type = TokenType.KEYWORD_EXPORT Then
+                    Exported = True
+                    Advance()
+                End If
 
                 'Try parsing a function
-                Try
-                    Functions.Add(GetFunctionConstructNode())
-                    Continue While
-                Catch ex As NotTheRightElementException
-                    TokenIndex = LineStartIndex
-                End Try
+                Dim Construct As ConstructNode = Nothing
+                Dim LineStartIndex As Integer = TokenIndex
+                For Each GetConstruct In FileConstructs
+                    Try
+                        Construct = GetConstruct()
+                        Exit For
+                    Catch ex As NotTheRightElementException
+                        TokenIndex = LineStartIndex
+                    End Try
+                Next
 
-                'If we arrive there, we don't know what construct we have in front of us
-                Throw New UnexpectedTokenError(CurrentToken.Location, "A construct was expected there (function, structure, etc.).")
+                'We don't know what construct we have in front of us
+                If Construct Is Nothing Then
+                    Throw New UnexpectedTokenError(CurrentToken.Location, "A construct was expected there (function, structure, etc.).")
+                End If
+
+                'Set exported
+                Construct.SetExported(Exported)
+
+                'Explode to differents properties (weird i know but i mean it work well)
+                If TypeOf Construct Is FunctionConstruct Then
+                    Functions.Add(Construct)
+                Else
+                    Throw New InternalError()
+                End If
 
             End While
 
+        End Sub
+
+        '====================
+        '===== INCLUDES =====
+        '====================
+        Private Sub HandleIncludes()
+            While TokenIndex < Tokens.Count - 1
+
+                ' Check current line
+                CheckTokenType(TokenType.LINESTART)
+                Advance()
+                Dim StartLocation As Location = CurrentToken.Location
+
+                'Check for import
+                If CurrentToken.Type = TokenType.KEYWORD_IMPORT Then
+                    Advance()
+
+                    If CurrentToken.Type = TokenType.TEXT Then
+                        Include_Imports.Add(New ImportLibNode(CurrentToken.Location, CurrentToken.Value))
+                        Advance()
+                        Continue While
+                    ElseIf CurrentToken.Type = TokenType.VAL_STRING Then
+                        Include_Imports.Add(New ImportPathNode(CurrentToken.Location, CurrentToken.Value))
+                        Advance()
+                        Continue While
+                    End If
+
+                    Throw New SyntaxError("An import must be followed by a path to a ""lim"" file or the name of a library.", CurrentToken.Location)
+
+                End If
+
+                ' Nothing found
+                Retreat()
+                Exit While
+
+            End While
         End Sub
 
         '=========================
@@ -266,8 +332,9 @@
                 Throw New NotTheRightElementException()
             End If
 
-            Dim Node As New SourceStatement(CurrentToken.Value, CurrentToken.Location)
+            Dim Source As String = CurrentToken.Value
             Advance()
+            Dim Node As New SourceStatement(Source, Tokens(TokenIndex - 1).Location + CurrentToken.Location)
             Return Node
 
         End Function
@@ -345,6 +412,7 @@
         '======================
         '===== CONSTRUCTS =====
         '======================
+
         Private Function GetFunctionConstructNode() As FunctionConstruct
 
             If Not CurrentToken.Type = TokenType.KEYWORD_FUNC Then
