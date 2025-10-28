@@ -3,6 +3,7 @@
     Public MustInherit Class Type
 
         Public Shared ReadOnly Property Int As IntType = New IntType()
+        Public Shared ReadOnly Property Str As StrType = New StrType()
 
         Public MustOverride ReadOnly Property cRepresentation As String
         Public MustOverride Function DefaultValue(Scope As Context.Scope) As String

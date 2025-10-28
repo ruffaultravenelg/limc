@@ -1,5 +1,6 @@
 ﻿Imports System.Data.SqlTypes
 Imports System.Globalization
+Imports System.Threading
 
 Namespace AST
     Public Class AbstractSyntaxTree
@@ -274,8 +275,13 @@ Namespace AST
             Advance()
 
             Select Case Tok.Type
+
                 Case TokenType.VAL_INT
                     Return New IntExpression(Tok.Value, Tok.Location)
+
+                Case TokenType.VAL_STRING
+                    Return New StringExpression(Tok.Value, Tok.Location)
+
                 Case TokenType.TEXT
                     If CurrentToken.Type = TokenType.OP_MODULE_RESOLVER Then
                         Advance()
@@ -286,6 +292,7 @@ Namespace AST
                     Else
                         Return New ElementExpression(Tok.Value, Tok.Location)
                     End If
+
             End Select
 
             'Error

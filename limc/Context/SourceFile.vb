@@ -61,6 +61,7 @@ Namespace Context
 
             'Generate AST
             SourceInstance.AST = New AbstractSyntaxTree(Tokens)
+            SourceInstance.AST.Include_Imports.Add(New AST.ImportLibNode(New Location(SourceInstance, 0, 0, 0), "std")) 'Import std lib to every source file
 
             'Create function repository
             SourceInstance.FunctionRepository = New FunctionRepository(SourceInstance.AST.Functions, SourceInstance)

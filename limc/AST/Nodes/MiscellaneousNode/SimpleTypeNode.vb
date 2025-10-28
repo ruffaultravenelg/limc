@@ -15,9 +15,15 @@
 
             'Integrated type
             Select Case TypeName
+
                 Case "int"
                     NoGenericType("int")
                     Return TypeSystem.Type.Int
+
+                Case "str"
+                    NoGenericType("str")
+                    Return TypeSystem.Type.Str
+
             End Select
 
             'Search for generic types
