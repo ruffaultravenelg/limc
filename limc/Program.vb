@@ -1,6 +1,7 @@
 Module Program
 
     Public Property VERBOSE As Boolean = True
+    Public Property INTEGRATE_DEBUG As Boolean = True
 
     Sub Main(args As String())
 
