@@ -5,7 +5,7 @@ Namespace CodeGen
 
         Public Const RuntimeContextStructName As String = "CT_t"
         Public Const RuntimeContextVariableName As String = "c"
-        Private Const PANIC_FUNCTION_NAME As String = "lim_panic"
+        Public Const PANIC_FUNCTION_NAME As String = "lim_panic"
         Private Const PRINT_STACK_TRACE_FUNCTION_NAME As String = "lim_printStackTrace"
 
         Public ReadOnly Namer As NameGenerator = New NameGenerator()

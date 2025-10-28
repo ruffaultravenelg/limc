@@ -335,7 +335,7 @@ Namespace AST
         '======================
         '===== STATEMENTS =====
         '======================
-        Private ReadOnly StatementFunctions As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetSourceStatementNode, AddressOf GetVariableDeclaration, AddressOf GetProcedureCallStatement, AddressOf GetAssignStatement} 'Assign should be at the end
+        Private ReadOnly StatementFunctions As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetSourceStatementNode, AddressOf GetVariableDeclaration, AddressOf GetPanicStatement, AddressOf GetProcedureCallStatement, AddressOf GetAssignStatement} 'Assign should be at the end
 
         Private Function GetBody(StatementIndentation As Integer) As IEnumerable(Of StatementNode)
             Dim Body As New List(Of StatementNode)
@@ -454,6 +454,20 @@ Namespace AST
             Else
                 Throw New NotTheRightElementException()
             End If
+
+        End Function
+
+        Private Function GetPanicStatement() As StatementNode
+
+            If Not CurrentToken.Type = TokenType.KEYWORD_PANIC Then
+                Throw New NotTheRightElementException()
+            End If
+            PushPosition()
+            Advance()
+
+            Dim Message As ExpressionNode = GetExpression()
+
+            Return New PanicStatement(Message, RetrievePosition())
 
         End Function
 
