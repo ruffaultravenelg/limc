@@ -1,7 +1,7 @@
 ﻿Namespace AST
     Public Class ElementExpression
         Inherits ExpressionNode
-        Implements IAssignable
+        Implements IAssignable, IFunctionReference
 
         Protected ElementName As String
 
@@ -56,6 +56,18 @@
             Variable.Type.SetVariableValue(Scope, Variable.CompiledName, NewValue.CompileExpression(Scope))
 
         End Sub
+
+        ' If the first element is a functions, return it (called by FunctionCallExpression to avoid wrapping a function)
+        Public Function TryGetReferencedFunction(Context As Context.Context) As Lazy.Function Implements IFunctionReference.TryGetReferencedFunction
+
+            Dim Element As SearchMatch = GetMatch(Context)
+            If Element.Type = SearchMatch.MatchType.MATCH_FUNCTION Then
+                Return Element.MatchingFunction
+            Else
+                Return Nothing
+            End If
+
+        End Function
 
     End Class
 End Namespace

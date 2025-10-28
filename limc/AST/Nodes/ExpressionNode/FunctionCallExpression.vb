@@ -13,6 +13,15 @@
 
         Public Overrides Function GetExpressionReturnType(Context As Context.Context) As TypeSystem.Type
 
+            ' Direct reference
+            If TypeOf Target Is IFunctionReference Then
+                Dim Func As Lazy.Function = DirectCast(Target, IFunctionReference).TryGetReferencedFunction(Context)
+                If Func IsNot Nothing Then
+                    Return Func.ReturnType
+                End If
+            End If
+
+            ' Expression as a callable
             Dim FunctionType As TypeSystem.Type = Target.GetExpressionReturnType(Context)
             If TypeOf FunctionType IsNot TypeSystem.FunType Then
                 Throw New TypeMismatchError("fun", FunctionType.ToString(), Location)
@@ -29,6 +38,15 @@
 
         Public Overrides Function CompileExpression(Scope As Context.Scope) As String
 
+            ' Direct reference
+            If TypeOf Target Is IFunctionReference Then
+                Dim Func As Lazy.Function = DirectCast(Target, IFunctionReference).TryGetReferencedFunction(Scope)
+                If Func IsNot Nothing Then
+                    Return Func.FuncScope.CompileCall(PassedArguments, Scope)
+                End If
+            End If
+
+            ' Expression as a callable
             Dim FunctionType As TypeSystem.Type = Target.GetExpressionReturnType(Scope)
             If TypeOf FunctionType IsNot TypeSystem.FunType Then
                 Throw New TypeMismatchError("fun", FunctionType.ToString(), Location)
