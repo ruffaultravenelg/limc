@@ -22,9 +22,9 @@ Namespace CodeGen
 
             ' Compile arguments
             Dim Args As New StringBuilder
-            Args.Append(RuntimeContextStructName)
+            Args.Append(RUNTIME_CONTEXT_STRUCT_NAME)
             Args.Append(" "c)
-            Args.Append(RuntimeContextVariableName)
+            Args.Append(RUNTIME_CONTEXT_VARIABLE_NAME)
             For Each Arg In Arguments
                 Args.Append(", ")
                 Args.Append(Arg)
@@ -38,9 +38,9 @@ Namespace CodeGen
 
         Public Function WriteCall(Args As IEnumerable(Of String)) As String
             If Args.Count = 0 Then
-                Return $"{CompiledName}({RuntimeContextVariableName})"
+                Return $"{CompiledName}({RUNTIME_CONTEXT_VARIABLE_NAME})"
             Else
-                Return $"{CompiledName}({RuntimeContextVariableName}, {String.Join(", ", Args)})"
+                Return $"{CompiledName}({RUNTIME_CONTEXT_VARIABLE_NAME}, {String.Join(", ", Args)})"
             End If
         End Function
 

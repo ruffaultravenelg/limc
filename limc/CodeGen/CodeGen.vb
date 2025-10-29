@@ -3,12 +3,6 @@
 Namespace CodeGen
     Module Handler
 
-        Public Const RuntimeContextStructName As String = "CT_t"
-        Public Const RuntimeContextVariableName As String = "c"
-        Public Const PANIC_FUNCTION_NAME As String = "lim_panic"
-        Private Const PRINT_STACK_TRACE_FUNCTION_NAME As String = "lim_printStackTrace"
-        Public Const LIM_ALLOC As String = "LIM_ALLOC"
-
         Public ReadOnly Namer As NameGenerator = New NameGenerator()
 
         Private Includes As New List(Of String) From {"#include <stdio.h>", "#include <stdlib.h>", "#include <stdbool.h>", "#include <errno.h>"}
@@ -157,9 +151,9 @@ Namespace CodeGen
             Writer.WriteLine(vbTab & "if (gc == NULL) {printf(""LIM RUNTIME ERROR: not enought memory\n""); return -1;}")
             Writer.WriteLine(vbTab & "tgc_start(gc, &argc);")
             If INTEGRATE_DEBUG Then
-                Writer.WriteLine(vbTab & $"{RuntimeContextStructName} {RuntimeContextVariableName} = {{NULL, 0, gc}};")
+                Writer.WriteLine(vbTab & $"{RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME} = {{NULL, 0, gc}};")
             Else
-                Writer.WriteLine(vbTab & $"{RuntimeContextStructName} {RuntimeContextVariableName} = {{NULL, gc}};")
+                Writer.WriteLine(vbTab & $"{RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME} = {{NULL, gc}};")
             End If
             Writer.WriteLine(vbTab & EntryPoint.WriteCall({}) & ";")
             Writer.WriteLine(vbTab & "tgc_stop(gc);")
@@ -172,19 +166,19 @@ Namespace CodeGen
 
             If INTEGRATE_DEBUG Then
                 RegisterFunction(New BaseFunction(
-                    $"void {PANIC_FUNCTION_NAME}({RuntimeContextStructName} {RuntimeContextVariableName}, const char* message)",
+                    $"void {PANIC_FUNCTION_NAME}({RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME}, const char* message)",
                     {
                         "fprintf(stderr, ""\n\033[31m=== FATAL RUNTIME ERROR ===\033[0m\n"");",
                         "fprintf(stderr, ""%s\n\n"", message);",
                         "fprintf(stderr, ""---- Stacktrace ----\n"");",
-                        $"{PRINT_STACK_TRACE_FUNCTION_NAME}({RuntimeContextVariableName});",
+                        $"{PRINT_STACK_TRACE_FUNCTION_NAME}({RUNTIME_CONTEXT_VARIABLE_NAME});",
                         "exit(EXIT_FAILURE);"
                     },
                     "Panic to death"
                 ))
             Else
                 RegisterFunction(New BaseFunction(
-                    $"void {PANIC_FUNCTION_NAME}({RuntimeContextStructName} {RuntimeContextVariableName}, const char* message)",
+                    $"void {PANIC_FUNCTION_NAME}({RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME}, const char* message)",
                     {
                         "fprintf(stderr, ""\n\033[31m=== FATAL RUNTIME ERROR ===\033[0m\n"");",
                         "fprintf(stderr, ""%s\n"", message);",
@@ -196,18 +190,18 @@ Namespace CodeGen
 
         End Sub
         Public Function WritePanicCall(Value As String) As String
-            Return $"{PANIC_FUNCTION_NAME}({RuntimeContextVariableName}, {Value})"
+            Return $"{PANIC_FUNCTION_NAME}({RUNTIME_CONTEXT_VARIABLE_NAME}, {Value})"
         End Function
 
         Private Sub WriteContext()
 
             If INTEGRATE_DEBUG Then
-                RegisterStruct(New Struct(RuntimeContextStructName, {$"{RuntimeContextStructName}* upper;", "int functionId;", "tgc_t* gc;"}, "Function stack context"))
+                RegisterStruct(New Struct(RUNTIME_CONTEXT_STRUCT_NAME, {$"{RUNTIME_CONTEXT_STRUCT_NAME}* upper;", "int functionId;", "tgc_t* gc;"}, "Function stack context"))
                 RegisterGlobalVariable("static const char* functionNames[] = {" & String.Join(", ", [Function].FunctionNames) & "};")
                 RegisterFunction(New BaseFunction(
-                    $"void {PRINT_STACK_TRACE_FUNCTION_NAME}({RuntimeContextStructName} {RuntimeContextVariableName})",
+                    $"void {PRINT_STACK_TRACE_FUNCTION_NAME}({RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME})",
                     {
-                        $"{RuntimeContextStructName} ctx = {RuntimeContextVariableName};",
+                        $"{RUNTIME_CONTEXT_STRUCT_NAME} ctx = {RUNTIME_CONTEXT_VARIABLE_NAME};",
                         "int depth = 0;",
                         "while (ctx.upper != NULL){",
                         vbTab & "if (depth > 0){",
@@ -223,7 +217,7 @@ Namespace CodeGen
                     "Print function trace stack"
                 ))
             Else
-                RegisterStruct(New Struct(RuntimeContextStructName, {$"{RuntimeContextStructName}* upper;", "tgc_t* gc;"}, "Function stack context"))
+                RegisterStruct(New Struct(RUNTIME_CONTEXT_STRUCT_NAME, {$"{RUNTIME_CONTEXT_STRUCT_NAME}* upper;", "tgc_t* gc;"}, "Function stack context"))
             End If
 
         End Sub
@@ -233,7 +227,7 @@ Namespace CodeGen
             RegisterInclude("#include """ & Path.Combine(Compiler.COMPILER_DIRECTORY, "clibs", "tgc", "tgc.h") & """")
             Compiler.CFilesToInclude.Add(Path.Combine(Compiler.COMPILER_DIRECTORY, "clibs", "tgc", "tgc.c"))
 
-            RegisterMacro($"#define {LIM_ALLOC}(size) tgc_alloc({RuntimeContextVariableName}.gc, size);")
+            RegisterMacro($"#define {LIM_ALLOC}(size) tgc_alloc({RUNTIME_CONTEXT_VARIABLE_NAME}.gc, size);")
             RegisterMacro("#define LIM_ALLOC_STANDALONE(gc, size) tgc_alloc(gc, size);")
 
         End Sub

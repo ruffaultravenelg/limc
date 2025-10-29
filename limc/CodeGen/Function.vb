@@ -14,9 +14,9 @@ Namespace CodeGen
 
             ' Compile arguments
             Dim Args As New StringBuilder
-            Args.Append(RuntimeContextStructName)
+            Args.Append(RUNTIME_CONTEXT_STRUCT_NAME)
             Args.Append(" _")
-            Args.Append(RuntimeContextVariableName)
+            Args.Append(RUNTIME_CONTEXT_VARIABLE_NAME)
             For Each Arg In Arguments
                 Args.Append(", ")
                 Args.Append(Arg) 'type arg
@@ -25,9 +25,9 @@ Namespace CodeGen
 
             ' Add context creation to body
             If INTEGRATE_DEBUG Then
-                DirectCast(MyBase.Body, List(Of String)).Add($"{RuntimeContextStructName} {RuntimeContextVariableName} = {{&_{RuntimeContextVariableName}, {FunctionId}, _{RuntimeContextVariableName}.gc}};")
+                DirectCast(MyBase.Body, List(Of String)).Add($"{RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME} = {{&_{RUNTIME_CONTEXT_VARIABLE_NAME}, {FunctionId}, _{RUNTIME_CONTEXT_VARIABLE_NAME}.gc}};")
             Else
-                DirectCast(MyBase.Body, List(Of String)).Add($"{RuntimeContextStructName} {RuntimeContextVariableName} = {{&_{RuntimeContextVariableName}, _{RuntimeContextVariableName}.gc}};")
+                DirectCast(MyBase.Body, List(Of String)).Add($"{RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME} = {{&_{RUNTIME_CONTEXT_VARIABLE_NAME}, _{RUNTIME_CONTEXT_VARIABLE_NAME}.gc}};")
             End If
 
         End Sub

@@ -22,7 +22,7 @@ Namespace TypeSystem
 
             'Create C struct
             cStructName = CodeGen.Namer.Struct(ToString())
-            Dim Args As String = CodeGen.RuntimeContextStructName
+            Dim Args As String = RUNTIME_CONTEXT_STRUCT_NAME
             For Each Arg In ArgumentTypes
                 Args &= ", " & Arg.cRepresentation
             Next
@@ -105,7 +105,7 @@ Namespace TypeSystem
             'Execute function generation
             If ExecuteFunction Is Nothing Then
                 Dim ExecuteFunctionArguments As New List(Of String) From {$"{cRepresentation} procedure_object"}
-                Dim Args As String = CodeGen.RuntimeContextVariableName
+                Dim Args As String = RUNTIME_CONTEXT_VARIABLE_NAME
                 For I As Integer = 0 To ArgumentTypes.Count - 1
                     ExecuteFunctionArguments.Add(ArgumentTypes(I).cRepresentation & " arg" & I)
                     Args &= ", arg" & I

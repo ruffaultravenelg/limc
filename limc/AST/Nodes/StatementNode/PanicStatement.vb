@@ -13,7 +13,7 @@
             If Not Message.GetExpressionReturnType(Scope) = TypeSystem.Type.Str Then
                 Throw New TypeMismatchError(TypeSystem.Type.Str, Message.GetExpressionReturnType(Scope), Location)
             End If
-            Scope.WriteLine($"{CodeGen.PANIC_FUNCTION_NAME}({CodeGen.RuntimeContextVariableName}, {Message.CompileExpression(Scope)});")
+            Scope.WriteLine($"{PANIC_FUNCTION_NAME}({RUNTIME_CONTEXT_VARIABLE_NAME}, {Message.CompileExpression(Scope)});")
         End Sub
 
     End Class

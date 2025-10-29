@@ -2,8 +2,6 @@
     Public Class IntType
         Inherits Type
 
-        Const INT_TO_STR_BUFFERSIZE As String = "12"
-
         Public Overrides ReadOnly Property cRepresentation As String = "int"
 
         Public Overrides Function DefaultValue(Scope As Context.Scope) As String
@@ -33,7 +31,7 @@
                         {},
                         Type.Str,
                         {
-                            $"char* buffer = {CodeGen.LIM_ALLOC}({INT_TO_STR_BUFFERSIZE});",
+                            $"char* buffer = {LIM_ALLOC}({INT_TO_STR_BUFFERSIZE});",
                             $"sprintf(buffer, ""%d"", {Lazy.Method.METHOD_INSTANCE_ARGUMENT_NAME});",
                             "return buffer;"
                         }
