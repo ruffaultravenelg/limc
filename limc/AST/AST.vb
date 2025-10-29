@@ -1,8 +1,4 @@
-﻿Imports System.Data.SqlTypes
-Imports System.Globalization
-Imports System.Threading
-
-Namespace AST
+﻿Namespace AST
     Public Class AbstractSyntaxTree
 
         '======================
@@ -319,6 +315,13 @@ Namespace AST
                     End If
                     Advance()
                     Expression = New FunctionCallExpression(Expression, Arguments, Expression.Location + Tokens(TokenIndex - 1).Location)
+
+                ElseIf CurrentToken.Type = TokenType.SYMBOL_POINT Then
+
+                    Advance()
+                    CheckTokenType(TokenType.TEXT, "A dot must be followed by the name of an element or the value of an enumeration.")
+                    Expression = New AttributeExpression(Expression, CurrentToken.Value, Expression.Location + CurrentToken.Location)
+                    Advance()
 
                 Else
                     Exit While

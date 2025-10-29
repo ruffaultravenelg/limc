@@ -1,4 +1,5 @@
 ﻿Imports limc.AST
+Imports limc.Lazy
 
 Namespace TypeSystem
     Public Class FunType
@@ -153,6 +154,10 @@ Namespace TypeSystem
         Public Overrides Function ToString() As String
             Dim ArgTypes As String = String.Join(", ", ArgumentTypes.Select(Function(T) T.ToString()))
             Return $"fun<{ArgTypes}><{If(ReturnType Is Nothing, "", ReturnType.ToString())}>"
+        End Function
+
+        Public Overrides Function RetrieveElements(Name As String) As IEnumerable(Of SearchMatch)
+            Return {}
         End Function
 
     End Class

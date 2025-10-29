@@ -5,9 +5,19 @@ Namespace CodeGen
         Inherits BaseFunction
 
         Public ReadOnly Property CompiledName As String
+        Protected Args As String
+        Protected ReturnType As String
+
+        Protected Overrides ReadOnly Property Signature As String
+            Get
+                Return $"{ReturnType} {CompiledName}({Args})"
+            End Get
+        End Property
 
         Public Sub New(Arguments As IEnumerable(Of String), ReturnType As String, Body As IEnumerable(Of String), Comment As String)
             MyBase.New("", Body, Comment)
+
+            'Create compiledname
             CompiledName = Namer.Function(Comment)
 
             ' Compile arguments
@@ -19,9 +29,10 @@ Namespace CodeGen
                 Args.Append(", ")
                 Args.Append(Arg)
             Next
+            Me.Args = Args.ToString()
 
             ' Create signature
-            MyBase.Signature = $"{ReturnType} {CompiledName}({Args.ToString()})"
+            Me.ReturnType = ReturnType
 
         End Sub
 

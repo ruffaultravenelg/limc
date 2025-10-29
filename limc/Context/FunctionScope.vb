@@ -24,10 +24,10 @@ Namespace Context
             Me.Node = Node
 
             ' Arguments
-            Dim Arguments As New List(Of Tuple(Of String, String))
+            Dim Arguments As New List(Of String)
             For Each Arg As AST.ArgumentNode In Node.Arguments
                 Dim Var As VariableData = CreateVariable(Arg.ArgumentName, Arg.ArgumentType.GetAssociatedType(Parent), Arg.Location)
-                Arguments.Add(New Tuple(Of String, String)(Var.CompiledName, Var.Type.cRepresentation))
+                Arguments.Add($"{Var.Type.cRepresentation} {Var.CompiledName}")
                 ArgumentTypes.Add(Var.Type)
             Next
 

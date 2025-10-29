@@ -19,6 +19,13 @@
                 If Func IsNot Nothing Then
                     Return Func.ReturnType
                 End If
+
+            ElseIf TypeOf Target Is IMethodReference Then
+                Dim Meth As Lazy.Method = DirectCast(Target, IMethodReference).TryGetReferencedMethod(Context)
+                If Meth IsNot Nothing Then
+                    Return Meth.ReturnType
+                End If
+
             End If
 
             ' Expression as a callable
@@ -44,6 +51,13 @@
                 If Func IsNot Nothing Then
                     Return Func.FuncScope.CompileCall(PassedArguments, Scope)
                 End If
+
+            ElseIf TypeOf Target Is IMethodReference Then
+                Dim Meth As Lazy.Method = DirectCast(Target, IMethodReference).TryGetReferencedMethod(Scope)
+                If Meth IsNot Nothing Then
+                    Return Meth.CompileCall(DirectCast(Target, IMethodReference).GetInstanceExpression(), PassedArguments, Scope)
+                End If
+
             End If
 
             ' Expression as a callable

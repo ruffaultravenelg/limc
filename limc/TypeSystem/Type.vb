@@ -25,6 +25,8 @@
             Return Not a = b
         End Operator
 
+        Public MustOverride Function RetrieveElements(Name As String) As IEnumerable(Of SearchMatch)
+
     End Class
 
 End Namespace

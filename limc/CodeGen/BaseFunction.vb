@@ -5,7 +5,7 @@ Namespace CodeGen
 
         'TODO compile using VERBOSE or not
 
-        Protected Signature As String
+        Protected Overridable ReadOnly Property Signature As String
         Protected Body As IEnumerable(Of String)
         Protected Comment As String
 

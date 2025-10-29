@@ -10,6 +10,7 @@
     Public Enum MatchType
         MATCH_FUNCTION
         MATCH_VARIABLE
+        MATCH_METHOD
     End Enum
 
 
@@ -30,6 +31,16 @@
     End Sub
 
     Public ReadOnly Property MatchingFunction As Lazy.Function
+        Get
+            Return Result
+        End Get
+    End Property
+
+    'Method
+    Public Sub New(Element As Lazy.Method)
+        Me.New(Element, MatchType.MATCH_METHOD)
+    End Sub
+    Public ReadOnly Property MatchingMethod As Lazy.Method
         Get
             Return Result
         End Get

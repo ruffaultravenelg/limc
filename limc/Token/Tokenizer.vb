@@ -167,15 +167,31 @@ Public Module Tokenizer
                     NextChar()
                 End While
 
+                Dim AddDotToken As Boolean = False
+                Dim Loc As Location = LocationFromSave()
+                If Number.EndsWith(".") Then
+                    HasPoint = False
+                    Number = Number.Substring(0, Number.Length - 1)
+                    AddDotToken = True
+                    Loc.ToCol -= 1
+                End If
+
                 Try
                     If HasPoint Then
-                        AddToken(TokenType.VAL_FLOAT, Convert.ToDouble(Number.Replace(".", ",")), LocationFromSave())
+                        AddToken(TokenType.VAL_FLOAT, Convert.ToDouble(Number.Replace(".", ",")), Loc)
                     Else
-                        AddToken(TokenType.VAL_INT, Convert.ToInt32(Number), LocationFromSave())
+                        AddToken(TokenType.VAL_INT, Convert.ToInt32(Number), Loc)
                     End If
                 Catch ex As FormatException
-                    Throw New LocatedError("Invalid number", $"The number ""{Number}"" is not a valid one.", LocationFromSave())
+                    Throw New LocatedError("Invalid number", $"The number ""{Number}"" is not a valid one.", Loc)
                 End Try
+
+                If AddDotToken Then
+                    Dim DotLoc As Location = Loc
+                    DotLoc.FromCol = DotLoc.ToCol
+                    DotLoc.ToCol += 1
+                    AddToken(TokenType.SYMBOL_POINT, DotLoc)
+                End If
 
                 Continue While
 

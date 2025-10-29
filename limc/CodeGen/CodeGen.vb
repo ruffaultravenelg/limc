@@ -7,10 +7,11 @@ Namespace CodeGen
         Public Const RuntimeContextVariableName As String = "c"
         Public Const PANIC_FUNCTION_NAME As String = "lim_panic"
         Private Const PRINT_STACK_TRACE_FUNCTION_NAME As String = "lim_printStackTrace"
+        Public Const LIM_ALLOC As String = "LIM_ALLOC"
 
         Public ReadOnly Namer As NameGenerator = New NameGenerator()
 
-        Private Includes As New List(Of String) From {"#include <stdio.h>", "#include <stdlib.h>", "#include <stdbool.h>"}
+        Private Includes As New List(Of String) From {"#include <stdio.h>", "#include <stdlib.h>", "#include <stdbool.h>", "#include <errno.h>"}
         Private Macros As New List(Of String)
         Private Consts As New HashSet(Of String)
         Private GlobalVariables As New HashSet(Of String)
@@ -194,6 +195,9 @@ Namespace CodeGen
             End If
 
         End Sub
+        Public Function WritePanicCall(Value As String) As String
+            Return $"{PANIC_FUNCTION_NAME}({RuntimeContextVariableName}, {Value})"
+        End Function
 
         Private Sub WriteContext()
 
@@ -229,7 +233,7 @@ Namespace CodeGen
             RegisterInclude("#include """ & Path.Combine(Compiler.COMPILER_DIRECTORY, "clibs", "tgc", "tgc.h") & """")
             Compiler.CFilesToInclude.Add(Path.Combine(Compiler.COMPILER_DIRECTORY, "clibs", "tgc", "tgc.c"))
 
-            RegisterMacro($"#define LIM_ALLOC(size) tgc_alloc({RuntimeContextVariableName}.gc, size);")
+            RegisterMacro($"#define {LIM_ALLOC}(size) tgc_alloc({RuntimeContextVariableName}.gc, size);")
             RegisterMacro("#define LIM_ALLOC_STANDALONE(gc, size) tgc_alloc(gc, size);")
 
         End Sub
