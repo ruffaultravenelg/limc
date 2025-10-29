@@ -6,5 +6,6 @@
     Public Const PRINT_STACK_TRACE_FUNCTION_NAME As String = "lim_printStackTrace"
     Public Const LIM_ALLOC As String = "LIM_ALLOC"
     Public Const INT_TO_STR_BUFFERSIZE As String = "12"
+    Public Const GETS_BUFFER_SIZE As String = "100"
 
 End Module
