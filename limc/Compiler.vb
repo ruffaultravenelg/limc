@@ -36,7 +36,7 @@ Public Module Compiler
         End If
 
         'Assemble all sources
-        CodeGen.AssembleFile(Destination, MainFunction.FuncScope.GeneratedFunction)
+        CodeGen.AssembleFile(Destination, MainFunction.GeneratedFunction)
 
     End Sub
 

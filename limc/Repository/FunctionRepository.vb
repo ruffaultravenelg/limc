@@ -5,7 +5,7 @@
 
         Public Sub New(UncompiledFunctions As IEnumerable(Of AST.FunctionConstruct), CompilationContext As Context.Context)
             For Each UncompiledFunction In UncompiledFunctions
-                LazyFunctions.Add(New Lazy.Function(UncompiledFunction, CompilationContext))
+                LazyFunctions.Add(New Lazy.UserFunction(UncompiledFunction, CompilationContext))
             Next
         End Sub
 

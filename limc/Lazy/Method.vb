@@ -16,7 +16,7 @@ Namespace Lazy
             Me.ParentType = ParentType
         End Sub
 
-        ' Compiled
+        ' Generated function -> compilation
         Protected MustOverride Function CompileGeneratedFunction() As CodeGen.UtilFunction
         Private _GeneratedFunction As CodeGen.UtilFunction = Nothing
         Public ReadOnly Property GeneratedFunction As CodeGen.UtilFunction
@@ -26,6 +26,13 @@ Namespace Lazy
                     CodeGen.RegisterFunction(_GeneratedFunction)
                 End If
                 Return _GeneratedFunction
+            End Get
+        End Property
+
+        ' Associated function type
+        Public ReadOnly Property AssociatedFunctionType As TypeSystem.FunType
+            Get
+                Return TypeSystem.FunType.From(ArgumentTypes, ReturnType)
             End Get
         End Property
 
@@ -59,14 +66,6 @@ Namespace Lazy
             Return GeneratedFunction.WriteCall(CompiledArguments)
 
         End Function
-
-        ' Associated function type
-
-        Public ReadOnly Property AssociatedFunctionType As TypeSystem.FunType
-            Get
-                Return TypeSystem.FunType.From(ArgumentTypes, ReturnType)
-            End Get
-        End Property
 
     End Class
 End Namespace

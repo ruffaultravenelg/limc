@@ -21,7 +21,7 @@
             If Element.Type = SearchMatch.MatchType.MATCH_VARIABLE Then
                 Return Element.MatchingVariable.Type
             ElseIf Element.Type = SearchMatch.MatchType.MATCH_FUNCTION Then
-                Return Element.MatchingFunction.FuncScope.AssociatedFunctionType
+                Return Element.MatchingFunction.AssociatedFunctionType
             Else
                 Throw New UnknownOrUnreachableElementError(ElementName, Location)
             End If
@@ -35,7 +35,7 @@
             If Element.Type = SearchMatch.MatchType.MATCH_VARIABLE Then
                 Return Element.MatchingVariable.CompiledName
             ElseIf Element.Type = SearchMatch.MatchType.MATCH_FUNCTION Then
-                Return Element.MatchingFunction.FuncScope.AssociatedFunctionType.GetValueFromFunctionName(Element.MatchingFunction.FuncScope.GeneratedFunction.CompiledName)
+                Return Element.MatchingFunction.AssociatedFunctionType.GetValueFromFunctionName(Element.MatchingFunction.GeneratedFunction.CompiledName)
             Else
                 Throw New UnknownOrUnreachableElementError(ElementName, Location)
             End If

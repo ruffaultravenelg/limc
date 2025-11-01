@@ -49,7 +49,7 @@
             If TypeOf Target Is IFunctionReference Then
                 Dim Func As Lazy.Function = DirectCast(Target, IFunctionReference).TryGetReferencedFunction(Scope)
                 If Func IsNot Nothing Then
-                    Return Func.FuncScope.CompileCall(PassedArguments, Scope)
+                    Return Func.CompileCall(PassedArguments, Scope)
                 End If
 
             ElseIf TypeOf Target Is IMethodReference Then

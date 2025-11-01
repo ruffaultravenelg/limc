@@ -1,53 +1,47 @@
-﻿Namespace Lazy
-    Public Class [Function]
+﻿Imports limc.AST
+
+Namespace Lazy
+    Public MustInherit Class [Function]
 
         ' Main properties
-        Public ReadOnly Property Name As String
-        Public ReadOnly Property ArgumentTypes As IEnumerable(Of TypeSystem.Type)
-        Public ReadOnly Property ReturnType As TypeSystem.Type
+        Public MustOverride ReadOnly Property Name As String
+        Public MustOverride ReadOnly Property ArgumentTypes As IEnumerable(Of TypeSystem.Type)
+        Public MustOverride ReadOnly Property ReturnType As TypeSystem.Type
+        Public MustOverride ReadOnly Property Exported As Boolean
+
+        ' Compiled function
+        Public MustOverride ReadOnly Property GeneratedFunction As CodeGen.UtilFunction
+
+        ' AssociatedFunctionType
+        Public ReadOnly Property AssociatedFunctionType As TypeSystem.FunType
             Get
-                If Node.ReturnType IsNot Nothing Then
-                    Return Node.ReturnType.GetAssociatedType(Context)
-                ElseIf Node.DoContainsStatement(Of AST.ReturnStatement) Then
-                    Return FuncScope.ReturnType
-                Else
-                    Return Nothing
+                Return TypeSystem.FunType.From(ArgumentTypes, ReturnType)
+            End Get
+        End Property
+
+        ' Compile call
+        Public Function CompileCall(Arguments As IEnumerable(Of ExpressionNode), Scope As Context.Scope)
+
+            If Not Arguments.Count = ArgumentTypes.Count Then
+                Throw New InternalError()
+            End If
+
+            Dim CompiledArguments As New List(Of String)
+            For i As Integer = 0 To Arguments.Count - 1
+
+                ' Check if types are the same type
+                If Not Arguments(i).GetExpressionReturnType(Scope) = ArgumentTypes(i) Then
+                    Throw New TypeMismatchError(ArgumentTypes(i), Arguments(i).GetExpressionReturnType(Scope), Arguments(i).Location)
                 End If
-            End Get
-        End Property
-        Public ReadOnly Property Exported As Boolean
-            Get
-                Return Node.Exported
-            End Get
-        End Property
 
-        ' Not compiled
-        Private Node As AST.FunctionConstruct
-        Private Context As Context.Context
+                ' Compile
+                CompiledArguments.Add(Arguments(i).CompileExpression(Scope))
 
-        ' Constructor
-        Public Sub New(Node As AST.FunctionConstruct, Context As Context.Context)
-            Me.Node = Node
-            Name = Node.Name
-            Dim Arguments = New List(Of TypeSystem.Type)
-            For Each Arg In Node.Arguments
-                Arguments.Add(Arg.ArgumentType.GetAssociatedType(Context))
             Next
-            ArgumentTypes = Arguments
-            Me.Context = Context
-        End Sub
 
-        ' Compiled
-        Private _FuncScope As Context.FunctionScope = Nothing
-        Public ReadOnly Property FuncScope As Context.FunctionScope
-            Get
-                If _FuncScope Is Nothing Then
-                    _FuncScope = New Context.FunctionScope(Context, Node)
-                    _FuncScope.CompileBody()
-                End If
-                Return _FuncScope
-            End Get
-        End Property
+            Return GeneratedFunction.WriteCall(CompiledArguments)
+
+        End Function
 
     End Class
 End Namespace
