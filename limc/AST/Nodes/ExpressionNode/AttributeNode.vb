@@ -26,7 +26,7 @@
             Dim Element As SearchMatch = GetMatch(Context)
 
             If Element.Type = SearchMatch.MatchType.MATCH_METHOD Then
-                Return Element.MatchingMethod.ReturnType
+                Return Element.MatchingMethod.AssociatedFunctionType
             Else
                 Throw New UnknownOrUnreachableElementError(ElementName, Location)
             End If
@@ -37,9 +37,8 @@
 
             Dim Element As SearchMatch = GetMatch(Scope)
 
-            If Element.Type = SearchMatch.MatchType.MATCH_FUNCTION Then
-                Throw New NotImplementedException() ' TODO custom wrapper / unwrapping functions
-                'Return Element.MatchingMethod.AssociatedFunctionType.GetValueFromMethodNameAndInstance(Element.MatchingFunction.FuncScope.GeneratedFunction.CompiledName)
+            If Element.Type = SearchMatch.MatchType.MATCH_METHOD Then
+                Return Element.MatchingMethod.AssociatedFunctionType.GetValueFromMethodNameAndInstance(Scope, Element.MatchingMethod.GeneratedFunction.CompiledName, Parent.CompileExpression(Scope), Parent.GetExpressionReturnType(Scope))
             Else
                 Throw New UnknownOrUnreachableElementError(ElementName, Location)
             End If

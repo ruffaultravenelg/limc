@@ -1,5 +1,4 @@
 ﻿Imports limc.AST
-Imports limc.Lazy
 
 Namespace TypeSystem
     Public Class FunType
@@ -22,12 +21,12 @@ Namespace TypeSystem
 
             'Create C struct
             cStructName = CodeGen.Namer.Struct(ToString())
-            Dim Args As String = RUNTIME_CONTEXT_STRUCT_NAME
+            Dim Args As String = ""
             For Each Arg In ArgumentTypes
                 Args &= ", " & Arg.cRepresentation
             Next
-            FuncPtrType = $"{ReturnType_C} (*func)({Args})"
-            MethodPtrType = $"{ReturnType_C} (*method)(void*, {Args})"
+            FuncPtrType = $"{ReturnType_C} (*func)({RUNTIME_CONTEXT_STRUCT_NAME}{Args})"
+            MethodPtrType = $"{ReturnType_C} (*method)({RUNTIME_CONTEXT_STRUCT_NAME}, void*{Args})"
             Dim Fields As New List(Of String) From {
                 $"union {{{FuncPtrType}; {MethodPtrType};}} u;",
                 "void* instance;"
@@ -76,27 +75,57 @@ Namespace TypeSystem
 
         End Function
 
-        Private ConstructorFromMethod As CodeGen.UtilFunction = Nothing
-        Public Function GetValueFromMethodNameAndInstance(Scope As Context.Scope, MethodName As String, InstanceReference As String) As String
 
-            If ConstructorFromMethod Is Nothing Then
-                ConstructorFromMethod = New CodeGen.UtilFunction(
-                    {MethodPtrType, "void* instance"},
+
+
+        Private ConstructorsFromMethod As New Dictionary(Of String, CodeGen.UtilFunction)
+        Public Function GetValueFromMethodNameAndInstance(Scope As Context.Scope, MethodName As String, InstanceReference As String, InstanceType As TypeSystem.Type) As String
+
+            If Not ConstructorsFromMethod.ContainsKey(MethodName) Then
+
+                Dim UnwrapFunctionArgs As New List(Of String) From {$"void* instance_ptr"}
+                Dim Args As String = RUNTIME_CONTEXT_VARIABLE_NAME & ", instance"
+                For I As Integer = 0 To ArgumentTypes.Count - 1
+                    UnwrapFunctionArgs.Add(ArgumentTypes(I).cRepresentation & " arg" & I)
+                    Args &= ", arg" & I
+                Next
+
+                Dim UnwrapFunction As New CodeGen.UtilFunction(
+                    UnwrapFunctionArgs,
+                    ReturnType_C,
+                    {
+                        $"{InstanceType.cRepresentation} instance = *(({InstanceType.cRepresentation}*)instance_ptr);",
+                        $"return {MethodName}({Args});"
+                    },
+                    $"unwrap and execute {InstanceType.ToString()}.{ToString()} to {MethodName}"
+                )
+
+                Dim Wrapper As New CodeGen.UtilFunction(
+                    {$"{InstanceType.cRepresentation} instance"},
                     cRepresentation,
                     {
+                        $"{InstanceType}* instance_ptr = LIM_ALLOC(sizeof({InstanceType.cRepresentation}));",
+                        $"*instance_ptr = instance;",
                         $"{cRepresentation} temp = LIM_ALLOC(sizeof({cStructName}));",
-                        "temp->u.method = method;",
-                        "temp->instance = instance;",
+                        $"temp->u.method = {UnwrapFunction.CompiledName};",
+                        "temp->instance = (void*)instance_ptr;",
                         "return temp;"
                     },
-                    $"new {ToString()} (from instance)"
+                    $"new {InstanceType.ToString()}.{ToString()} to {MethodName}"
                 )
-                CodeGen.RegisterFunction(ConstructorFromMethod)
+
+                ConstructorsFromMethod(MethodName) = Wrapper
+
+                CodeGen.RegisterFunction(UnwrapFunction)
+                CodeGen.RegisterFunction(Wrapper)
+
             End If
 
-            Return ConstructorFromMethod.WriteCall({MethodName, $"(void*)({InstanceReference})"})
+            Return ConstructorsFromMethod(MethodName).WriteCall({InstanceReference})
 
         End Function
+
+
 
 
         Private ExecuteFunction As CodeGen.UtilFunction = Nothing
@@ -105,7 +134,7 @@ Namespace TypeSystem
             'Execute function generation
             If ExecuteFunction Is Nothing Then
                 Dim ExecuteFunctionArguments As New List(Of String) From {$"{cRepresentation} procedure_object"}
-                Dim Args As String = RUNTIME_CONTEXT_VARIABLE_NAME
+                Dim Args As String = ""
                 For I As Integer = 0 To ArgumentTypes.Count - 1
                     ExecuteFunctionArguments.Add(ArgumentTypes(I).cRepresentation & " arg" & I)
                     Args &= ", arg" & I
@@ -115,9 +144,9 @@ Namespace TypeSystem
                     ReturnType_C,
                     {
                         "if (procedure_object->instance == NULL) {",
-                        vbTab & "return procedure_object->u.func(" & Args & ");",
+                        vbTab & $"return procedure_object->u.func({RUNTIME_CONTEXT_VARIABLE_NAME}{Args});",
                         "} else {",
-                        vbTab & "return procedure_object->u.method(procedure_object->instance, " & Args & ");",
+                        vbTab & $"return procedure_object->u.method({RUNTIME_CONTEXT_VARIABLE_NAME}, procedure_object->instance{Args});",
                         "}"
                     },
                     $"execute {ToString()}"
