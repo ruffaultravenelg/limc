@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "limc": {
+      "commandName": "Project",
+      "commandLineArgs": "test.lim prog -vb",
+      "workingDirectory": "../debug"
+    }
+  }
+}

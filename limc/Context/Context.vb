@@ -1,0 +1,78 @@
+﻿Namespace Context
+    Public Class Context
+
+        Public ReadOnly Property Parent As Context
+
+        Public Sub New(Parent As Context)
+            Me.Parent = Parent
+        End Sub
+
+        Public ReadOnly Iterator Property AllParents As IEnumerable(Of Context)
+            Get
+                Dim Current As Context = Me
+                While Current IsNot Nothing
+                    Yield Current
+                    Current = Current.Parent
+                End While
+            End Get
+        End Property
+
+        Public Function HasParent(Of T As Context)() As Boolean
+            For Each Ctx As Context In AllParents
+                If TypeOf Ctx Is T Then
+                    Return True
+                End If
+            Next
+            Return False
+        End Function
+        Public Function GetParent(Of T As Context)() As T
+            For Each Ctx As Context In AllParents
+                If TypeOf Ctx Is T Then
+                    Return Ctx
+                End If
+            Next
+            Return Nothing
+        End Function
+
+        Public Function TryGetVariable(Name As String) As VariableData
+            Dim Results As IEnumerable(Of SearchMatch) =
+                RetrieveMatchingElements(Name) _
+                .Where(Function(e) e.Type = SearchMatch.MatchType.MATCH_VARIABLE)
+
+            If Results.Count > 0 Then
+                Return Results(0).MatchingVariable
+            Else
+                Return Nothing
+            End If
+        End Function
+        Public Function GetVariable(Name As String, Location As Location) As VariableData
+            Dim VarData As VariableData = TryGetVariable(Name)
+            If VarData Is Nothing Then
+                Throw New SyntaxError($"Variable not found: {Name}", Location)
+            End If
+            Return VarData
+        End Function
+
+        'Get all name matching element from lower to upper context
+        Public Function RetrieveMatchingElements(Name As String) As IEnumerable(Of SearchMatch)
+            Dim Result As New List(Of SearchMatch)
+            For Each Ctx As Context In AllParents
+                Result.AddRange(Ctx.GetLocalMatchingElement(Name))
+            Next
+            Return Result
+        End Function
+        Public Function RetrieveMatchingElement(Name As String, Location As Location) As SearchMatch
+            Dim Results As IEnumerable(Of SearchMatch) = RetrieveMatchingElements(Name)
+            If Results.Count > 0 Then
+                Return Results(0)
+            Else
+                Throw New UnknownOrUnreachableElementError(Name, Location)
+            End If
+        End Function
+        Protected Overridable Function GetLocalMatchingElement(Name As String) As IEnumerable(Of SearchMatch)
+            Return {}
+        End Function
+
+    End Class
+
+End Namespace
