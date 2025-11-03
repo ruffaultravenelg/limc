@@ -11,6 +11,7 @@
         MATCH_FUNCTION
         MATCH_VARIABLE
         MATCH_METHOD
+        MATCH_CONSTANT
     End Enum
 
 
@@ -23,7 +24,6 @@
             Return Result
         End Get
     End Property
-
 
     'Function
     Public Sub New(Element As Lazy.Function)
@@ -41,6 +41,16 @@
         Me.New(Element, MatchType.MATCH_METHOD)
     End Sub
     Public ReadOnly Property MatchingMethod As Lazy.Method
+        Get
+            Return Result
+        End Get
+    End Property
+
+    'Constant
+    Public Sub New(Element As ConstantData)
+        Me.New(Element, MatchType.MATCH_CONSTANT)
+    End Sub
+    Public ReadOnly Property MatchingConstant As ConstantData
         Get
             Return Result
         End Get

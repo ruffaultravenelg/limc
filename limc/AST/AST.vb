@@ -338,7 +338,7 @@
         '======================
         '===== STATEMENTS =====
         '======================
-        Private ReadOnly StatementFunctions As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetSourceStatementNode, AddressOf GetVariableDeclaration, AddressOf GetPanicStatement, AddressOf GetProcedureCallStatement, AddressOf GetAssignStatement} 'Assign should be at the end
+        Private ReadOnly StatementFunctions As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetSourceStatementNode, AddressOf GetVariableDeclaration, AddressOf GetConstantDeclaration, AddressOf GetPanicStatement, AddressOf GetProcedureCallStatement, AddressOf GetAssignStatement} 'Assign should be at the end
 
         Private Function GetBody(StatementIndentation As Integer) As IEnumerable(Of StatementNode)
             Dim Body As New List(Of StatementNode)
@@ -432,6 +432,48 @@
 
         End Function
 
+        Private Function GetConstantDeclaration() As StatementNode
+
+            If Not CurrentToken.Type = TokenType.KEYWORD_CONST Then
+                Throw New NotTheRightElementException()
+            End If
+            PushPosition()
+            Advance()
+
+            'Get name
+            CheckTokenType(TokenType.TEXT, "A constant name was expected here.")
+            Dim ConstantName As String = CurrentToken.Value
+            Advance()
+
+            'Get type
+            Dim ConstantType As TypeNode = Nothing
+            If CurrentToken.Type = TokenType.SYMBOL_COLON Then
+                Advance()
+                ConstantType = GetTypeNode()
+            End If
+
+            'Get value
+            Dim ConstantValue As ExpressionNode = Nothing
+            If CurrentToken.Type = TokenType.SYMBOL_EQUAL Then
+                Advance()
+                ConstantValue = GetExpression()
+            End If
+
+            'Create node
+            If ConstantType IsNot Nothing AndAlso ConstantValue Is Nothing Then
+                Return New DeclareConstantWithTypeStatement(ConstantName, ConstantType, RetrievePosition())
+            ElseIf ConstantType Is Nothing AndAlso ConstantValue IsNot Nothing Then
+                'Value
+                Return New DeclareConstantWithValueStatement(ConstantName, ConstantValue, RetrievePosition())
+            ElseIf ConstantType IsNot Nothing AndAlso ConstantValue IsNot Nothing Then
+                'Type
+                Return New DeclareVariableWithTypeValueStatement(ConstantName, ConstantType, ConstantValue, RetrievePosition())
+            Else
+                Throw New SyntaxError("A variable declaration must contains at least the type of the variable or a default value.", RetrievePosition())
+            End If
+
+        End Function
+
         Private Function GetAssignStatement() As StatementNode
 
             Dim TargetVariable As ExpressionNode = GetExpression()
@@ -450,10 +492,10 @@
 
         Private Function GetProcedureCallStatement() As StatementNode
 
-            Dim expression As ExpressionNode = GetExpression()
+            Dim Expression As ExpressionNode = GetExpression()
 
-            If TypeOf expression Is FunctionCallExpression Then
-                Return New ProcedureCallStatement(expression)
+            If TypeOf Expression Is FunctionCallExpression Then
+                Return New ProcedureCallStatement(Expression)
             Else
                 Throw New NotTheRightElementException()
             End If

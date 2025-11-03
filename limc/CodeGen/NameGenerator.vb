@@ -13,6 +13,9 @@
         Public Overridable Function [Struct](Optional Info As String = "") As String
             Return GenerateName() & "_t"
         End Function
+        Public Overridable Function Constant(Optional Info As String = "") As String
+            Return GenerateName() & "_c"
+        End Function
 
         '============================
         '===== SIMPLE GENERATOR =====

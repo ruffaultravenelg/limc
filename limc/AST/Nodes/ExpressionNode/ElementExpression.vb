@@ -20,6 +20,8 @@
 
             If Element.Type = SearchMatch.MatchType.MATCH_VARIABLE Then
                 Return Element.MatchingVariable.Type
+            ElseIf Element.Type = SearchMatch.MatchType.MATCH_CONSTANT Then
+                Return Element.MatchingConstant.Type
             ElseIf Element.Type = SearchMatch.MatchType.MATCH_FUNCTION Then
                 Return Element.MatchingFunction.AssociatedFunctionType
             Else
@@ -34,6 +36,8 @@
 
             If Element.Type = SearchMatch.MatchType.MATCH_VARIABLE Then
                 Return Element.MatchingVariable.CompiledName
+            ElseIf Element.Type = SearchMatch.MatchType.MATCH_CONSTANT Then
+                Return Element.MatchingConstant.CompiledName
             ElseIf Element.Type = SearchMatch.MatchType.MATCH_FUNCTION Then
                 Return Element.MatchingFunction.AssociatedFunctionType.GetValueFromFunctionName(Element.MatchingFunction.GeneratedFunction.CompiledName)
             Else

@@ -222,6 +222,8 @@ Public Module Tokenizer
                         AddToken(TokenType.KEYWORD_FUNC, Loc)
                     Case "let"
                         AddToken(TokenType.KEYWORD_LET, Loc)
+                    Case "const"
+                        AddToken(TokenType.KEYWORD_CONST, Loc)
                     Case "true"
                         AddToken(TokenType.VAL_BOOL, True, Loc)
                     Case "false"
