@@ -4,6 +4,7 @@ Imports System.Text
 Namespace AST
     Public Class StringExpression
         Inherits ExpressionNode
+        Implements IConstantExpression
 
         Private Value As String
         Public Sub New(Value As String, Location As Location)

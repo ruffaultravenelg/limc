@@ -1,6 +1,7 @@
 ﻿Namespace AST
     Public Class IntExpression
         Inherits ExpressionNode
+        Implements IConstantExpression
 
         Private Value As Integer
         Public Sub New(Value As Integer, Location As Location)

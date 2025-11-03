@@ -66,6 +66,11 @@ Namespace Context
             'Create function repository
             SourceInstance.FunctionRepository = New FunctionRepository(SourceInstance.AST.Functions, SourceInstance)
 
+            'Compile constants
+            For Each ConstantsConstruct In SourceInstance.AST.Constants
+                ConstantsConstruct.Compile(SourceInstance.ConstantStore)
+            Next
+
             'Return object instance
             Return SourceInstance
 
@@ -75,6 +80,11 @@ Namespace Context
         '===== FUNCTIONS =====
         '=====================
         Public Property FunctionRepository As FunctionRepository
+
+        '=====================
+        '===== CONSTANTS =====
+        '=====================
+        Private ConstantStore As New Dictionary(Of String, DeclareConstantWithValueConstruct)
 
         '==========================
         '===== SEARCH ELEMENT =====
@@ -88,6 +98,10 @@ Namespace Context
             Dim Func As Lazy.Function = FunctionRepository.RetrieveFunction(Name)
             If Func IsNot Nothing AndAlso (Not FromOutside OrElse Func.Exported) Then
                 Matchs.Add(New SearchMatch(Func))
+            End If
+
+            If ConstantStore.ContainsKey(Name) AndAlso (Not FromOutside OrElse ConstantStore(Name).Exported) Then
+                Matchs.Add(New SearchMatch(ConstantStore(Name).Data))
             End If
 
             If Not FromOutside Then

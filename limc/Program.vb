@@ -2,7 +2,7 @@ Module Program
 
     Private Const LIMC_VERSION As String = "1.0.0"
 
-    Public Property VERBOSE As Boolean = True
+    Public Property VERBOSE As Boolean = False
     Public Property INTEGRATE_DEBUG As Boolean = True
 
     Sub Main(args As String())

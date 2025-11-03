@@ -5,6 +5,7 @@
         '===== PROPERTIES =====
         '======================
         Public ReadOnly Property Functions As New List(Of FunctionConstruct)
+        Public ReadOnly Property Constants As New List(Of DeclareConstantWithValueConstruct)
         Public ReadOnly Property Include_Imports As New List(Of ImportNode)
         Public ReadOnly Property Include_Uses As New List(Of UseNode)
 
@@ -68,7 +69,7 @@
         '=======================
         '===== CONSTRUCTOR =====
         '=======================
-        Private ReadOnly FileConstructs As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetFunctionConstructNode}
+        Private ReadOnly FileConstructs As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetFunctionConstructNode, AddressOf GetConstantConstructNode}
 
         Public Sub New(Tokens As IEnumerable(Of Token))
 
@@ -118,6 +119,8 @@
                 'Explode to differents properties (weird i know but i mean it work well)
                 If TypeOf Construct Is FunctionConstruct Then
                     Functions.Add(Construct)
+                ElseIf TypeOf Construct Is DeclareConstantWithValueConstruct Then
+                    Constants.Add(Construct)
                 Else
                     Throw New InternalError()
                 End If
@@ -560,6 +563,36 @@
 
             'Return node
             Return New FunctionConstruct(FunctionName, Arguments, ReturnType, Body, RetrievePosition())
+
+        End Function
+
+        Private Function GetConstantConstructNode() As DeclareConstantWithValueConstruct
+
+            If Not CurrentToken.Type = TokenType.KEYWORD_CONST Then
+                Throw New NotTheRightElementException()
+            End If
+            PushPosition()
+            Advance()
+
+            'Get name
+            CheckTokenType(TokenType.TEXT, "A constant name was expected here.")
+            Dim ConstantName As String = CurrentToken.Value
+            Advance()
+
+            'Get type
+            If CurrentToken.Type = TokenType.SYMBOL_COLON Then
+                Throw New SyntaxError("A file constant does not take an explicit type.", CurrentToken.Location)
+            End If
+
+            'Get value
+            If Not CurrentToken.Type = TokenType.SYMBOL_EQUAL Then
+                Throw New SyntaxError("A file constant must be assigned a value when declared.", CurrentToken.Location)
+            End If
+            Advance()
+            Dim ConstantValue As ExpressionNode = GetExpression()
+
+            'Create node
+            Return New DeclareConstantWithValueConstruct(ConstantName, ConstantValue, RetrievePosition())
 
         End Function
 

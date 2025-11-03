@@ -26,8 +26,12 @@ Namespace CodeGen
             Macros.Add(Macro)
         End Sub
 
-        Public Sub RegisterConst([Const] As String)
-            Consts.Add([Const])
+        Public Sub RegisterConst([Const] As String, Comment As String)
+            If VERBOSE Then
+                Consts.Add([Const] & " // " & Comment)
+            Else
+                Consts.Add([Const])
+            End If
         End Sub
 
         Public Sub RegisterGlobalVariable(GlobalVariable As String)
@@ -69,6 +73,7 @@ Namespace CodeGen
                 Writer.WriteLine(vbTab & "Compile with -v flag to enable verbose and comments.")
             End If
             Writer.WriteLine("*/")
+            Writer.WriteLine("")
 
             'Macros
             WriteTitle(Writer, "Macros")
