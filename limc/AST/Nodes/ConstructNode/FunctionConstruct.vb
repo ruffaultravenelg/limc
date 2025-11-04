@@ -3,13 +3,15 @@
         Inherits ConstructNode
 
         Public ReadOnly Property Name As String
+        Public ReadOnly Property GenericArguments As IEnumerable(Of String)
         Public ReadOnly Property Arguments As IEnumerable(Of ArgumentNode)
         Public ReadOnly Property ReturnType As TypeNode
         Public ReadOnly Property Body As IEnumerable(Of StatementNode)
 
-        Public Sub New(Name As String, Arguments As IEnumerable(Of ArgumentNode), ReturnType As TypeNode, Body As IEnumerable(Of StatementNode), Location As Location)
+        Public Sub New(Name As String, GenericArguments As IEnumerable(Of String), Arguments As IEnumerable(Of ArgumentNode), ReturnType As TypeNode, Body As IEnumerable(Of StatementNode), Location As Location)
             MyBase.New(Location)
             Me.Name = Name
+            Me.GenericArguments = GenericArguments
             Me.Arguments = Arguments
             Me.ReturnType = ReturnType
             Me.Body = Body
@@ -22,6 +24,24 @@
                 End If
             Next
             Return False
+        End Function
+
+        ' Function match
+        Public Function DoMatch(Name As String, GenericTypes As IEnumerable(Of TypeSystem.Type)) As Boolean
+
+            ' Check name
+            If Not Name = Me.Name Then
+                Return False
+            End If
+
+            ' Check generic types count
+            If Not GenericTypes.Count = GenericArguments.Count Then
+                Return False
+            End If
+
+            ' Everything is ok
+            Return True
+
         End Function
 
     End Class

@@ -264,6 +264,40 @@
 
         End Function
 
+        Private Function GetPassedGenericTypes() As IEnumerable(Of TypeNode)
+            Dim Result As New List(Of TypeNode)
+
+            ' No values
+            If Not CurrentToken.Type = TokenType.SYMBOL_LESSTHAN Then
+                Return Result
+            End If
+            Advance()
+            If CurrentToken.Type = TokenType.SYMBOL_GREATERTHAN Then
+                Advance()
+                Return Result
+            End If
+
+            ' Get values
+            While True
+                Result.Add(GetTypeNode())
+
+                If CurrentToken.Type = TokenType.SYMBOL_COMMA Then
+                    Advance()
+                    Continue While
+
+                ElseIf CurrentToken.Type = TokenType.SYMBOL_GREATERTHAN Then
+                    Advance()
+                    Exit While
+
+                Else
+                    Throw New SyntaxError("A comma or a "">"" was expected here", CurrentToken.Location)
+
+                End If
+            End While
+
+            Return Result
+        End Function
+
         '=======================
         '===== EXPRESSIONS =====
         '=======================
@@ -287,7 +321,19 @@
                         CheckTokenType(TokenType.TEXT, "The name of an element must follow the ""::"" operator. For example, ""math::min.""")
                         Dim NameTok As Token = CurrentToken
                         Advance()
-                        Return New ModuleResolverExpression(Tok.Value, NameTok.Value, Tok.Location + NameTok.Location)
+                        Dim PassedGenericTypes As IEnumerable(Of TypeNode) = GetPassedGenericTypes()
+                        If PassedGenericTypes.Count > 0 Then
+                            Throw New NotImplementedException() 'TODO std::map<T, C>
+                        Else
+                            Return New ModuleResolverExpression(Tok.Value, NameTok.Value, Tok.Location + NameTok.Location)
+                        End If
+                    ElseIf CurrentToken.Type = TokenType.SYMBOL_LESSTHAN Then
+                        Dim PassedGenericTypes As IEnumerable(Of TypeNode) = GetPassedGenericTypes()
+                        If PassedGenericTypes.Count > 0 Then
+                            Return New GenericElementExpression(Tok.Value, PassedGenericTypes, Tok.Location + Tokens(TokenIndex - 1).Location)
+                        Else
+                            Return New ElementExpression(Tok.Value, Tok.Location)
+                        End If
                     Else
                         Return New ElementExpression(Tok.Value, Tok.Location)
                     End If
@@ -536,6 +582,29 @@
             Dim FunctionName As String = CurrentToken.Value
             Advance()
 
+            'Generic arguments
+            Dim GenericArguments As New List(Of String)
+            If CurrentToken.Type = TokenType.SYMBOL_LESSTHAN Then
+                Advance()
+                If Not CurrentToken.Type = TokenType.SYMBOL_GREATERTHAN Then
+                    While True
+                        If Not CurrentToken.Type = TokenType.TEXT Then
+                            Throw New SyntaxError("A generic type name was expected here", CurrentToken.Location)
+                        End If
+                        GenericArguments.Add(CurrentToken.Value)
+                        Advance()
+                        If CurrentToken.Type = TokenType.SYMBOL_COMMA Then
+                            Advance()
+                        ElseIf CurrentToken.Type = TokenType.SYMBOL_GREATERTHAN Then
+                            Exit While
+                        Else
+                            Throw New SyntaxError("A comma or a "">"" was expected here", CurrentToken.Location)
+                        End If
+                    End While
+                End If
+                Advance()
+            End If
+
             'Arguments
             Dim Arguments As New List(Of ArgumentNode)
             If CurrentToken.Type = TokenType.SYMBOL_LEFT_PARENTHESIS Then
@@ -562,7 +631,7 @@
             Dim Body As IEnumerable(Of StatementNode) = GetBody(1)
 
             'Return node
-            Return New FunctionConstruct(FunctionName, Arguments, ReturnType, Body, RetrievePosition())
+            Return New FunctionConstruct(FunctionName, GenericArguments, Arguments, ReturnType, Body, RetrievePosition())
 
         End Function
 

@@ -27,6 +27,12 @@
             End Select
 
             'Search for generic types
+            If TypeGenericTypes.Count = 0 Then
+                Dim AssociatedGenericType As TypeSystem.Type = limc.Context.GenericContext.SearchForGenericType(Context, TypeName)
+                If AssociatedGenericType IsNot Nothing Then
+                    Return AssociatedGenericType
+                End If
+            End If
 
             'Search for type
             Throw New NotImplementedException()

@@ -8,6 +8,7 @@ Namespace Lazy
         Public MustOverride ReadOnly Property ArgumentTypes As IEnumerable(Of TypeSystem.Type)
         Public MustOverride ReadOnly Property ReturnType As TypeSystem.Type
         Public MustOverride ReadOnly Property Exported As Boolean
+        Public MustOverride ReadOnly Property PassedGenericTypes As IEnumerable(Of TypeSystem.Type)
 
         ' Compiled function
         Public MustOverride ReadOnly Property GeneratedFunction As CodeGen.UtilFunction
@@ -40,6 +41,31 @@ Namespace Lazy
             Next
 
             Return GeneratedFunction.WriteCall(CompiledArguments)
+
+        End Function
+
+        ' Function match
+        Public Function DoMatch(Name As String, GenericTypes As IEnumerable(Of TypeSystem.Type)) As Boolean
+
+            ' Check name
+            If Not Name = Me.Name Then
+                Return False
+            End If
+
+            ' Check generic types count
+            If Not GenericTypes.Count = Me.PassedGenericTypes.Count Then
+                Return False
+            End If
+
+            ' Check generic types
+            For i As Integer = 0 To GenericTypes.Count - 1
+                If Not GenericTypes(i) = PassedGenericTypes(i) Then
+                    Return False
+                End If
+            Next
+
+            ' Everything is ok
+            Return True
 
         End Function
 

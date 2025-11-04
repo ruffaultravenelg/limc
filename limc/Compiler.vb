@@ -30,7 +30,7 @@ Public Module Compiler
         Dim MainFile As Context.SourceFile = Context.SourceFile.FromFile(SourceFilepath)
 
         'Getting main function from MainFile will trigger lazy-compilation
-        Dim MainFunction As Lazy.Function = MainFile.FunctionRepository.RetrieveFunction("main")
+        Dim MainFunction As Lazy.Function = MainFile.FunctionRepository.RetrieveFunction("main", {})
         If MainFunction Is Nothing Then
             Throw New NotMainFunctionError(MainFile)
         End If

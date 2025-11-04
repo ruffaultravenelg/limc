@@ -16,6 +16,15 @@
                 End While
             End Get
         End Property
+        Public Iterator Function GetParents(Of T As Context)() As IEnumerable(Of T)
+            Dim Current As Context = Me
+            While Current IsNot Nothing
+                If TypeOf Current Is T Then
+                    Yield Current
+                End If
+                Current = Current.Parent
+            End While
+        End Function
 
         Public Function HasParent(Of T As Context)() As Boolean
             For Each Ctx As Context In AllParents
@@ -71,6 +80,20 @@
         End Function
         Protected Overridable Function GetLocalMatchingElement(Name As String) As IEnumerable(Of SearchMatch)
             Return {}
+        End Function
+
+        ' Get matching but with generic
+        Public Function RetrieveMatchingElement(Name As String, GenericTypes As IEnumerable(Of TypeSystem.Type), Location As Location)
+            For Each Ctx In AllParents
+                Dim Match As SearchMatch = Ctx.GetLocalMatchingElement(Name, GenericTypes)
+                If Match IsNot Nothing Then
+                    Return Match
+                End If
+            Next
+            Throw New UnknownOrUnreachableElementError(Name & "<" & String.Join(", ", GenericTypes.Select(Function(g) g.ToString())) & ">", Location)
+        End Function
+        Protected Overridable Function GetLocalMatchingElement(Name As String, GenericTypes As IEnumerable(Of TypeSystem.Type)) As SearchMatch
+            Return Nothing
         End Function
 
     End Class
