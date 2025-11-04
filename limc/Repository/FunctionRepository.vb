@@ -40,7 +40,7 @@
 
                 ' Count error
                 If GenericTypes.Count <> Model.GenericArguments.Count Then
-                    Throw New InternalError()
+                    Throw New NotTheRightAmountOfGenericTypesException(GenericTypes.Count, Model.GenericArguments.Count)
                 End If
 
                 ' Search if there is a function already defined

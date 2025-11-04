@@ -71,7 +71,12 @@
             Return Result
         End Function
         Public Function RetrieveMatchingElement(Name As String, Location As Location) As SearchMatch
-            Dim Results As IEnumerable(Of SearchMatch) = RetrieveMatchingElements(Name)
+            Dim Results As IEnumerable(Of SearchMatch)
+            Try
+                Results = RetrieveMatchingElements(Name)
+            Catch ex As MissingLocationError
+                Throw ex.CreateError(Location)
+            End Try
             If Results.Count > 0 Then
                 Return Results(0)
             Else
@@ -85,7 +90,12 @@
         ' Get matching but with generic
         Public Function RetrieveMatchingElement(Name As String, GenericTypes As IEnumerable(Of TypeSystem.Type), Location As Location)
             For Each Ctx In AllParents
-                Dim Match As SearchMatch = Ctx.GetLocalMatchingElement(Name, GenericTypes)
+                Dim Match As SearchMatch
+                Try
+                    Match = Ctx.GetLocalMatchingElement(Name, GenericTypes)
+                Catch ex As MissingLocationError
+                    Throw ex.CreateError(Location)
+                End Try
                 If Match IsNot Nothing Then
                     Return Match
                 End If

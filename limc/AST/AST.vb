@@ -323,7 +323,7 @@
                         Advance()
                         Dim PassedGenericTypes As IEnumerable(Of TypeNode) = GetPassedGenericTypes()
                         If PassedGenericTypes.Count > 0 Then
-                            Throw New NotImplementedException() 'TODO std::map<T, C>
+                            Return New ModuleResolverGenericElementExpression(Tok.Value, NameTok.Value, PassedGenericTypes, Tok.Location + Tokens(TokenIndex - 1).Location)
                         Else
                             Return New ModuleResolverExpression(Tok.Value, NameTok.Value, Tok.Location + NameTok.Location)
                         End If

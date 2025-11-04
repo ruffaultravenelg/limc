@@ -1,7 +1,6 @@
 ﻿Imports System.IO
 Imports limc.AST
 Imports limc.Repository
-Imports limc.TypeSystem
 
 Namespace Context
     Public Class SourceFile
@@ -90,31 +89,53 @@ Namespace Context
         '==========================
         '===== SEARCH ELEMENT =====
         '==========================
+
+        ' Without generics
         Protected Overrides Function GetLocalMatchingElement(Name As String) As IEnumerable(Of SearchMatch)
-            Return SearchMatchingElementsAtFileLevel(Name, False)
+            Return SearchMatchingElementsAtFileLevel(Name, True)
         End Function
-        Public Function SearchMatchingElementsAtFileLevel(Name As String, FromOutside As Boolean) As IEnumerable(Of SearchMatch)
+        Public Function SearchMatchingElementsAtFileLevel(Name As String, FromInside As Boolean) As IEnumerable(Of SearchMatch)
             Dim Matchs As New List(Of SearchMatch)
 
             Dim Func As Lazy.Function = FunctionRepository.RetrieveFunction(Name, {})
-            If Func IsNot Nothing AndAlso (Not FromOutside OrElse Func.Exported) Then
+            If Func IsNot Nothing AndAlso (FromInside OrElse Func.Exported) Then
                 Matchs.Add(New SearchMatch(Func))
             End If
 
-            If ConstantStore.ContainsKey(Name) AndAlso (Not FromOutside OrElse ConstantStore(Name).Exported) Then
+            If ConstantStore.ContainsKey(Name) AndAlso (FromInside OrElse ConstantStore(Name).Exported) Then
                 Matchs.Add(New SearchMatch(ConstantStore(Name).Data))
             End If
 
-            If Not FromOutside Then
+            If FromInside Then
                 For Each Include In AST.Include_Imports
-                    Matchs.AddRange(Include.AssociatedFile.SearchMatchingElementsAtFileLevel(Name, True))
+                    Matchs.AddRange(Include.AssociatedFile.SearchMatchingElementsAtFileLevel(Name, False))
                 Next
             End If
 
             Return Matchs
         End Function
-        Protected Overrides Function GetLocalMatchingElement(Name As String, GenericTypes As IEnumerable(Of Type)) As SearchMatch
-            Return New SearchMatch(FunctionRepository.RetrieveFunction(Name, GenericTypes))
+
+        ' With generics
+        Protected Overrides Function GetLocalMatchingElement(Name As String, GenericTypes As IEnumerable(Of TypeSystem.Type)) As SearchMatch
+            Return SearchMatchingElementAtFileLevel(Name, GenericTypes, True)
+        End Function
+        Public Function SearchMatchingElementAtFileLevel(Name As String, GenericTypes As IEnumerable(Of TypeSystem.Type), FromInside As Boolean) As SearchMatch
+
+            Dim Func As Lazy.Function = FunctionRepository.RetrieveFunction(Name, GenericTypes)
+            If Func IsNot Nothing AndAlso (FromInside OrElse Func.Exported) Then
+                Return New SearchMatch(Func)
+            End If
+
+            If FromInside Then
+                For Each Include In AST.Include_Imports
+                    Dim Result As SearchMatch = Include.AssociatedFile.SearchMatchingElementAtFileLevel(Name, GenericTypes, False)
+                    If Result IsNot Nothing Then
+                        Return Result
+                    End If
+                Next
+            End If
+
+            Return Nothing
         End Function
 
     End Class

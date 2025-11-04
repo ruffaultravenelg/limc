@@ -3,8 +3,8 @@
         Inherits ExpressionNode
         Implements IFunctionReference
 
-        Private ElementName As String
-        Private PassedGenericTypes As IEnumerable(Of TypeNode)
+        Protected ElementName As String
+        Protected PassedGenericTypes As IEnumerable(Of TypeNode)
 
         Public Sub New(ElementName As String, PassedGenericTypes As IEnumerable(Of TypeNode), Location As Location)
             MyBase.New(Location)
@@ -12,7 +12,7 @@
             Me.PassedGenericTypes = PassedGenericTypes
         End Sub
 
-        Private Function GetMatch(Context As Context.Context) As SearchMatch
+        Protected Overridable Function GetMatch(Context As Context.Context) As SearchMatch
             Return Context.RetrieveMatchingElement(ElementName, PassedGenericTypes.Select(Function(g) g.GetAssociatedType(Context)), Location)
         End Function
 

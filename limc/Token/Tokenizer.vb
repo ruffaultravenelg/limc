@@ -7,6 +7,7 @@ Public Module Tokenizer
     Private Const DIGITS_WITH_POINT As String = DIGITS & "."
     Private Const ALPHABET As String = "azertyuiopmlkjhgfdsqwxcvbn"
     Private ReadOnly VALID_TEXT_CHARS As String = ALPHABET & ALPHABET.ToUpper() & "_"
+    Private ReadOnly VALID_TEXT_CHARS_AFTER_FIRST_LETTER As String = VALID_TEXT_CHARS & DIGITS
 
     Private Source As SourceFile
     Private Results As List(Of Token)
@@ -202,7 +203,7 @@ Public Module Tokenizer
 
                 SaveCol()
                 Dim Text As String = ""
-                While VALID_TEXT_CHARS.Contains(CurrentChar)
+                While VALID_TEXT_CHARS_AFTER_FIRST_LETTER.Contains(CurrentChar)
                     Text &= CurrentChar
                     NextChar()
                 End While

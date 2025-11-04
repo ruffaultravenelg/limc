@@ -1,11 +1,11 @@
 ﻿Namespace AST
-    Public Class ModuleResolverExpression
-        Inherits ElementExpression
+    Public Class ModuleResolverGenericElementExpression
+        Inherits GenericElementExpression
 
         Private ModuleName As String
 
-        Public Sub New(ModuleName As String, ElementName As String, Location As Location)
-            MyBase.New(ElementName, Location)
+        Public Sub New(ModuleName As String, ElementName As String, PassedGenericTypes As IEnumerable(Of TypeNode), Location As Location)
+            MyBase.New(ElementName, PassedGenericTypes, Location)
             Me.ModuleName = ModuleName
         End Sub
 
@@ -13,16 +13,16 @@
 
             For Each UseStatement In Location.File.AST.Include_Uses
                 If UseStatement.ModuleName = ModuleName Then
-                    Dim Results As IEnumerable(Of SearchMatch)
+                    Dim Results As SearchMatch
                     Try
-                        Results = UseStatement.AssociatedFile.SearchMatchingElementsAtFileLevel(ElementName, False)
+                        Results = UseStatement.AssociatedFile.SearchMatchingElementAtFileLevel(ElementName, PassedGenericTypes.Select(Function(g) g.GetAssociatedType(Context)), False)
                     Catch ex As MissingLocationError
                         Throw ex.CreateError(Location)
                     End Try
-                    If Results.Count = 0 Then
+                    If Results Is Nothing Then
                         Throw New UnknownOrUnreachableElementError(ElementName, Location)
                     Else
-                        Return Results(0)
+                        Return Results
                     End If
                 End If
             Next

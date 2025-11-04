@@ -21,10 +21,10 @@ Namespace Lazy
         End Property
 
         ' Compile call
-        Public Function CompileCall(Arguments As IEnumerable(Of ExpressionNode), Scope As Context.Scope)
+        Public Function CompileCall(Arguments As IEnumerable(Of ExpressionNode), Scope As Context.Scope, Location As Location)
 
             If Not Arguments.Count = ArgumentTypes.Count Then
-                Throw New InternalError()
+                Throw New NotTheRightAmountOfArgumentsException(Arguments.Count, ArgumentTypes.Count, Location)
             End If
 
             Dim CompiledArguments As New List(Of String)
