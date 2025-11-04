@@ -44,30 +44,5 @@ Namespace Lazy
 
         End Function
 
-        ' Function match
-        Public Function DoMatch(Name As String, GenericTypes As IEnumerable(Of TypeSystem.Type)) As Boolean
-
-            ' Check name
-            If Not Name = Me.Name Then
-                Return False
-            End If
-
-            ' Check generic types count
-            If Not GenericTypes.Count = Me.PassedGenericTypes.Count Then
-                Return False
-            End If
-
-            ' Check generic types
-            For i As Integer = 0 To GenericTypes.Count - 1
-                If Not GenericTypes(i) = PassedGenericTypes(i) Then
-                    Return False
-                End If
-            Next
-
-            ' Everything is ok
-            Return True
-
-        End Function
-
     End Class
 End Namespace

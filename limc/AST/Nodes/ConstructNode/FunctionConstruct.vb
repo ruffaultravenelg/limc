@@ -26,23 +26,5 @@
             Return False
         End Function
 
-        ' Function match
-        Public Function DoMatch(Name As String, GenericTypes As IEnumerable(Of TypeSystem.Type)) As Boolean
-
-            ' Check name
-            If Not Name = Me.Name Then
-                Return False
-            End If
-
-            ' Check generic types count
-            If Not GenericTypes.Count = GenericArguments.Count Then
-                Return False
-            End If
-
-            ' Everything is ok
-            Return True
-
-        End Function
-
     End Class
 End Namespace
