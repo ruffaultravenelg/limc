@@ -330,6 +330,10 @@ Public Module Tokenizer
                     AddToken(TokenType.SYMBOL_LEFT_PARENTHESIS, LocationFromChar())
                 Case ")"c
                     AddToken(TokenType.SYMBOL_RIGHT_PARENTHESIS, LocationFromChar())
+                Case "{"c
+                    AddToken(TokenType.SYMBOL_LEFT_BRACE, LocationFromChar())
+                Case "}"c
+                    AddToken(TokenType.SYMBOL_RIGHT_BRACE, LocationFromChar())
                 Case ":"c
                     NextChar()
                     Dim Loc As Location = LocationFromChar()

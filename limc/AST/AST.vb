@@ -194,10 +194,10 @@
         Private Function GetTypeNode() As TypeNode
             PushPosition()
 
-            'Array : 5<int>
+            'Rack (static array) : 5<int>
             If CurrentToken.Type = TokenType.VAL_INT Then
 
-                Dim ArrayCount As Integer = CurrentToken.Value
+                Dim ElementCounts As Integer = CurrentToken.Value
                 Advance()
                 CheckTokenType(TokenType.SYMBOL_LESSTHAN, "The type of element contained in the array must be specified. For example: 5<user>")
                 Advance()
@@ -205,7 +205,7 @@
                 CheckTokenType(TokenType.SYMBOL_GREATERTHAN, "A array refers to a single type, it should be a closing symbol "">"".")
                 Advance()
 
-                Return New AST.ArrayTypeNode(ArrayCount, ElementType, RetrievePosition())
+                Return New AST.RackTypeNode(ElementCounts, ElementType, RetrievePosition())
 
             End If
 
@@ -337,6 +337,32 @@
                     Else
                         Return New ElementExpression(Tok.Value, Tok.Location)
                     End If
+
+                Case TokenType.SYMBOL_LEFT_BRACE
+
+                    ' Empty array
+                    If CurrentToken.Type = TokenType.SYMBOL_RIGHT_BRACE Then
+                        Throw New SyntaxError("A rack must contain at least one item in order to retrieve the rack type.", Tok.Location + CurrentToken.Location)
+                    End If
+
+                    ' Get values
+                    Dim Elements As New List(Of ExpressionNode)
+                    While True
+                        Elements.Add(GetExpression())
+
+                        If CurrentToken.Type = TokenType.SYMBOL_COMMA Then
+                            Advance()
+                            Continue While
+                        ElseIf CurrentToken.Type = TokenType.SYMBOL_RIGHT_BRACE Then
+                            Advance()
+                            Exit While
+                        Else
+                            Throw New SyntaxError("A comma or a ""}"" was expected here.", CurrentToken.Location)
+                        End If
+
+                    End While
+
+                    Return New RackExpression(Elements, Tok.Location + Tokens(TokenIndex - 1).Location)
 
             End Select
 

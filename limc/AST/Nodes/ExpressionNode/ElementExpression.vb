@@ -53,7 +53,7 @@
 
             'Check type error
             If Variable.Type <> NewValue.GetExpressionReturnType(Scope) Then
-                Throw New TypeMismatchError(Variable.Type, NewValue.GetExpressionReturnType(Scope), Location)
+                Throw New TypeMismatchError(Variable.Type, NewValue.GetExpressionReturnType(Scope), NewValue.Location)
             End If
 
             'Write assignment

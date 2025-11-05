@@ -8,6 +8,7 @@ Namespace CodeGen
         Private Includes As New List(Of String) From {"#include <stdio.h>", "#include <stdlib.h>", "#include <stdbool.h>", "#include <errno.h>"}
         Private Macros As New List(Of String)
         Private Consts As New HashSet(Of String)
+        Private Typedefs As New HashSet(Of String)
         Private GlobalVariables As New HashSet(Of String)
         Private Enums As New HashSet(Of CodeGen.Enum)
         Private Structs As New HashSet(Of CodeGen.Struct)
@@ -48,6 +49,9 @@ Namespace CodeGen
 
         Public Sub RegisterFunction([Function] As CodeGen.BaseFunction)
             Functions.Add([Function])
+        End Sub
+        Public Sub RegisterTypedef(Typedef As String)
+            Typedefs.Add(Typedef)
         End Sub
 
         Public Sub AssembleFile(Filepath As String, EntryPoint As [Function])
@@ -93,6 +97,13 @@ Namespace CodeGen
             WriteTitle(Writer, "Structure signature")
             For Each Struct In Structs
                 Struct.WriteSignature(Writer)
+            Next
+            Writer.WriteLine()
+
+            'Write custom typedef
+            WriteTitle(Writer, "Racks typedef")
+            For Each Typedef In Typedefs
+                Writer.WriteLine(Typedef)
             Next
             Writer.WriteLine()
 
