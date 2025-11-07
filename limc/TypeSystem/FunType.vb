@@ -189,6 +189,8 @@ Namespace TypeSystem
             Return {}
         End Function
 
+        Protected Overrides ReadOnly Property Relations As IEnumerable(Of Lazy.Relation) = {}
+
     End Class
 
 End Namespace

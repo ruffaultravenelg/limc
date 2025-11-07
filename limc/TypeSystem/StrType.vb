@@ -43,5 +43,33 @@
             End Get
         End Property
 
+        Private _Relations As New List(Of Lazy.Relation)
+        Protected Overrides ReadOnly Property Relations As IEnumerable(Of Lazy.Relation)
+            Get
+                If _Relations.Count = 0 Then
+
+                    ' relation[index]
+                    _Relations.Add(New Lazy.HardRelation(
+                        Me,
+                        RelationType.RELATION_BRACKETS,
+                        {Type.Int},
+                        {"index"},
+                        Type.Str,
+                        {
+                            "size_t len = strlen(instance);",
+                            "if (index < 0) index = len + index;",
+                            $"if (index >= len || index < 0) {CodeGen.WritePanicCall("""Index out of range""")};",
+                            $"char* result = {Constants.LIM_ALLOC}(2);",
+                            "result[0] = instance[index];",
+                            "result[1] = '\0';",
+                            "return result;"
+                        }
+                    ))
+
+                End If
+                Return _Relations
+            End Get
+        End Property
+
     End Class
 End Namespace

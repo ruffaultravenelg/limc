@@ -398,6 +398,21 @@
                     Expression = New AttributeExpression(Expression, CurrentToken.Value, Expression.Location + CurrentToken.Location)
                     Advance()
 
+                ElseIf CurrentToken.Type = TokenType.SYMBOL_LEFT_BRACKETS Then
+
+                    Advance()
+                    Dim Arguments As New List(Of ExpressionNode)
+                    If Not CurrentToken.Type = TokenType.SYMBOL_RIGHT_BRACKETS Then
+                        Arguments.Add(GetExpression())
+                        While CurrentToken.Type = TokenType.SYMBOL_COMMA
+                            Advance()
+                            Arguments.Add(GetExpression())
+                        End While
+                        CheckTokenType(TokenType.SYMBOL_RIGHT_BRACKETS, "A comma or a closing bracket was expected here.")
+                    End If
+                    Advance()
+                    Expression = New BracketsExpression(Expression, Arguments, Expression.Location + Tokens(TokenIndex - 1).Location)
+
                 Else
                     Exit While
                 End If

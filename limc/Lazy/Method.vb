@@ -47,9 +47,9 @@ Namespace Lazy
             ' Check argument count
             If Not Arguments.Count = ArgumentTypes.Count Then
                 If Arguments.Count > 0 Then
-                    Throw New SyntaxError($"{ArgumentTypes.Count} arguments requiered, instance of {Arguments.Count}", Arguments.Last.Location)
+                    Throw New SyntaxError($"{ArgumentTypes.Count} arguments requiered, instead of {Arguments.Count}", Arguments.Last.Location)
                 Else
-                    Throw New SyntaxError($"{ArgumentTypes.Count} arguments requiered, instance of {Arguments.Count}", Instance.Location)
+                    Throw New SyntaxError($"{ArgumentTypes.Count} arguments requiered, instead of {Arguments.Count}", Instance.Location)
                 End If
             End If
 

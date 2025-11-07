@@ -41,5 +41,7 @@
             End Get
         End Property
 
+        Protected Overrides ReadOnly Property Relations As IEnumerable(Of Lazy.Relation) = {}
+
     End Class
 End Namespace
