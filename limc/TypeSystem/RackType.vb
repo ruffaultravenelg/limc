@@ -54,7 +54,39 @@
 
         End Function
 
-        Protected Overrides ReadOnly Property Relations As IEnumerable(Of Lazy.Relation) = {}
+        Private _Relations As New List(Of Lazy.Relation)
+        Protected Overrides ReadOnly Property Relations As IEnumerable(Of Lazy.Relation)
+            Get
+                If _Relations.Count = 0 Then
+
+                    _Relations.Add(New Lazy.HardRelation(Me, RelationType.RELATION_BRACKETS, {Type.Int}, {"index"}, ElementType, {
+                        $"if (index < 0) index = {Length} + index;",
+                        $"if (index >= {Length} || index < 0) {CodeGen.WritePanicCall("""Index out of range""")};",
+                        $"return {INSTANCE_ARGUMENT_NAME}[index];"
+                    }))
+
+                End If
+                Return _Relations
+            End Get
+        End Property
+
+        Public Sub WriteElementAssignation(Instance As AST.ExpressionNode, Index As AST.ExpressionNode, NewValue As AST.ExpressionNode, Scope As Context.Scope)
+
+            'Check index type
+            If Index.GetExpressionReturnType(Scope) <> Type.Int Then
+                Throw New TypeMismatchError(Type.Int, Index.GetExpressionReturnType(Scope), Index.Location)
+            End If
+
+            ' Check new value type
+            If NewValue.GetExpressionReturnType(Scope) <> ElementType Then
+                Throw New TypeMismatchError(ElementType, NewValue.GetExpressionReturnType(Scope), NewValue.Location)
+            End If
+
+            ' Compile assignation
+            Scope.WriteLine($"{Instance.CompileExpression(Scope)}[{Index.CompileExpression(Scope)}] = {NewValue.CompileExpression(Scope)};")
+
+        End Sub
+
 
     End Class
 End Namespace

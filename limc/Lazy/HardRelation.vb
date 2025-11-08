@@ -15,7 +15,7 @@
                         Throw New InternalError()
                     End If
 
-                    Dim Args As New List(Of String) From {$"{ParentType.cRepresentation} instance"}
+                    Dim Args As New List(Of String) From {$"{ParentType.cRepresentation} {Constants.INSTANCE_ARGUMENT_NAME}"}
                     For i As Integer = 0 To ArgumentsTypes.Count - 1
                         Args.Add($"{ArgumentsTypes(i).cRepresentation} {ArgumentNames(i)}")
                     Next

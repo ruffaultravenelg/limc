@@ -32,7 +32,7 @@
                         Type.Str,
                         {
                             $"char* buffer = {LIM_ALLOC}({INT_TO_STR_BUFFERSIZE});",
-                            $"sprintf(buffer, ""%d"", {Lazy.Method.METHOD_INSTANCE_ARGUMENT_NAME});",
+                            $"sprintf(buffer, ""%d"", {Constants.INSTANCE_ARGUMENT_NAME});",
                             "return buffer;"
                         }
                     )
@@ -45,13 +45,13 @@
         Protected Overrides ReadOnly Property Relations As IEnumerable(Of Lazy.Relation)
             Get
                 If _Relations.Count = 0 Then
-                    CreateRelationHelper(RelationType.RELATION_ADD, Type.Int, Type.Int, "instance + val")
-                    CreateRelationHelper(RelationType.RELATION_SUB, Type.Int, Type.Int, "instance - val")
-                    CreateRelationHelper(RelationType.RELATION_MULT, Type.Int, Type.Int, "instance * val")
-                    CreateRelationHelper(RelationType.RELATION_DIV, Type.Int, Type.Int, "(int)round(instance / val)")
-                    CreateRelationHelper(RelationType.RELATION_MODULO, Type.Int, Type.Int, "instance % val")
+                    CreateRelationHelper(RelationType.RELATION_ADD, Type.Int, Type.Int, $"{INSTANCE_ARGUMENT_NAME} + val")
+                    CreateRelationHelper(RelationType.RELATION_SUB, Type.Int, Type.Int, $"{INSTANCE_ARGUMENT_NAME} - val")
+                    CreateRelationHelper(RelationType.RELATION_MULT, Type.Int, Type.Int, $"{INSTANCE_ARGUMENT_NAME} * val")
+                    CreateRelationHelper(RelationType.RELATION_DIV, Type.Int, Type.Int, $"(int)round({INSTANCE_ARGUMENT_NAME} / val)")
+                    CreateRelationHelper(RelationType.RELATION_MODULO, Type.Int, Type.Int, $"{INSTANCE_ARGUMENT_NAME} % val")
 
-                    _Relations.Add(New Lazy.HardRelation(Me, RelationType.RELATION_UNARY_MINUS, {}, {}, Type.Int, {$"return -instance;"}))
+                    _Relations.Add(New Lazy.HardRelation(Me, RelationType.RELATION_UNARY_MINUS, {}, {}, Type.Int, {$"return -{INSTANCE_ARGUMENT_NAME};"}))
                 End If
                 Return _Relations
             End Get

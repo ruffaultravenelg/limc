@@ -229,6 +229,10 @@ Public Module Tokenizer
                         AddToken(TokenType.VAL_BOOL, True, Loc)
                     Case "false"
                         AddToken(TokenType.VAL_BOOL, False, Loc)
+                    Case "and"
+                        AddToken(TokenType.KEYWORD_AND, Loc)
+                    Case "or"
+                        AddToken(TokenType.KEYWORD_OR, Loc)
                     Case "panic"
                         AddToken(TokenType.KEYWORD_PANIC, Loc)
                     Case Else

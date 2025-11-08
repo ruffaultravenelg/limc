@@ -19,7 +19,7 @@ Namespace Lazy
 
         Protected Overrides Function CompileGeneratedFunction() As CodeGen.UtilFunction
             Return New CodeGen.UtilFunction(
-                ArgumentTypes.Select(Function(a, i) $"{a.cRepresentation} arg{i}").Prepend($"{ParentType.cRepresentation} {METHOD_INSTANCE_ARGUMENT_NAME}"),
+                ArgumentTypes.Select(Function(a, i) $"{a.cRepresentation} arg{i}").Prepend($"{ParentType.cRepresentation} {Constants.INSTANCE_ARGUMENT_NAME}"),
                 If(ReturnType Is Nothing, "void", ReturnType.cRepresentation),
                 Body,
                 $"{ParentType.ToString()}.{Name}"

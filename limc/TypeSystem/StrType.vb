@@ -33,7 +33,7 @@
                         {
                             "char* endptr;",
                             "errno = 0;",
-                            $"long val = strtol({Lazy.Method.METHOD_INSTANCE_ARGUMENT_NAME}, &endptr, 10);",
+                            $"long val = strtol({INSTANCE_ARGUMENT_NAME}, &endptr, 10);",
                             $"if (errno != 0 || *endptr != '\0' || val > INT_MAX || val < INT_MIN) {CodeGen.WritePanicCall("""Cannot convert str to long""")};",
                             "return (int)round(val);"
                         }
@@ -56,11 +56,11 @@
                         {"index"},
                         Type.Str,
                         {
-                            "size_t len = strlen(instance);",
+                            $"size_t len = strlen({INSTANCE_ARGUMENT_NAME});",
                             "if (index < 0) index = len + index;",
                             $"if (index >= len || index < 0) {CodeGen.WritePanicCall("""Index out of range""")};",
                             $"char* result = {Constants.LIM_ALLOC}(2);",
-                            "result[0] = instance[index];",
+                            $"result[0] = {INSTANCE_ARGUMENT_NAME}[index];",
                             "result[1] = '\0';",
                             "return result;"
                         }
@@ -74,9 +74,9 @@
                         {"other"},
                         Type.Str,
                         {
-                            "size_t len = strlen(instance) + strlen(other);",
+                            $"size_t len = strlen({INSTANCE_ARGUMENT_NAME}) + strlen(other);",
                             $"char* result = {Constants.LIM_ALLOC}(sizeof(char) * (len + 1));",
-                            "strcpy(result, instance);",
+                            $"strcpy(result, {INSTANCE_ARGUMENT_NAME});",
                             "strcat(result, other);",
                             "return result;"
                         }

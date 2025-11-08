@@ -3,8 +3,6 @@
 Namespace Lazy
     Public MustInherit Class Method
 
-        Public Const METHOD_INSTANCE_ARGUMENT_NAME As String = "instance"
-
         ' Main properties
         Public MustOverride ReadOnly Property Name As String
         Public MustOverride ReadOnly Property ArgumentTypes As IEnumerable(Of TypeSystem.Type)

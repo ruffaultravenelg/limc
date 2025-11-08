@@ -303,6 +303,8 @@ Namespace AST
         '=======================
         '===== EXPRESSIONS =====
         '=======================
+
+        ' \\\\\\ {value} //////
         Private Function GetFactor() As ExpressionNode
 
             'One token expressions
@@ -376,6 +378,9 @@ Namespace AST
                     Dim Value As ExpressionNode = GetFactor()
                     Return New UnaryMinusExpression(Value, Tok.Location + Value.Location)
 
+                Case TokenType.VAL_BOOL
+                    Return New BooleanExpression(Tok.Value, Tok.Location)
+
             End Select
 
             'Error
@@ -383,6 +388,7 @@ Namespace AST
 
         End Function
 
+        ' \\\\\\ {expression}(args) / {expression}[args} / {expression}.{child} //////
         Private Function GetCallBracketChild() As ExpressionNode
 
             Dim Expression As ExpressionNode = GetFactor()
@@ -434,12 +440,12 @@ Namespace AST
 
         End Function
 
+        ' \\\\\\ {expression} */% {expression} //////
         Private Shared TokOpToRelOp_Divide As New Dictionary(Of TokenType, TypeSystem.RelationType) From {
             {TokenType.SYMBOL_MULTIPLICATE, TypeSystem.RelationType.RELATION_MULT},
             {TokenType.SYMBOL_DIVIDE, TypeSystem.RelationType.RELATION_DIV},
             {TokenType.SYMBOL_MODULO, TypeSystem.RelationType.RELATION_MODULO}
         }
-
         Private Function GetDivideOperation() As ExpressionNode
 
             Dim Left As ExpressionNode = GetCallBracketChild()
@@ -458,12 +464,11 @@ Namespace AST
 
         End Function
 
-
+        ' \\\\\\ {expression} +/- {expression} //////
         Private Shared TokOpToRelOp_Plus As New Dictionary(Of TokenType, TypeSystem.RelationType) From {
             {TokenType.SYMBOL_PLUS, TypeSystem.RelationType.RELATION_ADD},
             {TokenType.SYMBOL_MINUS, TypeSystem.RelationType.RELATION_SUB}
         }
-
         Private Function GetPlusOperation() As ExpressionNode
 
             Dim Left As ExpressionNode = GetDivideOperation()
@@ -482,8 +487,31 @@ Namespace AST
 
         End Function
 
+        ' \\\\\\ {expression} AND/OR {expression} //////
+        Private Shared TokOpToRelOp_Bool As New Dictionary(Of TokenType, TypeSystem.RelationType) From {
+            {TokenType.KEYWORD_AND, TypeSystem.RelationType.RELATION_AND},
+            {TokenType.KEYWORD_OR, TypeSystem.RelationType.RELATION_OR}
+        }
+        Private Function GetBooleanOperation() As ExpressionNode
+
+            Dim Left As ExpressionNode = GetPlusOperation()
+
+            While TokOpToRelOp_Bool.ContainsKey(CurrentToken.Type)
+
+                Dim Op As TypeSystem.RelationType = TokOpToRelOp_Bool(CurrentToken.Type)
+                Advance()
+                Dim Right As ExpressionNode = GetPlusOperation()
+
+                Left = New BooleanOperationExpression(Left, Op, Right, Left.Location + Right.Location)
+
+            End While
+
+            Return Left
+
+        End Function
+
         Private Function GetExpression() As ExpressionNode
-            Return GetPlusOperation()
+            Return GetBooleanOperation()
         End Function
 
         '======================
@@ -627,7 +655,7 @@ Namespace AST
 
         Private Function GetAssignStatement() As StatementNode
 
-            Dim TargetVariable As ExpressionNode = GetExpression()
+            Dim TargetVariable As ExpressionNode = GetCallBracketChild()
             IsTheRightToken(TokenType.SYMBOL_EQUAL)
             Advance()
 
