@@ -372,6 +372,10 @@ Namespace AST
                     Advance()
                     Return Expression
 
+                Case TokenType.SYMBOL_MINUS
+                    Dim Value As ExpressionNode = GetFactor()
+                    Return New UnaryMinusExpression(Value, Tok.Location + Value.Location)
+
             End Select
 
             'Error

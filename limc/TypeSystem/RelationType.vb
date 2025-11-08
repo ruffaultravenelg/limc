@@ -6,6 +6,7 @@
         RELATION_MULT
         RELATION_DIV
         RELATION_MODULO
+        RELATION_UNARY_MINUS
     End Enum
 
 End Namespace

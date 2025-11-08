@@ -48,7 +48,7 @@
             Get
                 If _Relations.Count = 0 Then
 
-                    ' relation[index]
+                    ' instance[index]
                     _Relations.Add(New Lazy.HardRelation(
                         Me,
                         RelationType.RELATION_BRACKETS,
@@ -62,6 +62,22 @@
                             $"char* result = {Constants.LIM_ALLOC}(2);",
                             "result[0] = instance[index];",
                             "result[1] = '\0';",
+                            "return result;"
+                        }
+                    ))
+
+                    ' instance + string
+                    _Relations.Add(New Lazy.HardRelation(
+                        Me,
+                        RelationType.RELATION_ADD,
+                        {Type.Str},
+                        {"other"},
+                        Type.Str,
+                        {
+                            "size_t len = strlen(instance) + strlen(other);",
+                            $"char* result = {Constants.LIM_ALLOC}(sizeof(char) * (len + 1));",
+                            "strcpy(result, instance);",
+                            "strcat(result, other);",
                             "return result;"
                         }
                     ))

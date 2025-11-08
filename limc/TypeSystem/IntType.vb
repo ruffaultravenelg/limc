@@ -50,6 +50,8 @@
                     CreateRelationHelper(RelationType.RELATION_MULT, Type.Int, Type.Int, "instance * val")
                     CreateRelationHelper(RelationType.RELATION_DIV, Type.Int, Type.Int, "(int)round(instance / val)")
                     CreateRelationHelper(RelationType.RELATION_MODULO, Type.Int, Type.Int, "instance % val")
+
+                    _Relations.Add(New Lazy.HardRelation(Me, RelationType.RELATION_UNARY_MINUS, {}, {}, Type.Int, {$"return -instance;"}))
                 End If
                 Return _Relations
             End Get
