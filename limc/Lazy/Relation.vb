@@ -7,7 +7,7 @@
         Public MustOverride ReadOnly Property ReturnType As TypeSystem.Type
 
         ' Compiled function
-        Public MustOverride ReadOnly Property GeneratedFunction As CodeGen.UtilFunction
+        Public MustOverride ReadOnly Property GeneratedFunction As CodeGen.UtilFunction 'IMPORTANT: first argument must be the instance
 
         ' Constructor
         Public Sub New(ParentType As TypeSystem.Type)

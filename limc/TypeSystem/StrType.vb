@@ -27,9 +27,9 @@
                 If _int_method Is Nothing Then
                     _int_method = New Lazy.HardMethod(
                         Me,
-                        "str",
+                        "int",
                         {},
-                        Type.Str,
+                        Type.Int,
                         {
                             "char* endptr;",
                             "errno = 0;",

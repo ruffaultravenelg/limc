@@ -1,4 +1,6 @@
-﻿Namespace AST
+﻿Imports System.Data
+
+Namespace AST
     Public Class AbstractSyntaxTree
 
         '======================
@@ -364,6 +366,12 @@
 
                     Return New RackExpression(Elements, Tok.Location + Tokens(TokenIndex - 1).Location)
 
+                Case TokenType.SYMBOL_LEFT_PARENTHESIS
+                    Dim Expression As ExpressionNode = GetExpression()
+                    CheckTokenType(TokenType.SYMBOL_RIGHT_PARENTHESIS, "A closing parenthesis is expected here to end the expression.")
+                    Advance()
+                    Return Expression
+
             End Select
 
             'Error
@@ -421,8 +429,57 @@
             Return Expression
 
         End Function
+
+        Private Shared TokOpToRelOp_Divide As New Dictionary(Of TokenType, TypeSystem.RelationType) From {
+            {TokenType.SYMBOL_MULTIPLICATE, TypeSystem.RelationType.RELATION_MULT},
+            {TokenType.SYMBOL_DIVIDE, TypeSystem.RelationType.RELATION_DIV},
+            {TokenType.SYMBOL_MODULO, TypeSystem.RelationType.RELATION_MODULO}
+        }
+
+        Private Function GetDivideOperation() As ExpressionNode
+
+            Dim Left As ExpressionNode = GetCallBracketChild()
+
+            While TokOpToRelOp_Divide.ContainsKey(CurrentToken.Type)
+
+                Dim Op As TypeSystem.RelationType = TokOpToRelOp_Divide(CurrentToken.Type)
+                Advance()
+                Dim Right As ExpressionNode = GetCallBracketChild()
+
+                Left = New NumericalOperationExpression(Left, Op, Right, Left.Location + Right.Location)
+
+            End While
+
+            Return Left
+
+        End Function
+
+
+        Private Shared TokOpToRelOp_Plus As New Dictionary(Of TokenType, TypeSystem.RelationType) From {
+            {TokenType.SYMBOL_PLUS, TypeSystem.RelationType.RELATION_ADD},
+            {TokenType.SYMBOL_MINUS, TypeSystem.RelationType.RELATION_SUB}
+        }
+
+        Private Function GetPlusOperation() As ExpressionNode
+
+            Dim Left As ExpressionNode = GetDivideOperation()
+
+            While TokOpToRelOp_Plus.ContainsKey(CurrentToken.Type)
+
+                Dim Op As TypeSystem.RelationType = TokOpToRelOp_Plus(CurrentToken.Type)
+                Advance()
+                Dim Right As ExpressionNode = GetDivideOperation()
+
+                Left = New NumericalOperationExpression(Left, Op, Right, Left.Location + Right.Location)
+
+            End While
+
+            Return Left
+
+        End Function
+
         Private Function GetExpression() As ExpressionNode
-            Return GetCallBracketChild()
+            Return GetPlusOperation()
         End Function
 
         '======================
