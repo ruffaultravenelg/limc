@@ -65,10 +65,14 @@ Public Module Compiler
         Process.StartInfo.Arguments = GetCompilationArguments()
         Process.StartInfo.UseShellExecute = True
         Process.StartInfo.CreateNoWindow = True
-        Process.Start()
+        Try
+            Process.Start()
+        Catch ex As Exception
+            Throw New BasicException("C Compiler error", $"C compiler ""{C_COMPILER_PATH}"" cannot start. Make sure this is the right path.")
+        End Try
         Process.WaitForExit()
         If Not Process.ExitCode = 0 Then
-            Throw New BasicException("C Compiler error", $"""{C_COMPILER_PATH}"" returned code {Process.ExitCode}")
+            Throw New BasicException("C Compiler error", $"C compiler ""{C_COMPILER_PATH}"" returned code {Process.ExitCode}")
         End If
 
     End Sub

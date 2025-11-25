@@ -10,7 +10,9 @@ Module Program
 
         Dim PositionalArgs As New List(Of String)()
 
-        For Each arg As String In args
+        For i As Integer = 0 To args.Length - 1
+            Dim arg As String = args(i)
+
             Select Case arg.ToLower()
                 Case "-h", "--help"
                     Help()
@@ -24,6 +26,14 @@ Module Program
                     INTEGRATE_DEBUG = False
                 Case "-s", "--source"
                     ONLY_COMPILE_SOURCE = True
+                Case "-cc"
+                    If i + 1 < args.Length Then
+                        C_COMPILER_PATH = args(i + 1)
+                        i += 1
+                    Else
+                        Console.WriteLine("Error: Missing path for -cc argument.")
+                        Exit Sub
+                    End If
                 Case Else
                     PositionalArgs.Add(arg)
             End Select
@@ -69,6 +79,7 @@ Module Program
         Console.WriteLine("  -vb" & vbTab & "--verbose" & vbTab & "Add comments to the generated C file")
         Console.WriteLine("  -r" & vbTab & "--release" & vbTab & "Remove error handling runtime (like stacktrace)")
         Console.WriteLine("  -s" & vbTab & "--source" & vbTab & "Compile to C source file instead of an executable")
+        Console.WriteLine("  -cc" & vbTab & "[path]" & vbTab & vbTab & "Specify the path to the C compiler (default: gcc)")
 
     End Sub
 
