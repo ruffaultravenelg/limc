@@ -5,7 +5,7 @@ Namespace CodeGen
 
         Public ReadOnly Namer As NameGenerator = New NameGenerator()
 
-        Private Includes As New List(Of String) From {"#include <stdio.h>", "#include <stdlib.h>", "#include <stdbool.h>", "#include <math.h>", "#include <errno.h>"}
+        Private Includes As New HashSet(Of String) From {"<stdio.h>", "<stdlib.h>", "<stdbool.h>", "<math.h>", "<errno.h>"}
         Private Macros As New List(Of String)
         Private Consts As New HashSet(Of String)
         Private Typedefs As New HashSet(Of String)
@@ -15,11 +15,6 @@ Namespace CodeGen
         Private Functions As New HashSet(Of CodeGen.BaseFunction)
 
         Public Sub RegisterInclude(Include As String)
-            For Each Inc In Includes
-                If Inc = Include Then
-                    Exit Sub
-                End If
-            Next
             Includes.Add(Include)
         End Sub
 
@@ -89,7 +84,7 @@ Namespace CodeGen
             'Write includes
             WriteTitle(Writer, "Includes")
             For Each Include In Includes
-                Writer.WriteLine(Include)
+                Writer.WriteLine("#include " & Include)
             Next
             Writer.WriteLine()
 
@@ -240,11 +235,12 @@ Namespace CodeGen
 
         Private Sub WriteGarbageCollector()
 
-            RegisterInclude("#include """ & Path.Combine(Compiler.COMPILER_DIRECTORY, "clibs", "tgc", "tgc.h") & """")
+            RegisterInclude("""" & Path.Combine(Compiler.COMPILER_DIRECTORY, "clibs", "tgc", "tgc.h") & """")
             Compiler.CFilesToInclude.Add(Path.Combine(Compiler.COMPILER_DIRECTORY, "clibs", "tgc", "tgc.c"))
 
             RegisterMacro($"#define {LIM_ALLOC}(size) tgc_alloc({RUNTIME_CONTEXT_VARIABLE_NAME}.gc, size);")
             RegisterMacro("#define LIM_ALLOC_STANDALONE(gc, size) tgc_alloc(gc, size);")
+            RegisterMacro($"#define {LIM_FREE}(ptr) tgc_free({RUNTIME_CONTEXT_VARIABLE_NAME}.gc, ptr);")
 
         End Sub
 

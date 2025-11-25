@@ -1,4 +1,5 @@
 ﻿Imports System.IO
+Imports System.Text
 Imports limc.Context
 
 Public Module Tokenizer
@@ -30,7 +31,6 @@ Public Module Tokenizer
         SanitazeResults()
         Return Results
     End Function
-
 
     'Sanitaze results
     Public Sub SanitazeResults()
@@ -130,13 +130,39 @@ Public Module Tokenizer
         End While
         Results.Add(New Token(TokenType.LINESTART, LocationFromSave(), Indentation))
 
+        '@preprocessor
+        If CurrentChar = "@"c Then
+            NextChar()
+            Dim Word As New StringBuilder()
+            If Not VALID_TEXT_CHARS.Contains(CurrentChar) Then
+                Throw New SyntaxError("A directive name was expected here.", LocationFromChar())
+            End If
+            SaveCol()
+            While VALID_TEXT_CHARS.Contains(CurrentChar)
+                Word.Append(CurrentChar)
+                NextChar()
+            End While
+            If Not CAPI.DoKeepLineFromPlatformName(Word.ToString(), LocationFromSave()) Then
+                Exit Sub
+            End If
+            While Char.IsWhiteSpace(CurrentChar)
+                NextChar()
+                Continue While
+            End While
+        End If
+
         'Source line
         If CurrentChar = "$"c Then
             NextChar()
             SaveCol()
             Dim Source As String = Line.Substring(Col, Line.Length - Col).Trim
-            Results.Add(New Token(TokenType.SOURCE_LINE, New Location(Tokenizer.Source, LineNumber, StartCol, Line.Length - Col), Source))
-            Exit Sub
+            If Source.StartsWith("include") Then
+                Col += "include".Length
+                Results.Add(New Token(TokenType.KEYWORD_INCLUDE, LocationFromSave()))
+            Else
+                Results.Add(New Token(TokenType.SOURCE_LINE, New Location(Tokenizer.Source, LineNumber, StartCol, Line.Length - Col), Source))
+                Exit Sub
+            End If
         End If
 
         'Loop trought chars to create tokens
@@ -352,6 +378,8 @@ Public Module Tokenizer
                     End If
                 Case "="c
                     AddToken(TokenType.SYMBOL_EQUAL, LocationFromChar())
+                Case "@"c
+                    AddToken(TokenType.SYMBOL_AT, LocationFromChar())
                 Case Else
                     'Final error: unexpected character
                     Throw New LocatedError("Unexpected character", $"The following character was not expected : ""{CurrentChar}""", LocationFromChar())

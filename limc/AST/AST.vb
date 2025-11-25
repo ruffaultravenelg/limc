@@ -11,7 +11,6 @@ Namespace AST
         Public ReadOnly Property Include_Imports As New List(Of ImportNode)
         Public ReadOnly Property Include_Uses As New List(Of UseNode)
 
-
         '==================
         '===== TOKENS =====
         '==================
@@ -180,6 +179,23 @@ Namespace AST
                     End If
 
                     Throw New SyntaxError("An import must be followed by a path to a ""lim"" file or the name of a library.", CurrentToken.Location)
+
+                End If
+
+                ' Check for $include
+                If CurrentToken.Type = TokenType.KEYWORD_INCLUDE Then
+                    Advance()
+
+                    If CurrentToken.Type = TokenType.TEXT Then
+                        Throw New SyntaxError("A C include header must be enclosed in quotation marks. Examples: $include ""<unistd.h>""", CurrentToken.Location)
+                    End If
+                    If Not CurrentToken.Type = TokenType.VAL_STRING Then
+                        Throw New SyntaxError("An $include must be followed by C header.", CurrentToken.Location)
+                    End If
+
+                    CAPI.HandleInclude(CurrentToken.Value, StartLocation + CurrentToken.Location)
+                    Advance()
+                    Continue While
 
                 End If
 
