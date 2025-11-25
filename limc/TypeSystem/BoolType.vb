@@ -16,20 +16,8 @@
             Return {}
         End Function
 
-        Private _Relations As New List(Of Lazy.Relation)
-        Protected Overrides ReadOnly Property Relations As IEnumerable(Of Lazy.Relation)
-            Get
-                If _Relations.Count = 0 Then
-                    CreateRelationHelper(RelationType.RELATION_AND, Type.Bool, Type.Bool, $"{INSTANCE_ARGUMENT_NAME} && val")
-                    CreateRelationHelper(RelationType.RELATION_OR, Type.Bool, Type.Bool, $"{INSTANCE_ARGUMENT_NAME} || val")
-                End If
-                Return _Relations
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property Relations As IEnumerable(Of Lazy.Relation) = {}
 
-        Private Sub CreateRelationHelper(RelationType As RelationType, ValType As Type, ReturnType As Type, ReturnValue As String)
-            _Relations.Add(New Lazy.HardRelation(Me, RelationType, {ValType}, {"val"}, ReturnType, {$"return {ReturnValue};"}))
-        End Sub
 
     End Class
 End Namespace

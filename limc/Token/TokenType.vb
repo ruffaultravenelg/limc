@@ -40,5 +40,6 @@
     KEYWORD_CONST
     KEYWORD_AND
     KEYWORD_OR
+    KEYWORD_NOT
 
 End Enum

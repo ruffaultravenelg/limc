@@ -381,6 +381,10 @@ Namespace AST
                 Case TokenType.VAL_BOOL
                     Return New BooleanExpression(Tok.Value, Tok.Location)
 
+                Case TokenType.KEYWORD_NOT
+                    Dim Expression As ExpressionNode = GetExpression()
+                    Return New UnaryNotExpression(Expression, Tok.Location + Expression.Location)
+
             End Select
 
             'Error
@@ -488,17 +492,14 @@ Namespace AST
         End Function
 
         ' \\\\\\ {expression} AND/OR {expression} //////
-        Private Shared TokOpToRelOp_Bool As New Dictionary(Of TokenType, TypeSystem.RelationType) From {
-            {TokenType.KEYWORD_AND, TypeSystem.RelationType.RELATION_AND},
-            {TokenType.KEYWORD_OR, TypeSystem.RelationType.RELATION_OR}
-        }
+        Private Shared Bool_Ops As IEnumerable(Of TokenType) = {TokenType.KEYWORD_AND, TokenType.KEYWORD_OR}
         Private Function GetBooleanOperation() As ExpressionNode
 
             Dim Left As ExpressionNode = GetPlusOperation()
 
-            While TokOpToRelOp_Bool.ContainsKey(CurrentToken.Type)
+            While Bool_Ops.Contains(CurrentToken.Type)
 
-                Dim Op As TypeSystem.RelationType = TokOpToRelOp_Bool(CurrentToken.Type)
+                Dim Op As TypeSystem.RelationType = CurrentToken.Type
                 Advance()
                 Dim Right As ExpressionNode = GetPlusOperation()
 

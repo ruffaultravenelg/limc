@@ -24,6 +24,10 @@
                     NoGenericType("str")
                     Return TypeSystem.Type.Str
 
+                Case "bool"
+                    NoGenericType("bool")
+                    Return TypeSystem.Type.Bool
+
             End Select
 
             'Search for generic types

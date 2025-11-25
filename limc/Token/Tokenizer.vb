@@ -233,6 +233,8 @@ Public Module Tokenizer
                         AddToken(TokenType.KEYWORD_AND, Loc)
                     Case "or"
                         AddToken(TokenType.KEYWORD_OR, Loc)
+                    Case "not"
+                        AddToken(TokenType.KEYWORD_NOT, Loc)
                     Case "panic"
                         AddToken(TokenType.KEYWORD_PANIC, Loc)
                     Case Else

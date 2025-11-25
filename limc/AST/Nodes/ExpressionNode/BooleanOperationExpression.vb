@@ -3,29 +3,45 @@
         Inherits ExpressionNode
 
         Private Left As ExpressionNode
-        Private Op As TypeSystem.RelationType
+        Private Op As TokenType
         Private Right As ExpressionNode
 
-        Public Sub New(Left As ExpressionNode, Op As TypeSystem.RelationType, Right As ExpressionNode, Location As Location)
+        Public Sub New(Left As ExpressionNode, Op As TokenType, Right As ExpressionNode, Location As Location)
             MyBase.New(Location)
             Me.Left = Left
             Me.Op = Op
             Me.Right = Right
         End Sub
 
-        Private Function GetRelation(Context As Context.Context) As Lazy.Relation
+        Private Sub CheckTypes(Context As Context.Context)
             Dim LeftType As TypeSystem.Type = Left.GetExpressionReturnType(Context)
-            Dim RightType As TypeSystem.Type = Right.GetExpressionReturnType(Context)
+            If LeftType <> TypeSystem.Type.Bool Then
+                Throw New TypeMismatchError(TypeSystem.Type.Bool, LeftType, Left.Location)
+            End If
 
-            Return LeftType.GetRelation(Op, {RightType}, Location)
-        End Function
+            Dim RightType As TypeSystem.Type = Right.GetExpressionReturnType(Context)
+            If RightType <> TypeSystem.Type.Bool Then
+                Throw New TypeMismatchError(TypeSystem.Type.Bool, RightType, Right.Location)
+            End If
+        End Sub
 
         Public Overrides Function GetExpressionReturnType(Context As Context.Context) As TypeSystem.Type
-            Return GetRelation(Context).ReturnType
+            CheckTypes(Context)
+            Return TypeSystem.Type.Bool
         End Function
 
         Public Overrides Function CompileExpression(Scope As Context.Scope) As String
-            Return GetRelation(Scope).CompileCall(Left, {Right}, Scope, Location)
+            CheckTypes(Scope)
+
+            Select Case Op
+                Case TokenType.KEYWORD_AND
+                    Return $"({Left.CompileExpression(Scope)} && {Right.CompileExpression(Scope)})"
+                Case TokenType.KEYWORD_OR
+                    Return $"({Left.CompileExpression(Scope)} || {Right.CompileExpression(Scope)})"
+                Case Else
+                    Throw New InternalError()
+            End Select
+
         End Function
 
     End Class
