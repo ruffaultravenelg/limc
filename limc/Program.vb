@@ -4,7 +4,8 @@ Module Program
 
     Public Property VERBOSE As Boolean = False
     Public Property INTEGRATE_DEBUG As Boolean = True
-
+    Public Property ONLY_COMPILE_SOURCE As Boolean = False
+    Public Property C_COMPILER_PATH As String = "gcc"
     Sub Main(args As String())
 
         Dim PositionalArgs As New List(Of String)()
@@ -21,6 +22,8 @@ Module Program
                     VERBOSE = True
                 Case "-r", "--release"
                     INTEGRATE_DEBUG = False
+                Case "-s", "--source"
+                    ONLY_COMPILE_SOURCE = True
                 Case Else
                     PositionalArgs.Add(arg)
             End Select
@@ -65,6 +68,7 @@ Module Program
         Console.WriteLine("  -v" & vbTab & "--version" & vbTab & "Show the current compiler version")
         Console.WriteLine("  -vb" & vbTab & "--verbose" & vbTab & "Add comments to the generated C file")
         Console.WriteLine("  -r" & vbTab & "--release" & vbTab & "Remove error handling runtime (like stacktrace)")
+        Console.WriteLine("  -s" & vbTab & "--source" & vbTab & "Compile to C source file instead of an executable")
 
     End Sub
 
