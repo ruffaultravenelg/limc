@@ -46,9 +46,13 @@
             Get
                 If _Relations.Count = 0 Then
                     CreateRelationHelper(RelationType.RELATION_ADD, Type.Int, Type.Int, $"{INSTANCE_ARGUMENT_NAME} + val")
+                    CreateRelationHelper(RelationType.RELATION_ADD, Type.Float, Type.Int, $"{INSTANCE_ARGUMENT_NAME} + val")
                     CreateRelationHelper(RelationType.RELATION_SUB, Type.Int, Type.Int, $"{INSTANCE_ARGUMENT_NAME} - val")
+                    CreateRelationHelper(RelationType.RELATION_SUB, Type.Float, Type.Int, $"{INSTANCE_ARGUMENT_NAME} - val")
                     CreateRelationHelper(RelationType.RELATION_MULT, Type.Int, Type.Int, $"{INSTANCE_ARGUMENT_NAME} * val")
+                    CreateRelationHelper(RelationType.RELATION_MULT, Type.Float, Type.Int, $"{INSTANCE_ARGUMENT_NAME} * val")
                     CreateRelationHelper(RelationType.RELATION_DIV, Type.Int, Type.Int, $"(int)round({INSTANCE_ARGUMENT_NAME} / val)")
+                    CreateRelationHelper(RelationType.RELATION_DIV, Type.Float, Type.Int, $"(int)round({INSTANCE_ARGUMENT_NAME} / val)")
                     CreateRelationHelper(RelationType.RELATION_MODULO, Type.Int, Type.Int, $"{INSTANCE_ARGUMENT_NAME} % val")
 
                     _Relations.Add(New Lazy.HardRelation(Me, RelationType.RELATION_UNARY_MINUS, {}, {}, Type.Int, {$"return -{INSTANCE_ARGUMENT_NAME};"}))

@@ -332,6 +332,9 @@ Namespace AST
                 Case TokenType.VAL_INT
                     Return New IntExpression(Tok.Value, Tok.Location)
 
+                Case TokenType.VAL_FLOAT
+                    Return New FloatExpression(Tok.Value, Tok.Location)
+
                 Case TokenType.VAL_STRING
                     Return New StringExpression(Tok.Value, Tok.Location)
 

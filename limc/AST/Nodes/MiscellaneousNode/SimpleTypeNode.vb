@@ -28,6 +28,10 @@
                     NoGenericType("bool")
                     Return TypeSystem.Type.Bool
 
+                Case "float"
+                    NoGenericType("float")
+                    Return TypeSystem.Type.Float
+
             End Select
 
             'Search for generic types
