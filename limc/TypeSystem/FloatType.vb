@@ -2,7 +2,7 @@
     Public Class FloatType
         Inherits Type
 
-        Public Overrides ReadOnly Property cRepresentation As String = "float"
+        Public Overrides ReadOnly Property cRepresentation As String = "double"
 
         Public Overrides Function DefaultValue(Scope As Context.Scope) As String
             Return "0.0"
@@ -45,8 +45,8 @@
                     CreateRelationHelper(RelationType.RELATION_SUB, Type.Int, Type.Float, $"{INSTANCE_ARGUMENT_NAME} - val")
                     CreateRelationHelper(RelationType.RELATION_MULT, Type.Float, Type.Float, $"{INSTANCE_ARGUMENT_NAME} * val")
                     CreateRelationHelper(RelationType.RELATION_MULT, Type.Int, Type.Float, $"{INSTANCE_ARGUMENT_NAME} * val")
-                    CreateRelationHelper(RelationType.RELATION_DIV, Type.Float, Type.Float, $"(float)round({INSTANCE_ARGUMENT_NAME} / val)")
-                    CreateRelationHelper(RelationType.RELATION_DIV, Type.Int, Type.Float, $"(float)round({INSTANCE_ARGUMENT_NAME} / val)")
+                    CreateRelationHelper(RelationType.RELATION_DIV, Type.Float, Type.Float, $"(double)round({INSTANCE_ARGUMENT_NAME} / val)")
+                    CreateRelationHelper(RelationType.RELATION_DIV, Type.Int, Type.Float, $"(double)round({INSTANCE_ARGUMENT_NAME} / val)")
                     CreateRelationHelper(RelationType.RELATION_MODULO, Type.Float, Type.Float, $"{INSTANCE_ARGUMENT_NAME} % val")
 
                     _Relations.Add(New Lazy.HardRelation(Me, RelationType.RELATION_UNARY_MINUS, {}, {}, Type.Float, {$"return -{INSTANCE_ARGUMENT_NAME};"}))
