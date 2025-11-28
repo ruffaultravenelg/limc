@@ -66,6 +66,9 @@ Namespace Context
             'Create function repository
             SourceInstance.FunctionRepository = New FunctionRepository(SourceInstance.AST.Functions, SourceInstance)
 
+            'Create type repository
+            SourceInstance.TypeRepository = New CommonTypeRepository(SourceInstance.AST.TypeConstructs)
+
             'Compile constants
             For Each ConstantsConstruct In SourceInstance.AST.Constants
                 ConstantsConstruct.Compile(SourceInstance.ConstantStore)
@@ -85,6 +88,35 @@ Namespace Context
         '===== CONSTANTS =====
         '=====================
         Private ConstantStore As New Dictionary(Of String, DeclareConstantWithValueConstruct)
+
+        '========================
+        '===== CUSTOM TYPES =====
+        '========================
+        Private TypeRepository As CommonTypeRepository
+
+        Public Function RetrieveTypeFromLocal(TypeName As String, GenericTypes As IEnumerable(Of TypeSystem.Type)) As TypeSystem.Type
+
+            ' Search in current file
+            Dim LocalType As TypeSystem.Type = TypeRepository.RetrieveType(TypeName, GenericTypes, False)
+            If LocalType IsNot Nothing Then
+                Return LocalType
+            End If
+
+            ' Search in imported files
+            For Each Include In AST.Include_Imports
+                Dim Result As TypeSystem.Type = Include.AssociatedFile.RetrieveTypeOnlyExported(TypeName, GenericTypes)
+                If Result IsNot Nothing Then
+                    Return Result
+                End If
+            Next
+
+            ' Nothing found
+            Return Nothing
+
+        End Function
+        Public Function RetrieveTypeOnlyExported(TypeName As String, GenericTypes As IEnumerable(Of TypeSystem.Type)) As TypeSystem.Type
+            Return TypeRepository.RetrieveType(TypeName, GenericTypes, True)
+        End Function
 
         '==========================
         '===== SEARCH ELEMENT =====

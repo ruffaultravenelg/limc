@@ -43,7 +43,13 @@
             End If
 
             'Search for type
-            Throw New NotImplementedException()
+            Dim CommonType As TypeSystem.Type = Location.File.RetrieveTypeFromLocal(TypeName, TypeGenericTypes.Select(Function(t) t.GetAssociatedType(Context)))
+            If CommonType IsNot Nothing Then
+                Return CommonType
+            End If
+
+            ' Not found
+            Throw New SyntaxError("This type is not accessible or does not exist.", Location)
 
         End Function
 

@@ -263,6 +263,8 @@ Public Module Tokenizer
                         AddToken(TokenType.KEYWORD_NOT, Loc)
                     Case "panic"
                         AddToken(TokenType.KEYWORD_PANIC, Loc)
+                    Case "record"
+                        AddToken(TokenType.KEYWORD_RECORD, Loc)
                     Case Else
                         AddToken(TokenType.TEXT, Text, Loc)
                 End Select

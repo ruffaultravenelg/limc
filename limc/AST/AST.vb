@@ -8,6 +8,7 @@ Namespace AST
         '======================
         Public ReadOnly Property Functions As New List(Of FunctionConstruct)
         Public ReadOnly Property Constants As New List(Of DeclareConstantWithValueConstruct)
+        Public ReadOnly Property TypeConstructs As New List(Of IGenerateType)
         Public ReadOnly Property Include_Imports As New List(Of ImportNode)
         Public ReadOnly Property Include_Uses As New List(Of UseNode)
 
@@ -70,7 +71,7 @@ Namespace AST
         '=======================
         '===== CONSTRUCTOR =====
         '=======================
-        Private ReadOnly FileConstructs As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetFunctionConstructNode, AddressOf GetConstantConstructNode}
+        Private ReadOnly FileConstructs As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetFunctionConstructNode, AddressOf GetConstantConstructNode, AddressOf GetRecordConstructNode}
 
         Public Sub New(Tokens As IEnumerable(Of Token))
 
@@ -122,6 +123,8 @@ Namespace AST
                     Functions.Add(Construct)
                 ElseIf TypeOf Construct Is DeclareConstantWithValueConstruct Then
                     Constants.Add(Construct)
+                ElseIf TypeOf Construct Is IGenerateType Then
+                    TypeConstructs.Add(Construct)
                 Else
                     Throw New InternalError()
                 End If
@@ -232,6 +235,19 @@ Namespace AST
             Dim TypeName As String = CurrentToken.Value
             Advance()
 
+            'Module?
+            Dim ModuleName As String = ""
+            If CurrentToken.Type = TokenType.OP_MODULE_RESOLVER Then
+                Advance()
+                CheckTokenType(TokenType.TEXT)
+                ModuleName = TypeName
+                TypeName = CurrentToken.Value
+                If TypeName = "fun" Then
+                    Throw New SyntaxError("The name ""fun"" is reserved for the eponymous type. No module should be associated with it.", RetrievePosition())
+                End If
+                Advance()
+            End If
+
             'Arguments <arg1,arg2,...>
             Dim GenericArguments As New List(Of TypeNode)
 
@@ -264,7 +280,11 @@ Namespace AST
 
             End If
 
-            Return New AST.SimpleTypeNode(TypeName, GenericArguments, RetrievePosition())
+            If ModuleName = "" Then
+                Return New AST.SimpleTypeNode(TypeName, GenericArguments, RetrievePosition())
+            Else
+                Return New AST.ModuleTypeNode(ModuleName, TypeName, GenericArguments, RetrievePosition())
+            End If
 
         End Function
 
@@ -314,6 +334,31 @@ Namespace AST
             End While
 
             Return Result
+        End Function
+
+        Private Function GetGenericTypeNames() As IEnumerable(Of String)
+            Dim GenericArguments As New List(Of String)
+            If CurrentToken.Type = TokenType.SYMBOL_LESSTHAN Then
+                Advance()
+                If Not CurrentToken.Type = TokenType.SYMBOL_GREATERTHAN Then
+                    While True
+                        If Not CurrentToken.Type = TokenType.TEXT Then
+                            Throw New SyntaxError("A generic type name was expected here", CurrentToken.Location)
+                        End If
+                        GenericArguments.Add(CurrentToken.Value)
+                        Advance()
+                        If CurrentToken.Type = TokenType.SYMBOL_COMMA Then
+                            Advance()
+                        ElseIf CurrentToken.Type = TokenType.SYMBOL_GREATERTHAN Then
+                            Exit While
+                        Else
+                            Throw New SyntaxError("A comma or a "">"" was expected here", CurrentToken.Location)
+                        End If
+                    End While
+                End If
+                Advance()
+            End If
+            Return GenericArguments
         End Function
 
         '=======================
@@ -718,7 +763,6 @@ Namespace AST
         '======================
         '===== CONSTRUCTS =====
         '======================
-
         Private Function GetFunctionConstructNode() As FunctionConstruct
 
             If Not CurrentToken.Type = TokenType.KEYWORD_FUNC Then
@@ -733,27 +777,7 @@ Namespace AST
             Advance()
 
             'Generic arguments
-            Dim GenericArguments As New List(Of String)
-            If CurrentToken.Type = TokenType.SYMBOL_LESSTHAN Then
-                Advance()
-                If Not CurrentToken.Type = TokenType.SYMBOL_GREATERTHAN Then
-                    While True
-                        If Not CurrentToken.Type = TokenType.TEXT Then
-                            Throw New SyntaxError("A generic type name was expected here", CurrentToken.Location)
-                        End If
-                        GenericArguments.Add(CurrentToken.Value)
-                        Advance()
-                        If CurrentToken.Type = TokenType.SYMBOL_COMMA Then
-                            Advance()
-                        ElseIf CurrentToken.Type = TokenType.SYMBOL_GREATERTHAN Then
-                            Exit While
-                        Else
-                            Throw New SyntaxError("A comma or a "">"" was expected here", CurrentToken.Location)
-                        End If
-                    End While
-                End If
-                Advance()
-            End If
+            Dim GenericArguments As IEnumerable(Of String) = GetGenericTypeNames()
 
             'Arguments
             Dim Arguments As New List(Of ArgumentNode)
@@ -812,6 +836,65 @@ Namespace AST
 
             'Create node
             Return New DeclareConstantWithValueConstruct(ConstantName, ConstantValue, RetrievePosition())
+
+        End Function
+
+        Private Function GetRecordConstructNode() As RecordConstruct
+
+            ' Check if this is a record
+            If Not CurrentToken.Type = TokenType.KEYWORD_RECORD Then
+                Throw New NotTheRightElementException()
+            End If
+
+            ' Get name
+            PushPosition()
+            Advance()
+            CheckTokenType(TokenType.TEXT, "A record must have a name")
+            Dim Name As String = CurrentToken.Value
+            Advance()
+
+            ' Get generic types
+            Dim GenericArguments As IEnumerable(Of String) = GetGenericTypeNames()
+
+            'Check fields opening (
+            CheckTokenType(TokenType.SYMBOL_LEFT_PARENTHESIS, "A record must have at least one field")
+            Advance()
+            If CurrentToken.Type = TokenType.SYMBOL_RIGHT_PARENTHESIS Then
+                Throw New SyntaxError("A record must have at least one field", Tokens(TokenIndex - 1).Location + CurrentToken.Location) 'Location = two last tokens => ()
+            End If
+
+            'Get fields
+            Dim Fields As New List(Of RecordConstruct.Field)
+            While True
+                PushPosition()
+
+                'Get field name
+                CheckTokenType(TokenType.TEXT, "A field name was expected there")
+                Dim FieldName As String = CurrentToken.Value
+                Advance()
+
+                'Get field type
+                CheckTokenType(TokenType.SYMBOL_COLON)
+                Advance()
+                Dim FieldType As TypeNode = GetTypeNode()
+
+                ' Create field
+                Fields.Add(New RecordConstruct.Field(FieldName, FieldType, RetrievePosition()))
+
+                'End there ?
+                If CurrentToken.Type = TokenType.SYMBOL_RIGHT_PARENTHESIS Then
+                    Advance()
+                    Exit While
+                End If
+
+                ' Check for comma
+                CheckTokenType(TokenType.SYMBOL_COMMA, "A ')' or a ',' was expected here. Close the record or add a new field.")
+                Advance()
+
+            End While
+
+            ' Create record
+            Return New RecordConstruct(Name, GenericArguments, Fields, RetrievePosition())
 
         End Function
 
