@@ -12,28 +12,13 @@
             Return "float"
         End Function
 
-        Public Overrides Function RetrieveElements(Name As String) As IEnumerable(Of SearchMatch)
-            Select Case Name
-                Case "str"
-                    Return {New SearchMatch(str_method)}
-                Case Else
-                    Return {}
-            End Select
-        End Function
-
-        Private _str_method As Lazy.HardMethod = Nothing
-        Private ReadOnly Property str_method As Lazy.HardMethod
-            Get
-                If _str_method Is Nothing Then
-                    _str_method = New Lazy.HardMethod(Me, "str", {}, Type.Str, {
-                        $"char* buffer = {LIM_ALLOC}({FLOAT_TO_STR_BUFFERSIZE});",
-                        $"sprintf(buffer, ""%f"", {INSTANCE_ARGUMENT_NAME});",
-                        "return buffer;"
-                    })
-                End If
-                Return _str_method
-            End Get
-        End Property
+        Public Sub Compile()
+            RegisterMethod(New Lazy.HardMethod(Me, "str", {}, Type.Str, {
+                $"char* buffer = {LIM_ALLOC}({FLOAT_TO_STR_BUFFERSIZE});",
+                $"sprintf(buffer, ""%f"", {INSTANCE_ARGUMENT_NAME});",
+                "return buffer;"
+            }))
+        End Sub
 
         Private _Relations As New List(Of Lazy.Relation)
         Protected Overrides ReadOnly Property Relations As IEnumerable(Of Lazy.Relation)

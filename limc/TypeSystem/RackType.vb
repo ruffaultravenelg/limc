@@ -27,10 +27,6 @@
             Return "{" & String.Join(", ", DefaultValues) & "}"
         End Function
 
-        Public Overrides Function RetrieveElements(Name As String) As IEnumerable(Of SearchMatch)
-            Return {}
-        End Function
-
         Public Overrides Function ToString() As String
             Return $"{Length}<{ElementType}>"
         End Function

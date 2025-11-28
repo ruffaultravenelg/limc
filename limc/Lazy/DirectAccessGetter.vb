@@ -1,0 +1,21 @@
+﻿Namespace Lazy
+    Public Class DirectAccessGetter
+        Inherits Getter
+
+        Public Overrides ReadOnly Property Name As String
+        Public Overrides ReadOnly Property Type As TypeSystem.Type
+
+        Private Callback As Func(Of String, String)
+
+        Public Sub New(Name As String, Type As TypeSystem.Type, Callback As Func(Of String, String))
+            Me.Name = Name
+            Me.Type = Type
+            Me.Callback = Callback
+        End Sub
+
+        Public Overrides Function CallGetter(CompiledObject As String) As String
+            Return Callback(CompiledObject)
+        End Function
+
+    End Class
+End Namespace

@@ -11,6 +11,7 @@
         MATCH_FUNCTION
         MATCH_VARIABLE
         MATCH_METHOD
+        MATCH_GETTER
         MATCH_CONSTANT
     End Enum
 
@@ -51,6 +52,16 @@
         Me.New(Element, MatchType.MATCH_CONSTANT)
     End Sub
     Public ReadOnly Property MatchingConstant As ConstantData
+        Get
+            Return Result
+        End Get
+    End Property
+
+    'Getter
+    Public Sub New(Element As Lazy.Getter)
+        Me.New(Element, MatchType.MATCH_GETTER)
+    End Sub
+    Public ReadOnly Property MatchingGetter As Lazy.Getter
         Get
             Return Result
         End Get

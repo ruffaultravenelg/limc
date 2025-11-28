@@ -185,10 +185,6 @@ Namespace TypeSystem
             Return $"fun<{ArgTypes}><{If(ReturnType Is Nothing, "", ReturnType.ToString())}>"
         End Function
 
-        Public Overrides Function RetrieveElements(Name As String) As IEnumerable(Of SearchMatch)
-            Return {}
-        End Function
-
         Protected Overrides ReadOnly Property Relations As IEnumerable(Of Lazy.Relation) = {}
 
     End Class

@@ -27,6 +27,8 @@
 
             If Element.Type = SearchMatch.MatchType.MATCH_METHOD Then
                 Return Element.MatchingMethod.AssociatedFunctionType
+            ElseIf Element.Type = SearchMatch.MatchType.MATCH_GETTER Then
+                Return Element.MatchingGetter.Type
             Else
                 Throw New UnknownOrUnreachableElementError(ElementName, Location)
             End If
@@ -39,6 +41,8 @@
 
             If Element.Type = SearchMatch.MatchType.MATCH_METHOD Then
                 Return Element.MatchingMethod.AssociatedFunctionType.GetValueFromMethodNameAndInstance(Scope, Element.MatchingMethod.GeneratedFunction.CompiledName, Parent.CompileExpression(Scope), Parent.GetExpressionReturnType(Scope))
+            ElseIf Element.Type = SearchMatch.MatchType.MATCH_GETTER Then
+                Return Element.MatchingGetter.CallGetter(Parent.CompileExpression(Scope))
             Else
                 Throw New UnknownOrUnreachableElementError(ElementName, Location)
             End If

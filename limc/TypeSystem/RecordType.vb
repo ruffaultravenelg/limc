@@ -1,5 +1,4 @@
-﻿Imports System.Text
-Imports limc.Context
+﻿Imports limc.Context
 
 Namespace TypeSystem
     Public Class RecordType
@@ -36,6 +35,7 @@ Namespace TypeSystem
                 _FieldTypes.Add(FieldType)
                 Dim Tmp As String = CodeGen.Namer.Temp()
                 StructFields.Add($"{FieldType.cRepresentation} {Tmp};")
+                RegisterGetter(New Lazy.DirectAccessGetter(Field.Name, FieldType, Function(instance) $"{instance}.{Tmp}"))
 
             Next
             Me.FieldTypes = _FieldTypes
@@ -55,10 +55,6 @@ Namespace TypeSystem
                 Throw New ResourceUsedTooQuicklyError(Scope.Location)
             End If
             Return "(" & cRepresentation & "){" & String.Join(", ", FieldTypes.Select(Function(t) t.DefaultValue(Scope))) & "}"
-        End Function
-
-        Public Overrides Function RetrieveElements(Name As String) As IEnumerable(Of SearchMatch)
-            Return Array.Empty(Of SearchMatch)
         End Function
 
     End Class

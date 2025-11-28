@@ -2,18 +2,31 @@
 
     Public MustInherit Class Type
 
+        ' Main types
         Public Shared ReadOnly Property Int As IntType = New IntType()
         Public Shared ReadOnly Property Str As StrType = New StrType()
         Public Shared ReadOnly Property Bool As BoolType = New BoolType()
         Public Shared ReadOnly Property Float As FloatType = New FloatType()
+        Shared Sub New()
+            Int.Compile()
+            Str.Compile()
+            Bool.Compile()
+            Float.Compile()
+        End Sub
 
+
+        ' C representation (ex: void*)
         Public MustOverride ReadOnly Property cRepresentation As String
+
+        ' Create a default value (ex: NULL)
         Public MustOverride Function DefaultValue(Scope As Context.Scope) As String
 
+        ' Assgin value
         Public Overridable Sub SetVariableValue(Scope As Context.Scope, Variable As String, NewValue As String)
             Scope.WriteLine($"{Variable} = {NewValue};")
         End Sub
 
+        ' Equality
         Public Shared Operator =(a As Type, b As Type) As Boolean
             If a Is Nothing AndAlso b Is Nothing Then
                 Return True
@@ -27,8 +40,7 @@
             Return Not a = b
         End Operator
 
-        Public MustOverride Function RetrieveElements(Name As String) As IEnumerable(Of SearchMatch)
-
+        ' Relations
         Protected MustOverride ReadOnly Property Relations As IEnumerable(Of Lazy.Relation)
         Public Function GetRelation(Type As RelationType, ArgumentsTypes As IEnumerable(Of Type), Location As Location) As Lazy.Relation
             For Each Relation In Relations
@@ -58,6 +70,42 @@
 
             Next
             Throw New SyntaxError($"The ""{ToString()}"" type does not contain such a relation.", Location)
+        End Function
+
+
+        ' Getters
+        Private Getters As New List(Of Lazy.Getter)
+        Protected Sub RegisterGetter(Getter As Lazy.Getter)
+            Getters.Add(Getter) 'TODO: check if method name already exist
+        End Sub
+
+        ' Methods
+        Private Methods As New List(Of Lazy.Method)
+        Protected Sub RegisterMethod(Method As Lazy.Method)
+            Methods.Add(Method) 'TODO: check if method name already exist
+        End Sub
+
+        ' Search element
+        Public Function RetrieveElements(Name As String) As IEnumerable(Of SearchMatch)
+            Dim Results As New List(Of SearchMatch)
+
+            ' Search in getters
+            For Each G In Getters
+                If G.Name = Name Then
+                    Results.Add(New SearchMatch(G))
+                    Exit For
+                End If
+            Next
+
+            ' Search in methods
+            For Each M In Methods
+                If M.Name = Name Then
+                    Results.Add(New SearchMatch(M))
+                    Exit For
+                End If
+            Next
+
+            Return Results
         End Function
 
     End Class

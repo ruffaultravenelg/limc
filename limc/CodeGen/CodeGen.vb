@@ -5,7 +5,7 @@ Namespace CodeGen
 
         Public ReadOnly Namer As NameGenerator = New NameGenerator()
 
-        Private Includes As New HashSet(Of String) From {"<stdio.h>", "<stdlib.h>", "<stdbool.h>", "<math.h>", "<errno.h>"}
+        Private Includes As New HashSet(Of String) From {"<stdio.h>", "<stdlib.h>", "<string.h>", "<stdbool.h>", "<math.h>", "<errno.h>"}
         Private Macros As New List(Of String)
         Private Consts As New HashSet(Of String)
         Private Typedefs As New HashSet(Of String)
