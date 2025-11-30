@@ -82,8 +82,14 @@ Public Module Tokenizer
             Return If(Col < Line.Length, Line(Col), Nothing)
         End Get
     End Property
+    Private ReadOnly Property NextChar As Char
+        Get
+            Return If(Col + 1 < Line.Length, Line(Col + 1), Nothing)
+        End Get
+    End Property
 
-    Private Sub NextChar(Optional Count As Integer = 1)
+
+    Private Sub AdvanceChar(Optional Count As Integer = 1)
         Col += Count
     End Sub
 
@@ -126,13 +132,13 @@ Public Module Tokenizer
         Dim Indentation As Integer = 0
         While CurrentChar = vbTab
             Indentation += 1
-            NextChar()
+            AdvanceChar()
         End While
         Results.Add(New Token(TokenType.LINESTART, LocationFromSave(), Indentation))
 
         '@preprocessor
         If CurrentChar = "@"c Then
-            NextChar()
+            AdvanceChar()
             Dim Word As New StringBuilder()
             If Not VALID_TEXT_CHARS.Contains(CurrentChar) Then
                 Throw New SyntaxError("A directive name was expected here.", LocationFromChar())
@@ -140,20 +146,20 @@ Public Module Tokenizer
             SaveCol()
             While VALID_TEXT_CHARS.Contains(CurrentChar)
                 Word.Append(CurrentChar)
-                NextChar()
+                AdvanceChar()
             End While
             If Not CAPI.DoKeepLineFromPlatformName(Word.ToString(), LocationFromSave()) Then
                 Exit Sub
             End If
             While Char.IsWhiteSpace(CurrentChar)
-                NextChar()
+                AdvanceChar()
                 Continue While
             End While
         End If
 
         'Source line
         If CurrentChar = "$"c Then
-            NextChar()
+            AdvanceChar()
             SaveCol()
             Dim Source As String = Line.Substring(Col, Line.Length - Col).Trim
             If Source.StartsWith("include") Then
@@ -172,7 +178,7 @@ Public Module Tokenizer
 
             'Skiped caracters
             If CurrentChar = " "c OrElse CurrentChar = vbTab Then
-                NextChar()
+                AdvanceChar()
                 Continue While
             End If
 
@@ -191,7 +197,7 @@ Public Module Tokenizer
                             HasPoint = True
                         End If
                     End If
-                    NextChar()
+                    AdvanceChar()
                 End While
 
                 Dim AddDotToken As Boolean = False
@@ -231,7 +237,7 @@ Public Module Tokenizer
                 Dim Text As String = ""
                 While VALID_TEXT_CHARS_AFTER_FIRST_LETTER.Contains(CurrentChar)
                     Text &= CurrentChar
-                    NextChar()
+                    AdvanceChar()
                 End While
 
                 Dim Loc As Location = LocationFromSave()
@@ -278,16 +284,16 @@ Public Module Tokenizer
             If CurrentChar = """"c Then
 
                 SaveCol()
-                NextChar() 'Skip first quote
+                AdvanceChar() 'Skip first quote
                 Dim Str As String = ""
                 While Not CurrentChar = """"c
                     If CurrentChar = Nothing Then
                         Throw New LocatedError("String not closed", "The string was not closed before the end of the line.", LocationFromSave())
                     End If
                     Str &= CurrentChar
-                    NextChar()
+                    AdvanceChar()
                 End While
-                NextChar() 'Skip last quote
+                AdvanceChar() 'Skip last quote
 
                 AddToken(TokenType.VAL_STRING, Str, LocationFromSave())
 
@@ -299,14 +305,14 @@ Public Module Tokenizer
             If CurrentChar = "'"c Then
 
                 SaveCol()
-                NextChar() 'Skip first quote
+                AdvanceChar() 'Skip first quote
                 Dim Str As String = ""
                 While Not CurrentChar = "'"c
                     If CurrentChar = Nothing Then
                         Throw New LocatedError("String not closed", "The string was not closed before the end of the line.", LocationFromSave())
                     End If
                     If CurrentChar = "\"c Then
-                        NextChar()
+                        AdvanceChar()
                         If CurrentChar = Nothing Then
                             Throw New LocatedError("String not closed", "The string was not closed before the end of the line.", LocationFromSave())
                         End If
@@ -325,9 +331,9 @@ Public Module Tokenizer
                     Else
                         Str &= CurrentChar
                     End If
-                    NextChar()
+                    AdvanceChar()
                 End While
-                NextChar() 'Skip last quote
+                AdvanceChar() 'Skip last quote
 
                 AddToken(TokenType.VAL_FORMATED_STRING, Str, LocationFromSave())
 
@@ -353,9 +359,21 @@ Public Module Tokenizer
                 Case ","c
                     AddToken(TokenType.SYMBOL_COMMA, LocationFromChar())
                 Case "<"c
-                    AddToken(TokenType.SYMBOL_LESSTHAN, LocationFromChar())
+                    If NextChar = "="c Then
+                        SaveCol()
+                        AdvanceChar()
+                        AddToken(TokenType.SYMBOL_LESSTHANEQUAL, LocationFromSave())
+                    Else
+                        AddToken(TokenType.SYMBOL_LESSTHAN, LocationFromChar())
+                    End If
                 Case ">"c
-                    AddToken(TokenType.SYMBOL_GREATERTHAN, LocationFromChar())
+                    If NextChar = "="c Then
+                        SaveCol()
+                        AdvanceChar()
+                        AddToken(TokenType.SYMBOL_GREATERTHANEQUAL, LocationFromSave())
+                    Else
+                        AddToken(TokenType.SYMBOL_GREATERTHAN, LocationFromChar())
+                    End If
                 Case "["c
                     AddToken(TokenType.SYMBOL_LEFT_BRACKETS, LocationFromChar())
                 Case "]"c
@@ -369,7 +387,7 @@ Public Module Tokenizer
                 Case "}"c
                     AddToken(TokenType.SYMBOL_RIGHT_BRACE, LocationFromChar())
                 Case ":"c
-                    NextChar()
+                    AdvanceChar()
                     Dim Loc As Location = LocationFromChar()
                     If CurrentChar = ":"c Then
                         Loc.ToCol += 1
@@ -389,7 +407,7 @@ Public Module Tokenizer
             End Select
 
             'Goto next character, only SELECT CASE finish here, other tokens pass by using CONTINUE WHILE
-            NextChar()
+            AdvanceChar()
 
         End While
 

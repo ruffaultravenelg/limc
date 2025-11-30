@@ -615,11 +615,37 @@ Namespace AST
 
         End Function
 
+        ' \\\\\\ {expression} =/> {expression} //////
+        Private Shared TokOpToRelOp_Comp As New Dictionary(Of TokenType, TypeSystem.RelationType) From {
+            {TokenType.SYMBOL_EQUAL, TypeSystem.RelationType.RELATION_EQUAL},
+            {TokenType.SYMBOL_GREATERTHAN, TypeSystem.RelationType.RELATION_GREATERTHAN},
+            {TokenType.SYMBOL_GREATERTHANEQUAL, TypeSystem.RelationType.RELATION_GREATERTHANEQUAL},
+            {TokenType.SYMBOL_LESSTHAN, TypeSystem.RelationType.RELATION_LESSTHAN},
+            {TokenType.SYMBOL_LESSTHANEQUAL, TypeSystem.RelationType.RELATION_LESSTHANEQUAL}
+        }
+        Private Function GetComparisonOperation() As ExpressionNode
+
+            Dim Left As ExpressionNode = GetPlusOperation()
+
+            While TokOpToRelOp_Comp.ContainsKey(CurrentToken.Type)
+
+                Dim Op As TypeSystem.RelationType = TokOpToRelOp_Comp(CurrentToken.Type)
+                Advance()
+                Dim Right As ExpressionNode = GetPlusOperation()
+
+                Left = New ComparisonOperationExpression(Left, Op, Right, Left.Location + Right.Location)
+
+            End While
+
+            Return Left
+
+        End Function
+
         ' \\\\\\ {expression} AND/OR {expression} //////
         Private Shared Bool_Ops As IEnumerable(Of TokenType) = {TokenType.KEYWORD_AND, TokenType.KEYWORD_OR}
         Private Function GetBooleanOperation() As ExpressionNode
 
-            Dim Left As ExpressionNode = GetPlusOperation()
+            Dim Left As ExpressionNode = GetComparisonOperation()
 
             While Bool_Ops.Contains(CurrentToken.Type)
 

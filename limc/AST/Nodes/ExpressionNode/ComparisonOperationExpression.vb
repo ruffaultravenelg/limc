@@ -1,8 +1,7 @@
-﻿Imports limc.Lazy
-Imports limc.TypeSystem.Type
+﻿Imports limc.TypeSystem.Type
 
 Namespace AST
-    Public Class NumericalOperationExpression
+    Public Class ComparisonOperationExpression
         Inherits ExpressionNode
 
         Private Left As ExpressionNode
@@ -36,29 +35,23 @@ Namespace AST
 
         Private Function TryHardcodedReturnType(L As TypeSystem.Type, R As TypeSystem.Type) As TypeSystem.Type
 
-            ' INT [op] INT
-            If L Is Int AndAlso R Is Int Then
+            ' INT|FLOAT [op] FLOAT|INT
+            If (L Is Int OrElse L Is Float) AndAlso (R Is Int OrElse R Is Float) Then
                 Select Case Op
-                    Case TypeSystem.RelationType.RELATION_DIV
-                        Return Float 'Division alwas returns a FLOAT
-                    Case TypeSystem.RelationType.RELATION_ADD,
-                        TypeSystem.RelationType.RELATION_SUB,
-                        TypeSystem.RelationType.RELATION_MULT,
-                        TypeSystem.RelationType.RELATION_MODULO
-                        Return Int 'All others are INT
+                    Case TypeSystem.RelationType.RELATION_EQUAL,
+                        TypeSystem.RelationType.RELATION_GREATERTHAN,
+                        TypeSystem.RelationType.RELATION_GREATERTHANEQUAL,
+                        TypeSystem.RelationType.RELATION_LESSTHAN,
+                        TypeSystem.RelationType.RELATION_LESSTHANEQUAL
+                        Return Bool
                     Case Else
                         Return Nothing
                 End Select
             End If
 
-            ' FLOAT [op] FLOAT
-            If L Is Float AndAlso R Is Float Then
-                Return Float
-            End If
-
-            ' INT [op] FLOAT  |  FLOAT [op] INT
-            If (L Is Int AndAlso R Is Float) OrElse (L Is Float AndAlso R Is Int) Then
-                Return Float
+            ' STR = STRING
+            If L Is Str AndAlso R Is Str AndAlso Op = TypeSystem.RelationType.RELATION_EQUAL Then
+                Return Bool
             End If
 
             Return Nothing
@@ -79,33 +72,35 @@ Namespace AST
         End Function
 
         Private Function TryHardcodedCompilation(L As TypeSystem.Type, R As TypeSystem.Type, Scope As Context.Scope) As String
-            ' All operations compiles the same way -> just check if this is between known types (int, float)
-            Dim isIntOp = (L Is Int AndAlso R Is Int)
-            Dim isFloatOp = (L Is Float AndAlso R Is Float)
-            Dim isMixedOp = (L Is Int AndAlso R Is Float) OrElse (L Is Float AndAlso R Is Int)
 
-            If isIntOp OrElse isFloatOp OrElse isMixedOp Then
-                Dim opSym As String = GetOperatorSymbol(Op)
+            ' INT|FLOAT [op] FLOAT|INT
+            If (L Is Int OrElse L Is Float) AndAlso (R Is Int OrElse R Is Float) Then
+                Dim lCode = Left.CompileExpression(Scope)
+                Dim rCode = Right.CompileExpression(Scope)
+                Select Case Op
+                    Case TypeSystem.RelationType.RELATION_EQUAL
+                        Return $"({lCode} == {rCode})"
+                    Case TypeSystem.RelationType.RELATION_GREATERTHAN
+                        Return $"({lCode} > {rCode})"
+                    Case TypeSystem.RelationType.RELATION_GREATERTHANEQUAL
+                        Return $"({lCode} >= {rCode})"
+                    Case TypeSystem.RelationType.RELATION_LESSTHAN
+                        Return $"({lCode} < {rCode})"
+                    Case TypeSystem.RelationType.RELATION_LESSTHANEQUAL
+                        Return $"({lCode} <= {rCode})"
+                    Case Else
+                        Return Nothing
+                End Select
+            End If
 
-                If opSym IsNot Nothing Then
-                    Dim lCode = Left.CompileExpression(Scope)
-                    Dim rCode = Right.CompileExpression(Scope)
-                    Return $"({lCode} {opSym} {rCode})"
-                End If
+            ' STR = STRING
+            If L Is Str AndAlso R Is Str AndAlso Op = TypeSystem.RelationType.RELATION_EQUAL Then
+                Dim lCode = Left.CompileExpression(Scope)
+                Dim rCode = Right.CompileExpression(Scope)
+                Return $"(strcmp({lCode}, {rCode}) == 0)"
             End If
 
             Return Nothing
-        End Function
-
-        Private Function GetOperatorSymbol(operation As TypeSystem.RelationType) As String
-            Select Case operation
-                Case TypeSystem.RelationType.RELATION_ADD : Return "+"
-                Case TypeSystem.RelationType.RELATION_SUB : Return "-"
-                Case TypeSystem.RelationType.RELATION_MULT : Return "*"
-                Case TypeSystem.RelationType.RELATION_DIV : Return "/"
-                Case TypeSystem.RelationType.RELATION_MODULO : Return "%"
-                Case Else : Return Nothing
-            End Select
         End Function
 
     End Class
