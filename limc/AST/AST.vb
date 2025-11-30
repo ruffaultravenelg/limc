@@ -67,6 +67,11 @@ Namespace AST
         Private Function RetrievePosition() As Location
             Return StartPositions.Pop() + Tokens(TokenIndex - 1).Location
         End Function
+        Private ReadOnly Property LastTokPos As Location
+            Get
+                Return Tokens(TokenIndex - 1).Location
+            End Get
+        End Property
 
         '=======================
         '===== CONSTRUCTOR =====
@@ -361,6 +366,39 @@ Namespace AST
             Return GenericArguments
         End Function
 
+        Private Function ContinueRecordExpression(ModuleName As String, RecordName As String, RecordGenericTypes As IEnumerable(Of TypeNode), BaseLocation As Location) As ExpressionNode
+            CheckTokenType(TokenType.SYMBOL_LEFT_BRACE)
+
+            ' Convert info into a typenode
+            Dim RecordType As TypeNode
+            If ModuleName <> "" Then
+                RecordType = New ModuleTypeNode(ModuleName, RecordName, RecordGenericTypes, BaseLocation + LastTokPos)
+            Else
+                RecordType = New SimpleTypeNode(RecordName, RecordGenericTypes, BaseLocation + LastTokPos)
+            End If
+
+            ' No values
+            Advance()
+            If CurrentToken.Type = TokenType.SYMBOL_RIGHT_BRACE Then
+                Advance()
+                Return New RecordExpression(RecordType, {}, BaseLocation + LastTokPos)
+            End If
+
+            ' Get values
+            Dim Values As New List(Of ExpressionNode)
+            Values.Add(GetExpression())
+            While CurrentToken.Type = TokenType.SYMBOL_COMMA
+                Advance()
+                Values.Add(GetExpression())
+            End While
+            CheckTokenType(TokenType.SYMBOL_RIGHT_BRACE, "A comma or a closing parenthesis was expected here.")
+            Advance()
+
+            ' Create node
+            Return New RecordExpression(RecordType, Values, BaseLocation + LastTokPos)
+
+        End Function
+
         '=======================
         '===== EXPRESSIONS =====
         '=======================
@@ -384,26 +422,48 @@ Namespace AST
                     Return New StringExpression(Tok.Value, Tok.Location)
 
                 Case TokenType.TEXT
+
                     If CurrentToken.Type = TokenType.OP_MODULE_RESOLVER Then
+                        'tok::
+
                         Advance()
-                        CheckTokenType(TokenType.TEXT, "The name of an element must follow the ""::"" operator. For example, ""math::min.""")
+                        CheckTokenType(TokenType.TEXT, "The name of an element must follow the ""::"" operator. For example, ""math::min"".")
                         Dim NameTok As Token = CurrentToken
                         Advance()
                         Dim PassedGenericTypes As IEnumerable(Of TypeNode) = GetPassedGenericTypes()
-                        If PassedGenericTypes.Count > 0 Then
-                            Return New ModuleResolverGenericElementExpression(Tok.Value, NameTok.Value, PassedGenericTypes, Tok.Location + Tokens(TokenIndex - 1).Location)
+                        If CurrentToken.Type = TokenType.SYMBOL_LEFT_BRACE Then
+                            Return ContinueRecordExpression(Tok.Value, NameTok.Value, PassedGenericTypes, Tok.Location)
                         Else
-                            Return New ModuleResolverExpression(Tok.Value, NameTok.Value, Tok.Location + NameTok.Location)
+                            If PassedGenericTypes.Count > 0 Then
+                                Return New ModuleResolverGenericElementExpression(Tok.Value, NameTok.Value, PassedGenericTypes, Tok.Location + Tokens(TokenIndex - 1).Location)
+                            Else
+                                Return New ModuleResolverExpression(Tok.Value, NameTok.Value, Tok.Location + NameTok.Location)
+                            End If
                         End If
+
+
                     ElseIf CurrentToken.Type = TokenType.SYMBOL_LESSTHAN Then
+                        'tok<
+
                         Dim PassedGenericTypes As IEnumerable(Of TypeNode) = GetPassedGenericTypes()
-                        If PassedGenericTypes.Count > 0 Then
-                            Return New GenericElementExpression(Tok.Value, PassedGenericTypes, Tok.Location + Tokens(TokenIndex - 1).Location)
+                        If CurrentToken.Type = TokenType.SYMBOL_LEFT_BRACE Then
+                            Return ContinueRecordExpression("", Tok.Value, PassedGenericTypes, Tok.Location)
+                        Else
+                            If PassedGenericTypes.Count > 0 Then
+                                Return New GenericElementExpression(Tok.Value, PassedGenericTypes, Tok.Location + Tokens(TokenIndex - 1).Location)
+                            Else
+                                Return New ElementExpression(Tok.Value, Tok.Location)
+                            End If
+                        End If
+
+                    Else
+                        'tok
+
+                        If CurrentToken.Type = TokenType.SYMBOL_LEFT_BRACE Then
+                            Return ContinueRecordExpression("", Tok.Value, {}, Tok.Location)
                         Else
                             Return New ElementExpression(Tok.Value, Tok.Location)
                         End If
-                    Else
-                        Return New ElementExpression(Tok.Value, Tok.Location)
                     End If
 
                 Case TokenType.SYMBOL_LEFT_BRACE

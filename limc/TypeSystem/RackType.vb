@@ -1,4 +1,7 @@
-﻿Namespace TypeSystem
+﻿Imports System.Text.RegularExpressions
+Imports Microsoft.VisualBasic.FileIO
+
+Namespace TypeSystem
     Public Class RackType
         Inherits Type
 
@@ -82,6 +85,53 @@
             Scope.WriteLine($"{Instance.CompileExpression(Scope)}[{Index.CompileExpression(Scope)}] = {NewValue.CompileExpression(Scope)};")
 
         End Sub
+
+        ' Structs bodies are defined before Racks typedef, use C definition (type var[n]) instead of typedef (type var)
+        Public Shared Function ValidateStructFieldDefinition(Field As String) As String
+            Dim FieldType As String = Nothing
+            Dim FieldName As String = Nothing
+
+            If CheckAndExtract(Field, FieldType, FieldName) Then
+                Dim Dimensions As New List(Of Integer)
+                Dim CurrentType As TypeSystem.RackType = GetRackTypeFromCRepresentation(FieldType)
+                Dim BaseType As TypeSystem.Type = CurrentType.ElementType
+                Dimensions.Add(CurrentType.Length)
+                While TypeOf BaseType Is RackType
+                    Dimensions.Add(DirectCast(BaseType, RackType).Length)
+                    CurrentType = BaseType
+                    BaseType = CurrentType.ElementType
+                End While
+                Return BaseType.cRepresentation & " " & FieldName & String.Concat(Dimensions.Select(Function(d) $"[{d}]")) & ";"
+            Else
+                Return Field
+            End If
+        End Function
+        Private Shared Function GetRackTypeFromCRepresentation(Representation As String) As RackType
+            For Each D In Racks.Values
+                For Each T In D.Values
+                    If T.cRepresentation = Representation Then
+                        Return T
+                    End If
+                Next
+            Next
+            Throw New InternalError()
+        End Function
+        Private Shared Function CheckAndExtract(ByVal Field As String, ByRef Type As String, ByRef Name As String) As Boolean
+            Dim pattern As String = "^(?<X>\w+)_r (?<Y>\w+);$"
+
+            Dim match As Match = Regex.Match(Field, pattern)
+
+            If match.Success Then
+                Type = match.Groups("X").Value & "_r"
+                Name = match.Groups("Y").Value
+                Return True
+            Else
+                Type = Nothing
+                Name = Nothing
+                Return False
+            End If
+        End Function
+
 
     End Class
 End Namespace

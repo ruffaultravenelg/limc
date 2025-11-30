@@ -1,4 +1,5 @@
-﻿Imports limc.Context
+﻿Imports limc.AST
+Imports limc.Context
 
 Namespace TypeSystem
     Public Class RecordType
@@ -33,9 +34,9 @@ Namespace TypeSystem
 
                 Dim FieldType As TypeSystem.Type = Field.Type.GetAssociatedType(BoneContext)
                 _FieldTypes.Add(FieldType)
-                Dim Tmp As String = CodeGen.Namer.Temp()
-                StructFields.Add($"{FieldType.cRepresentation} {Tmp};")
-                RegisterGetter(New Lazy.DirectAccessGetter(Field.Name, FieldType, Function(instance) $"{instance}.{Tmp}"))
+                Dim CompiledAttributeName As String = CodeGen.Namer.Attribute()
+                StructFields.Add($"{FieldType.cRepresentation} {CompiledAttributeName};")
+                RegisterGetter(New Lazy.DirectAccessGetter(Field.Name, FieldType, Function(instance) $"{instance}.{CompiledAttributeName}"))
 
             Next
             Me.FieldTypes = _FieldTypes
@@ -56,6 +57,29 @@ Namespace TypeSystem
             End If
             Return "(" & cRepresentation & "){" & String.Join(", ", FieldTypes.Select(Function(t) t.DefaultValue(Scope))) & "}"
         End Function
+
+        Public Function GetConstructionFields(CallLocation As Location) As IEnumerable(Of ConstructionField)
+            If FieldTypes Is Nothing Then
+                Throw New ResourceUsedTooQuicklyError(CallLocation)
+            End If
+            Dim Fields As New List(Of ConstructionField)
+            For i As Integer = 0 To Record.Fields.Count - 1
+                Fields.Add(New ConstructionField(Record.Fields(i).Name, FieldTypes(i)))
+            Next
+            Return Fields
+        End Function
+
+        Public Class ConstructionField
+
+            Public ReadOnly Property Name As String
+            Public ReadOnly Property Type As TypeSystem.Type
+
+            Public Sub New(Name As String, Type As TypeSystem.Type)
+                Me.Name = Name
+                Me.Type = Type
+            End Sub
+
+        End Class
 
     End Class
 End Namespace

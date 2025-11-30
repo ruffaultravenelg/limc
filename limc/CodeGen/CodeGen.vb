@@ -95,6 +95,13 @@ Namespace CodeGen
             Next
             Writer.WriteLine()
 
+            'Write functions bodies
+            WriteTitle(Writer, "Structure bodies")
+            For Each Struct In Structs
+                Struct.Write(Writer)
+            Next
+            Writer.WriteLine()
+
             'Write custom typedef
             WriteTitle(Writer, "Racks typedef")
             For Each Typedef In Typedefs
@@ -120,13 +127,6 @@ Namespace CodeGen
             WriteTitle(Writer, "Function signatures")
             For Each Fn In Functions
                 Fn.WriteSignature(Writer)
-            Next
-            Writer.WriteLine()
-
-            'Write functions bodies
-            WriteTitle(Writer, "Structure bodies")
-            For Each Struct In Structs
-                Struct.Write(Writer)
             Next
             Writer.WriteLine()
 

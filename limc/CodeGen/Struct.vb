@@ -34,7 +34,7 @@ Namespace CodeGen
             Writer.Write(Name)
             Writer.WriteLine("{")
             For Each Field As String In Fields
-                Writer.WriteLine(vbTab & Field)
+                Writer.WriteLine(vbTab & TypeSystem.RackType.ValidateStructFieldDefinition(Field))
             Next
             Writer.Write("} ")
             Writer.Write(Name)

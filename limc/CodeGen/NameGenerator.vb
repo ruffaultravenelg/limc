@@ -7,6 +7,9 @@
         Public Overridable Function Variable(Optional Info As String = "") As String
             Return GenerateName() & "_v"
         End Function
+        Public Overridable Function Attribute(Optional Info As String = "") As String
+            Return GenerateName() & "_a"
+        End Function
         Public Overridable Function Temp() As String
             Return GenerateName() & "_tmp"
         End Function
@@ -19,8 +22,8 @@
         Public Overridable Function Constant(Optional Info As String = "") As String
             Return GenerateName() & "_c"
         End Function
-        Public Overridable Function Rack(Info As String) As String
-            Return GenerateName() & "_r"
+        Public Function Rack(Info As String) As String
+            Return GenerateName() & "_r" ' Keep ending _r for RackType.ValidateStructFieldDefinition
         End Function
 
         '============================
