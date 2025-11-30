@@ -33,7 +33,7 @@ Public Module Tokenizer
     End Function
 
     'Sanitaze results
-    Public Sub SanitazeResults()
+    Private Sub SanitazeResults()
 
         'Add a newline at the end, to help for the ATS parser
         Results.Add(New Token(TokenType.LINESTART, New Location(Source, LineNumber - 1, 0, 0), 0))
@@ -279,6 +279,12 @@ Public Module Tokenizer
                         AddToken(TokenType.KEYWORD_CONTINUE, Loc)
                     Case "break"
                         AddToken(TokenType.KEYWORD_BREAK, Loc)
+                    Case "if"
+                        AddToken(TokenType.KEYWORD_IF, Loc)
+                    Case "else"
+                        AddToken(TokenType.KEYWORD_ELSE, Loc)
+                    Case "elseif"
+                        AddToken(TokenType.KEYWORD_ELSEIF, Loc)
                     Case Else
                         AddToken(TokenType.TEXT, Text, Loc)
                 End Select

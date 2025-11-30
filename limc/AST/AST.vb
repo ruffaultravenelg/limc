@@ -1,6 +1,4 @@
-﻿Imports System.ComponentModel
-Imports System.Data
-Imports System.Runtime.InteropServices.ComTypes
+﻿Imports System.Data
 
 Namespace AST
     Public Class AbstractSyntaxTree
@@ -56,6 +54,12 @@ Namespace AST
         Private Sub IsTheRightToken(TokenType As TokenType)
             If Not CurrentToken.Type = TokenType Then
                 Throw New NotTheRightElementException()
+            End If
+        End Sub
+        Private Sub CheckNewScopeStart(WantedIndentation As Integer)
+            CheckTokenType(TokenType.LINESTART)
+            If Not CurrentToken.Value = WantedIndentation Then
+                Throw New SyntaxError($"An indentation of {WantedIndentation} was expected here.", CurrentToken.Location)
             End If
         End Sub
 
@@ -670,7 +674,7 @@ Namespace AST
         '======================
         '===== STATEMENTS =====
         '======================
-        Private ReadOnly StatementFunctions As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetSourceStatementNode, AddressOf GetVariableDeclaration, AddressOf GetConstantDeclaration, AddressOf GetPanicStatement, AddressOf GetWhileStatement, AddressOf GetBreakStatement, AddressOf GetContinueStatement, AddressOf GetProcedureCallStatement, AddressOf GetAssignStatement} 'Assign should be at the end
+        Private ReadOnly StatementFunctions As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetSourceStatementNode, AddressOf GetVariableDeclaration, AddressOf GetConstantDeclaration, AddressOf GetPanicStatement, AddressOf GetIfStatement, AddressOf GetWhileStatement, AddressOf GetBreakStatement, AddressOf GetContinueStatement, AddressOf GetProcedureCallStatement, AddressOf GetAssignStatement} 'Assign should be at the end
 
         Private Function GetBody(StatementIndentation As Integer) As IEnumerable(Of StatementNode)
             Dim Body As New List(Of StatementNode)
@@ -857,10 +861,7 @@ Namespace AST
             Advance()
 
             Dim Condition As ExpressionNode = GetExpression()
-            CheckTokenType(TokenType.LINESTART)
-            If Not CurrentToken.Value = ActualIndentation + 1 Then
-                Throw New SyntaxError($"An indentation of {ActualIndentation + 1} was expected here.", CurrentToken.Location)
-            End If
+            CheckNewScopeStart(ActualIndentation + 1)
 
             Dim Body As IEnumerable(Of StatementNode) = GetBody(ActualIndentation + 1)
 
@@ -884,6 +885,61 @@ Namespace AST
             Else
                 Throw New NotTheRightElementException()
             End If
+        End Function
+
+        Private Function GetIfStatement(ActualIndentation As Integer) As StatementNode
+
+            ' Check if statement
+            If Not CurrentToken.Type = TokenType.KEYWORD_IF Then
+                Throw New NotTheRightElementException
+            End If
+            PushPosition()
+            Advance()
+
+            ' Get main condition
+            Dim MainCondition As ExpressionNode = GetExpression()
+
+            ' Get main instructions
+            CheckNewScopeStart(ActualIndentation + 1)
+            Dim MainInstructions As IEnumerable(Of StatementNode) = GetBody(ActualIndentation + 1)
+
+            ' Get elseif
+            Dim ElseIfBlocks As New List(Of IfStatement.ElseifBlock)
+            While CurrentToken.Value = ActualIndentation
+                Advance()
+
+                ' Exit if not "elseif"
+                If Not CurrentToken.Type = TokenType.KEYWORD_ELSEIF Then
+                    Retreat()
+                    Exit While
+                End If
+                Advance()
+
+                ' Get condition
+                Dim ElseIfCondition As ExpressionNode = GetExpression()
+
+                ' Get elseif instructions
+                CheckNewScopeStart(ActualIndentation + 1)
+                ElseIfBlocks.Add(New IfStatement.ElseifBlock(ElseIfCondition, GetBody(ActualIndentation + 1)))
+
+            End While
+
+            ' Check else
+            Dim ElseInstructions As IEnumerable(Of StatementNode) = Nothing
+            If CurrentToken.Value = ActualIndentation Then
+                Advance()
+                If CurrentToken.Type = TokenType.KEYWORD_ELSE Then
+                    Advance()
+                    CheckNewScopeStart(ActualIndentation + 1)
+                    ElseInstructions = GetBody(ActualIndentation + 1)
+                Else
+                    Retreat()
+                End If
+            End If
+
+            ' Return new if statement
+            Return New IfStatement(MainCondition, MainInstructions, ElseIfBlocks, ElseInstructions, RetrievePosition())
+
         End Function
 
         '======================

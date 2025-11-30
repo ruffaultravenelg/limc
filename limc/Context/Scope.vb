@@ -15,6 +15,13 @@
         Public Sub WriteLine(Line As String)
             Lines.Add(Line)
         End Sub
+        Public Sub AppendLastLine(Chars As String)
+            If Lines.Count > 0 Then
+                Lines(Lines.Count - 1) &= Chars
+            Else
+                Throw New InternalError()
+            End If
+        End Sub
 
         Public Sub WriteScope(Scope As Scope)
             For Each Line In Scope.Lines
