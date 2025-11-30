@@ -674,7 +674,7 @@ Namespace AST
         '======================
         '===== STATEMENTS =====
         '======================
-        Private ReadOnly StatementFunctions As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetSourceStatementNode, AddressOf GetVariableDeclaration, AddressOf GetConstantDeclaration, AddressOf GetPanicStatement, AddressOf GetIfStatement, AddressOf GetWhileStatement, AddressOf GetBreakStatement, AddressOf GetContinueStatement, AddressOf GetProcedureCallStatement, AddressOf GetAssignStatement} 'Assign should be at the end
+        Private ReadOnly StatementFunctions As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetSourceStatementNode, AddressOf GetVariableDeclaration, AddressOf GetConstantDeclaration, AddressOf GetPanicStatement, AddressOf GetIfStatement, AddressOf GetReturnStatement, AddressOf GetWhileStatement, AddressOf GetBreakStatement, AddressOf GetContinueStatement, AddressOf GetProcedureCallStatement, AddressOf GetAssignStatement} 'Assign should be at the end
 
         Private Function GetBody(StatementIndentation As Integer) As IEnumerable(Of StatementNode)
             Dim Body As New List(Of StatementNode)
@@ -939,6 +939,23 @@ Namespace AST
 
             ' Return new if statement
             Return New IfStatement(MainCondition, MainInstructions, ElseIfBlocks, ElseInstructions, RetrievePosition())
+
+        End Function
+
+        Private Function GetReturnStatement() As StatementNode
+
+            ' Check return statement
+            If Not CurrentToken.Type = TokenType.KEYWORD_RETURN Then
+                Throw New NotTheRightElementException()
+            End If
+            PushPosition()
+            Advance()
+
+            ' Get value
+            Dim Value As ExpressionNode = GetExpression()
+
+            ' Create & return node
+            Return New ReturnStatement(Value, RetrievePosition())
 
         End Function
 
