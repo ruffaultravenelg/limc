@@ -271,6 +271,14 @@ Public Module Tokenizer
                         AddToken(TokenType.KEYWORD_PANIC, Loc)
                     Case "record"
                         AddToken(TokenType.KEYWORD_RECORD, Loc)
+                    Case "while"
+                        AddToken(TokenType.KEYWORD_WHILE, Loc)
+                    Case "for"
+                        AddToken(TokenType.KEYWORD_FOR, Loc)
+                    Case "continue"
+                        AddToken(TokenType.KEYWORD_CONTINUE, Loc)
+                    Case "break"
+                        AddToken(TokenType.KEYWORD_BREAK, Loc)
                     Case Else
                         AddToken(TokenType.TEXT, Text, Loc)
                 End Select

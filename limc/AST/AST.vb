@@ -1,4 +1,6 @@
-﻿Imports System.Data
+﻿Imports System.ComponentModel
+Imports System.Data
+Imports System.Runtime.InteropServices.ComTypes
 
 Namespace AST
     Public Class AbstractSyntaxTree
@@ -668,7 +670,7 @@ Namespace AST
         '======================
         '===== STATEMENTS =====
         '======================
-        Private ReadOnly StatementFunctions As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetSourceStatementNode, AddressOf GetVariableDeclaration, AddressOf GetConstantDeclaration, AddressOf GetPanicStatement, AddressOf GetProcedureCallStatement, AddressOf GetAssignStatement} 'Assign should be at the end
+        Private ReadOnly StatementFunctions As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetSourceStatementNode, AddressOf GetVariableDeclaration, AddressOf GetConstantDeclaration, AddressOf GetPanicStatement, AddressOf GetWhileStatement, AddressOf GetProcedureCallStatement, AddressOf GetAssignStatement} 'Assign should be at the end
 
         Private Function GetBody(StatementIndentation As Integer) As IEnumerable(Of StatementNode)
             Dim Body As New List(Of StatementNode)
@@ -843,6 +845,26 @@ Namespace AST
             Dim Message As ExpressionNode = GetExpression()
 
             Return New PanicStatement(Message, RetrievePosition())
+
+        End Function
+
+        Private Function GetWhileStatement(ActualIndentation As Integer) As StatementNode
+
+            If Not CurrentToken.Type = TokenType.KEYWORD_WHILE Then
+                Throw New NotTheRightElementException()
+            End If
+            PushPosition()
+            Advance()
+
+            Dim Condition As ExpressionNode = GetExpression()
+            CheckTokenType(TokenType.LINESTART)
+            If Not CurrentToken.Value = ActualIndentation + 1 Then
+                Throw New SyntaxError($"An indentation of {ActualIndentation + 1} was expected here.", CurrentToken.Location)
+            End If
+
+            Dim Body As IEnumerable(Of StatementNode) = GetBody(ActualIndentation + 1)
+
+            Return New WhileStatement(Condition, Body, RetrievePosition())
 
         End Function
 
