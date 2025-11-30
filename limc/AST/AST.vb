@@ -670,7 +670,7 @@ Namespace AST
         '======================
         '===== STATEMENTS =====
         '======================
-        Private ReadOnly StatementFunctions As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetSourceStatementNode, AddressOf GetVariableDeclaration, AddressOf GetConstantDeclaration, AddressOf GetPanicStatement, AddressOf GetWhileStatement, AddressOf GetProcedureCallStatement, AddressOf GetAssignStatement} 'Assign should be at the end
+        Private ReadOnly StatementFunctions As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetSourceStatementNode, AddressOf GetVariableDeclaration, AddressOf GetConstantDeclaration, AddressOf GetPanicStatement, AddressOf GetWhileStatement, AddressOf GetBreakStatement, AddressOf GetContinueStatement, AddressOf GetProcedureCallStatement, AddressOf GetAssignStatement} 'Assign should be at the end
 
         Private Function GetBody(StatementIndentation As Integer) As IEnumerable(Of StatementNode)
             Dim Body As New List(Of StatementNode)
@@ -866,6 +866,24 @@ Namespace AST
 
             Return New WhileStatement(Condition, Body, RetrievePosition())
 
+        End Function
+
+        Private Function GetBreakStatement() As StatementNode
+            If CurrentToken.Type = TokenType.KEYWORD_BREAK Then
+                Advance()
+                Return New BreakStatement(LastTokPos)
+            Else
+                Throw New NotTheRightElementException()
+            End If
+        End Function
+
+        Private Function GetContinueStatement() As StatementNode
+            If CurrentToken.Type = TokenType.KEYWORD_CONTINUE Then
+                Advance()
+                Return New ContinueStatement(LastTokPos)
+            Else
+                Throw New NotTheRightElementException()
+            End If
         End Function
 
         '======================
