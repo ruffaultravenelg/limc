@@ -1,6 +1,4 @@
-﻿Imports System.Data
-
-Namespace AST
+﻿Namespace AST
     Public Class AbstractSyntaxTree
 
         '======================
@@ -674,7 +672,7 @@ Namespace AST
         '======================
         '===== STATEMENTS =====
         '======================
-        Private ReadOnly StatementFunctions As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetSourceStatementNode, AddressOf GetVariableDeclaration, AddressOf GetConstantDeclaration, AddressOf GetPanicStatement, AddressOf GetIfStatement, AddressOf GetReturnStatement, AddressOf GetWhileStatement, AddressOf GetBreakStatement, AddressOf GetContinueStatement, AddressOf GetProcedureCallStatement, AddressOf GetAssignStatement} 'Assign should be at the end
+        Private ReadOnly StatementFunctions As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetSourceStatementNode, AddressOf GetVariableDeclaration, AddressOf GetConstantDeclaration, AddressOf GetPanicStatement, AddressOf GetIfStatement, AddressOf GetForStatement, AddressOf GetReturnStatement, AddressOf GetWhileStatement, AddressOf GetBreakStatement, AddressOf GetContinueStatement, AddressOf GetProcedureCallStatement, AddressOf GetAssignStatement} 'Assign should be at the end
 
         Private Function GetBody(StatementIndentation As Integer) As IEnumerable(Of StatementNode)
             Dim Body As New List(Of StatementNode)
@@ -956,6 +954,51 @@ Namespace AST
 
             ' Create & return node
             Return New ReturnStatement(Value, RetrievePosition())
+
+        End Function
+
+        Private Function GetForStatement(ActualIndentation As Integer) As StatementNode
+
+            ' Check for loop
+            If Not CurrentToken.Type = TokenType.KEYWORD_FOR Then
+                Throw New NotTheRightElementException()
+            End If
+            PushPosition()
+            Advance()
+
+            ' Get variable name
+            CheckTokenType(TokenType.TEXT, "A variable name was expected here")
+            Dim VariableName As String = CurrentToken.Value
+            Advance()
+
+            ' Get variable type (optionnal)
+            Dim VariableType As TypeNode = Nothing
+            If CurrentToken.Type = TokenType.SYMBOL_COLON Then
+                Advance()
+                VariableType = GetTypeNode()
+            End If
+
+            ' for each VS simple for
+            If CurrentToken.Type = TokenType.KEYWORD_IN Then
+                Advance()
+                Dim Sequence As ExpressionNode = GetExpression()
+                CheckNewScopeStart(ActualIndentation + 1)
+                Return New ForEachStatement(VariableName, VariableType, Sequence, GetBody(ActualIndentation + 1), RetrievePosition())
+
+            Else
+                Dim Value_From As ExpressionNode = Nothing
+                If CurrentToken.Type = TokenType.KEYWORD_FROM Then
+                    Advance()
+                    Value_From = GetExpression()
+                End If
+
+                CheckTokenType(TokenType.KEYWORD_TO)
+                Advance()
+                Dim Value_To As ExpressionNode = GetExpression()
+
+                CheckNewScopeStart(ActualIndentation + 1)
+                Return New ForStatement(VariableName, VariableType, Value_From, Value_To, GetBody(ActualIndentation + 1), RetrievePosition())
+            End If
 
         End Function
 

@@ -287,6 +287,12 @@ Public Module Tokenizer
                         AddToken(TokenType.KEYWORD_ELSEIF, Loc)
                     Case "return"
                         AddToken(TokenType.KEYWORD_RETURN, Loc)
+                    Case "from"
+                        AddToken(TokenType.KEYWORD_FROM, Loc)
+                    Case "to"
+                        AddToken(TokenType.KEYWORD_TO, Loc)
+                    Case "in"
+                        AddToken(TokenType.KEYWORD_IN, Loc)
                     Case Else
                         AddToken(TokenType.TEXT, Text, Loc)
                 End Select
