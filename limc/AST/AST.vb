@@ -1106,6 +1106,7 @@
             End If
 
             'Get fields
+            Dim OnOptionnalFields As Boolean = False
             Dim Fields As New List(Of RecordConstruct.Field)
             While True
                 PushPosition()
@@ -1116,12 +1117,32 @@
                 Advance()
 
                 'Get field type
-                CheckTokenType(TokenType.SYMBOL_COLON)
-                Advance()
-                Dim FieldType As TypeNode = GetTypeNode()
+                Dim FieldType As TypeNode = Nothing
+                If CurrentToken.Type = TokenType.SYMBOL_COLON Then
+                    Advance()
+                    FieldType = GetTypeNode()
+                End If
+
+                'Get field default value
+                Dim DefaultValue As ExpressionNode = Nothing
+                If CurrentToken.Type = TokenType.SYMBOL_EQUAL Then
+                    Advance()
+                    DefaultValue = GetExpression()
+                    OnOptionnalFields = True
+                End If
+
+                'ERROR: no type && no value
+                If FieldType Is Nothing AndAlso DefaultValue Is Nothing Then
+                    Throw New SyntaxError("An explicit type or default value is expected after an attribute name.", LastTokPos)
+                End If
+
+                'ERROR: mandatory type after optionnal one
+                If DefaultValue Is Nothing AndAlso OnOptionnalFields Then
+                    Throw New SyntaxError("An optional attribute has already been defined. All non-optional attributes must be grouped before the optional attributes.", RetrievePosition())
+                End If
 
                 ' Create field
-                Fields.Add(New RecordConstruct.Field(FieldName, FieldType, RetrievePosition()))
+                Fields.Add(New RecordConstruct.Field(FieldName, FieldType, DefaultValue, RetrievePosition()))
 
                 'End there ?
                 If CurrentToken.Type = TokenType.SYMBOL_RIGHT_PARENTHESIS Then

@@ -15,6 +15,9 @@
         Public Sub WriteLine(Line As String)
             Lines.Add(Line)
         End Sub
+        Public Sub WriteLines(Lines As IEnumerable(Of String))
+            Me.Lines.AddRange(Lines)
+        End Sub
         Public Sub AppendLastLine(Chars As String)
             If Lines.Count > 0 Then
                 Lines(Lines.Count - 1) &= Chars

@@ -1,12 +1,11 @@
 ﻿Imports limc.AST
-Imports limc.Context
 
 Namespace TypeSystem
     Public Class RecordType
         Inherits CommonType
 
         Private ReadOnly Record As AST.RecordConstruct
-        Private ReadOnly BoneContext As Context.GenericContext
+        Public ReadOnly BoneContext As Context.GenericContext
 
         ' Constructor
         Public Sub New(Record As AST.RecordConstruct, PassedGenericTypes As IEnumerable(Of TypeSystem.Type))
@@ -32,7 +31,18 @@ Namespace TypeSystem
             Dim _FieldTypes As New List(Of TypeSystem.Type)
             For Each Field In Record.Fields
 
-                Dim FieldType As TypeSystem.Type = Field.Type.GetAssociatedType(BoneContext)
+                Dim FieldType As TypeSystem.Type
+                If Field.Type IsNot Nothing AndAlso Field.DefaultValue Is Nothing Then
+                    FieldType = Field.Type.GetAssociatedType(BoneContext)
+                ElseIf Field.Type Is Nothing AndAlso Field.DefaultValue IsNot Nothing Then
+                    FieldType = Field.DefaultValue.GetExpressionReturnType(BoneContext)
+                Else
+                    FieldType = Field.Type.GetAssociatedType(BoneContext)
+                    If FieldType <> Field.DefaultValue.GetExpressionReturnType(BoneContext) Then
+                        Throw New TypeMismatchError(FieldType, Field.DefaultValue.GetExpressionReturnType(BoneContext), Field.DefaultValue.Location)
+                    End If
+                End If
+
                 _FieldTypes.Add(FieldType)
                 Dim CompiledAttributeName As String = CodeGen.Namer.Attribute()
                 StructFields.Add($"{FieldType.cRepresentation} {CompiledAttributeName};")
@@ -64,7 +74,7 @@ Namespace TypeSystem
             End If
             Dim Fields As New List(Of ConstructionField)
             For i As Integer = 0 To Record.Fields.Count - 1
-                Fields.Add(New ConstructionField(Record.Fields(i).Name, FieldTypes(i)))
+                Fields.Add(New ConstructionField(Record.Fields(i).Name, FieldTypes(i), Record.Fields(i).DefaultValue))
             Next
             Return Fields
         End Function
@@ -73,10 +83,12 @@ Namespace TypeSystem
 
             Public ReadOnly Property Name As String
             Public ReadOnly Property Type As TypeSystem.Type
+            Public ReadOnly Property DefaultValue As ExpressionNode
 
-            Public Sub New(Name As String, Type As TypeSystem.Type)
+            Public Sub New(Name As String, Type As TypeSystem.Type, DefaultValue As ExpressionNode)
                 Me.Name = Name
                 Me.Type = Type
+                Me.DefaultValue = DefaultValue
             End Sub
 
         End Class

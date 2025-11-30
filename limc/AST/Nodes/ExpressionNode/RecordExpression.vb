@@ -27,19 +27,29 @@
             End If
 
             Dim Fields = DirectCast(RecordType, TypeSystem.RecordType).GetConstructionFields(Location)
-            If Fields.Count <> Values.Count Then
-                Throw New SyntaxError($"{Fields.Count} values were expected instead of {Values.Count}.", Location)
+            If Values.Count > Fields.Count Then
+                Throw New SyntaxError($"This type can only take a maximum of {Fields.Count} values. {Values.Count} are given.", Location)
+            End If
+            If Values.Count < Fields.Count(Function(f) f.DefaultValue Is Nothing) Then
+                Throw New SyntaxError($"At least {Fields.Count(Function(f) f.DefaultValue Is Nothing)} values were expected instead of {Values.Count}.", Location)
             End If
 
             Dim CompiledValues As New List(Of String)
             For i As Integer = 0 To Fields.Count - 1
                 Dim Field = Fields(i)
-                Dim Value = Values(i)
 
-                If Value.GetExpressionReturnType(Scope) <> Field.Type Then
-                    Throw New TypeMismatchError(Field.Type, Value.GetExpressionReturnType(Scope), Value.Location)
+                If i < Values.Count Then
+                    Dim Value = Values(i)
+                    If Value.GetExpressionReturnType(Scope) <> Field.Type Then
+                        Throw New TypeMismatchError(Field.Type, Value.GetExpressionReturnType(Scope), Value.Location)
+                    End If
+                    CompiledValues.Add(Value.CompileExpression(Scope))
+                Else
+                    Dim TmpScope As New Context.Scope(DirectCast(RecordType, TypeSystem.RecordType).BoneContext, Location)
+                    Scope.WriteLines(TmpScope.GetLines())
+                    CompiledValues.Add(Field.DefaultValue.CompileExpression(TmpScope))
                 End If
-                CompiledValues.Add(Value.CompileExpression(Scope))
+
             Next
 
             Return "(" & RecordType.cRepresentation & "){" & String.Join(", ", CompiledValues) & "}"

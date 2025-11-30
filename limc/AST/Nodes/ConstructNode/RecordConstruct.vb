@@ -25,11 +25,13 @@
         Public Class Field
             Public ReadOnly Property Name As String
             Public ReadOnly Property Type As TypeNode
+            Public ReadOnly Property DefaultValue As ExpressionNode
             Public ReadOnly Property Location As Location
 
-            Public Sub New(Name As String, Type As TypeNode, Location As Location)
+            Public Sub New(Name As String, Type As TypeNode, DefaultValue As ExpressionNode, Location As Location)
                 Me.Name = Name
                 Me.Type = Type
+                Me.DefaultValue = DefaultValue
                 Me.Location = Location
             End Sub
 
