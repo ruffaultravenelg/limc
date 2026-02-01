@@ -24,6 +24,8 @@
                 Return Element.MatchingConstant.Type
             ElseIf Element.Type = SearchMatch.MatchType.MATCH_FUNCTION Then
                 Return Element.MatchingFunction.AssociatedFunctionType
+            ElseIf Element.Type = SearchMatch.MatchType.MATCH_GETTER Then
+                Return Element.MatchingGetter.Type 'TODO: GetMatch want to return getter&setter, so GetMatch/Context.RetrieveMatchingElement cannot return just the first value of the result list
             Else
                 Throw New UnknownOrUnreachableElementError(ElementName, Location)
             End If
@@ -40,6 +42,8 @@
                 Return Element.MatchingConstant.CompiledName
             ElseIf Element.Type = SearchMatch.MatchType.MATCH_FUNCTION Then
                 Return Element.MatchingFunction.AssociatedFunctionType.GetValueFromFunctionName(Element.MatchingFunction.GeneratedFunction.CompiledName)
+            ElseIf Element.Type = SearchMatch.MatchType.MATCH_GETTER Then
+                Return Element.MatchingGetter.CallGetter() 'TODO: find parent TypeContext to give to CallGetter, weird asf
             Else
                 Throw New UnknownOrUnreachableElementError(ElementName, Location)
             End If

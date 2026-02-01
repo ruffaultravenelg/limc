@@ -50,7 +50,20 @@
         End Function
 
         Public Sub CompileAssignation(NewValue As ExpressionNode, Scope As Context.Scope) Implements IAssignable.CompileAssignation
-            Throw New NotImplementedException()
+
+            Dim ParentType As TypeSystem.Type = Parent.GetExpressionReturnType(Scope)
+            Dim MatchingSetters As IEnumerable(Of SearchMatch) = ParentType.RetrieveElements(ElementName).Where(Function(elm) elm.Type = SearchMatch.MatchType.MATCH_SETTER)
+            Dim NewValueType As TypeSystem.Type = NewValue.GetExpressionReturnType(Scope)
+
+            For Each Match In MatchingSetters
+                If Match.MatchingSetter.Type = NewValueType Then
+                    Match.MatchingSetter.WriteSetterCall(Scope, Parent.CompileExpression(Scope), NewValue.CompileExpression(Scope))
+                    Exit Sub
+                End If
+            Next
+
+            Throw New UnknownOrUnreachableElementError(ElementName, Location)
+
         End Sub
 
         ' If the first element is a functions, return it (called by FunctionCallExpression to avoid wrapping a function)

@@ -7,8 +7,8 @@
         Public Overrides ReadOnly Property ReturnType As TypeSystem.Type
 
 
-        Private _GeneratedFunction As CodeGen.UtilFunction = Nothing
-        Public Overrides ReadOnly Property GeneratedFunction As CodeGen.UtilFunction
+        Private _GeneratedFunction As CodeGen.PassingContextFunction = Nothing
+        Public Overrides ReadOnly Property GeneratedFunction As CodeGen.PassingContextFunction
             Get
                 If _GeneratedFunction Is Nothing Then
                     If ArgumentsTypes.Count <> ArgumentNames.Count Then
@@ -20,7 +20,7 @@
                         Args.Add($"{ArgumentsTypes(i).cRepresentation} {ArgumentNames(i)}")
                     Next
 
-                    _GeneratedFunction = New CodeGen.UtilFunction(Args, ReturnType.cRepresentation, Body, $"{ParentType.ToString()}->{Type.ToString()}({String.Join(", ", ArgumentsTypes.Select(Function(arg) arg.ToString()))}):{ReturnType.ToString()}")
+                    _GeneratedFunction = New CodeGen.PassingContextFunction(Args, ReturnType.cRepresentation, Body, $"{ParentType.ToString()}->{Type.ToString()}({String.Join(", ", ArgumentsTypes.Select(Function(arg) arg.ToString()))}):{ReturnType.ToString()}")
                     CodeGen.RegisterFunction(_GeneratedFunction)
                 End If
                 Return _GeneratedFunction

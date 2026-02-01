@@ -80,7 +80,7 @@
         '=======================
         '===== CONSTRUCTOR =====
         '=======================
-        Private ReadOnly FileConstructs As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetFunctionConstructNode, AddressOf GetConstantConstructNode, AddressOf GetRecordConstructNode}
+        Private ReadOnly FileConstructs As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetFunctionConstructNode, AddressOf GetConstantConstructNode, AddressOf GetRecordConstructNode, AddressOf GetStructConstructNode}
 
         Public Sub New(Tokens As IEnumerable(Of Token))
 
@@ -1005,7 +1005,7 @@
         '======================
         '===== CONSTRUCTS =====
         '======================
-        Private Function GetFunctionConstructNode() As FunctionConstruct
+        Private Function GetFunctionConstructNode(Optional CurrentIndentation As Integer = 0) As FunctionConstruct
 
             If Not CurrentToken.Type = TokenType.KEYWORD_FUNC Then
                 Throw New NotTheRightElementException()
@@ -1044,7 +1044,7 @@
             End If
 
             'Body
-            Dim Body As IEnumerable(Of StatementNode) = GetBody(1)
+            Dim Body As IEnumerable(Of StatementNode) = GetBody(CurrentIndentation + 1)
 
             'Return node
             Return New FunctionConstruct(FunctionName, GenericArguments, Arguments, ReturnType, Body, RetrievePosition())
@@ -1158,6 +1158,61 @@
 
             ' Create record
             Return New RecordConstruct(Name, GenericArguments, Fields, RetrievePosition())
+
+        End Function
+
+        Private Function GetStructConstructNode() As StructConstruct
+
+            ' Check if this is a record
+            If Not CurrentToken.Type = TokenType.KEYWORD_STRUCT Then
+                Throw New NotTheRightElementException()
+            End If
+
+            ' Get name
+            PushPosition()
+            Advance()
+            CheckTokenType(TokenType.TEXT, "A struct must have a name")
+            Dim Name As String = CurrentToken.Value
+            Advance()
+
+            ' Get generic types
+            Dim GenericArguments As IEnumerable(Of String) = GetGenericTypeNames()
+
+            ' Get constructs
+            Dim Methods As New List(Of FunctionConstruct)
+            Dim Fields As New List(Of StructConstruct.Field)
+            While True
+
+                'Check linestart
+                CheckTokenType(TokenType.LINESTART)
+                If CurrentToken.Value < 1 Then
+                    Exit While
+                ElseIf CurrentToken.Value > 1 Then
+                    Throw New IndentationError(CurrentToken.Location, 1)
+                End If
+                Advance()
+
+                ' Get construct
+                If CurrentToken.Type = TokenType.KEYWORD_FUNC Then
+                    Methods.Add(GetFunctionConstructNode(1))
+                ElseIf CurrentToken.Type = TokenType.KEYWORD_LET Then
+                    PushPosition()
+                    Advance()
+                    CheckTokenType(TokenType.TEXT, "A propertie name was expected here")
+                    Dim PropertieName As String = CurrentToken.Value
+                    Advance()
+                    CheckTokenType(TokenType.SYMBOL_COLON)
+                    Advance()
+                    Dim PropertieType As TypeNode = GetTypeNode()
+                    Fields.Add(New StructConstruct.Field(PropertieName, PropertieType, RetrievePosition()))
+                Else
+                    Throw New UnexpectedTokenError(CurrentToken.Location, "A struct construct was expected there (method, getter, variable)")
+                End If
+
+            End While
+
+            ' Create record
+            Return New StructConstruct(Name, GenericArguments, Fields, Methods, RetrievePosition())
 
         End Function
 

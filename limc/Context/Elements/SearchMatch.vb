@@ -12,6 +12,7 @@
         MATCH_VARIABLE
         MATCH_METHOD
         MATCH_GETTER
+        MATCH_SETTER
         MATCH_CONSTANT
     End Enum
 
@@ -62,6 +63,16 @@
         Me.New(Element, MatchType.MATCH_GETTER)
     End Sub
     Public ReadOnly Property MatchingGetter As Lazy.Getter
+        Get
+            Return Result
+        End Get
+    End Property
+
+    'Setter
+    Public Sub New(Element As Lazy.Setter)
+        Me.New(Element, MatchType.MATCH_SETTER)
+    End Sub
+    Public ReadOnly Property MatchingSetter As Lazy.Setter
         Get
             Return Result
         End Get

@@ -1,0 +1,9 @@
+﻿Namespace Lazy
+    Public MustInherit Class Setter
+
+        Public MustOverride ReadOnly Property Name As String
+        Public MustOverride ReadOnly Property Type As TypeSystem.Type
+        Public MustOverride Sub WriteSetterCall(Scope As Context.Scope, CompiledObject As String, NewValue As String)
+
+    End Class
+End Namespace

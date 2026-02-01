@@ -58,5 +58,6 @@
     KEYWORD_FROM
     KEYWORD_TO
     KEYWORD_IN
+    KEYWORD_STRUCT
 
 End Enum

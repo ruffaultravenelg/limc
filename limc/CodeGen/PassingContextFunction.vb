@@ -1,7 +1,7 @@
 ﻿Imports System.Text
 
 Namespace CodeGen
-    Public Class UtilFunction
+    Public Class PassingContextFunction
         Inherits BaseFunction
 
         Public ReadOnly Property CompiledName As String

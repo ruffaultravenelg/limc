@@ -16,7 +16,9 @@ Public Module Compiler
         Compiler.Destination = Destination
 
         'Compile lim source code to c source code
+        Console.WriteLine("start compile to c")
         CompileToC()
+        Console.WriteLine("end compile to c")
 
         'Compile c source code to executable
         If Not ONLY_COMPILE_SOURCE Then

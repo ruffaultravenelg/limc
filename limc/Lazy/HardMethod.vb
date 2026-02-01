@@ -17,8 +17,8 @@ Namespace Lazy
         Public Overrides ReadOnly Property ArgumentTypes As IEnumerable(Of TypeSystem.Type)
         Public Overrides ReadOnly Property ReturnType As TypeSystem.Type
 
-        Protected Overrides Function CompileGeneratedFunction() As CodeGen.UtilFunction
-            Return New CodeGen.UtilFunction(
+        Protected Overrides Function CompileGeneratedFunction() As CodeGen.PassingContextFunction
+            Return New CodeGen.PassingContextFunction(
                 ArgumentTypes.Select(Function(a, i) $"{a.cRepresentation} arg{i}").Prepend($"{ParentType.cRepresentation} {Constants.INSTANCE_ARGUMENT_NAME}"),
                 If(ReturnType Is Nothing, "void", ReturnType.cRepresentation),
                 Body,

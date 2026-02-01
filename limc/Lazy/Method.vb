@@ -15,9 +15,9 @@ Namespace Lazy
         End Sub
 
         ' Generated function -> compilation
-        Protected MustOverride Function CompileGeneratedFunction() As CodeGen.UtilFunction
-        Private _GeneratedFunction As CodeGen.UtilFunction = Nothing
-        Public ReadOnly Property GeneratedFunction As CodeGen.UtilFunction
+        Protected MustOverride Function CompileGeneratedFunction() As CodeGen.PassingContextFunction
+        Private _GeneratedFunction As CodeGen.PassingContextFunction = Nothing
+        Public ReadOnly Property GeneratedFunction As CodeGen.PassingContextFunction
             Get
                 If _GeneratedFunction Is Nothing Then
                     _GeneratedFunction = CompileGeneratedFunction()

@@ -1,8 +1,8 @@
 ﻿Imports System.Text
 
 Namespace CodeGen
-    Public Class [Function]
-        Inherits UtilFunction
+    Public Class ContextedFunction
+        Inherits PassingContextFunction
 
         Private Shared FunctionId As Integer = -1
         Public Shared ReadOnly FunctionNames As New List(Of String)

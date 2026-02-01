@@ -23,7 +23,7 @@
             End If
         End Function
 
-        ' Represent a specifi function, contains all C subfunctions
+        ' Represent a specific function, contains all C subfunctions
         Private Class FunctionChilds
 
             Public ReadOnly Property Model As AST.FunctionConstruct

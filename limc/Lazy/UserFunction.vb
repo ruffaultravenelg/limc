@@ -74,7 +74,7 @@
         End Property
 
         ' Get generated function
-        Public Overrides ReadOnly Property GeneratedFunction As CodeGen.UtilFunction
+        Public Overrides ReadOnly Property GeneratedFunction As CodeGen.PassingContextFunction
             Get
                 Return FuncScope.GeneratedFunction
             End Get

@@ -51,6 +51,7 @@ Module Program
         End If
 
         'Start compiling
+        Compile(SourcePath, DestinationPath)
         Try
             Compile(SourcePath, DestinationPath)
         Catch ex As RenderableException
@@ -61,6 +62,7 @@ Module Program
             InternalExcepetion.Render()
 #End If
         End Try
+        Console.WriteLine("end")
 
     End Sub
 

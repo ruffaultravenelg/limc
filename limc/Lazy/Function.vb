@@ -11,7 +11,7 @@ Namespace Lazy
         Public MustOverride ReadOnly Property PassedGenericTypes As IEnumerable(Of TypeSystem.Type)
 
         ' Compiled function
-        Public MustOverride ReadOnly Property GeneratedFunction As CodeGen.UtilFunction
+        Public MustOverride ReadOnly Property GeneratedFunction As CodeGen.PassingContextFunction
 
         ' AssociatedFunctionType
         Public ReadOnly Property AssociatedFunctionType As TypeSystem.FunType

@@ -14,7 +14,7 @@
             End Get
         End Property
 
-        Public ReadOnly GeneratedFunction As CodeGen.Function
+        Public ReadOnly GeneratedFunction As CodeGen.ContextedFunction
         Private Node As AST.FunctionConstruct
 
         Public Sub New(Parent As Context, Node As AST.FunctionConstruct)
@@ -30,10 +30,10 @@
             Next
 
             ' Register this function to final file
-            GeneratedFunction = New CodeGen.Function(
+            GeneratedFunction = New CodeGen.ContextedFunction(
                 Node.Name, ' "myFunction"
                 CodeGen.Namer.Function(Node.Name), ' "ad_f"
-                Arguments ' { ("arg", "type"), ("arg2", "type2"), ... }
+                Arguments ' { "type arg1", "type arg2",... }
             )
             CodeGen.RegisterFunction(GeneratedFunction)
 

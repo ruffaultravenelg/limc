@@ -1,4 +1,6 @@
-﻿Namespace TypeSystem
+﻿Imports limc.Repository
+
+Namespace TypeSystem
 
     Public MustInherit Class Type
 
@@ -79,10 +81,19 @@
             Getters.Add(Getter) 'TODO: check if method name already exist
         End Sub
 
-        ' Methods
-        Private Methods As New List(Of Lazy.Method)
+        ' Setters
+        Private Setters As New List(Of Lazy.Setter)
+        Protected Sub RegisterSetter(Setter As Lazy.Setter)
+            Setters.Add(Setter) 'TODO: check if method name already exist
+        End Sub
+
+        ' Method
+        Private MethodRepository As New MethodRepository()
+        Protected Sub RegisterMethod(Model As AST.FunctionConstruct)
+            MethodRepository.RegisterUncompiledMethod(Model, Me)
+        End Sub
         Protected Sub RegisterMethod(Method As Lazy.Method)
-            Methods.Add(Method) 'TODO: check if method name already exist
+            MethodRepository.RegisterMethod(Method)
         End Sub
 
         ' Search element
@@ -97,13 +108,19 @@
                 End If
             Next
 
-            ' Search in methods
-            For Each M In Methods
-                If M.Name = Name Then
-                    Results.Add(New SearchMatch(M))
+            ' Search in setters
+            For Each S In Setters
+                If S.Name = Name Then
+                    Results.Add(New SearchMatch(S))
                     Exit For
                 End If
             Next
+
+            ' Search in methods
+            Dim M = MethodRepository.RetrieveMethod(Name, {})
+            If M IsNot Nothing Then
+                Results.Add(New SearchMatch(M))
+            End If
 
             Return Results
         End Function

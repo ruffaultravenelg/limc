@@ -5,7 +5,7 @@
         Public Overrides ReadOnly Property cRepresentation As String = "char*"
 
         Public Overrides Function DefaultValue(Scope As Context.Scope) As String
-            Return "'\0'"
+            Return "NULL"
         End Function
 
         Public Overrides Function ToString() As String

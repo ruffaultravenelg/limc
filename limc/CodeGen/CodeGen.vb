@@ -49,7 +49,7 @@ Namespace CodeGen
             Typedefs.Add(Typedef)
         End Sub
 
-        Public Sub AssembleFile(Filepath As String, EntryPoint As [Function])
+        Public Sub AssembleFile(Filepath As String, EntryPoint As ContextedFunction)
 
             'Write garbage collector
             WriteGarbageCollector()
@@ -155,7 +155,7 @@ Namespace CodeGen
             Writer.WriteLine(StrDup(TitleLine.Length, "/"))
         End Sub
 
-        Private Sub WriteEntryPoint(Writer As StreamWriter, EntryPoint As [Function])
+        Private Sub WriteEntryPoint(Writer As StreamWriter, EntryPoint As ContextedFunction)
 
             Writer.WriteLine("int main(int argc, char** argv) {")
             Writer.WriteLine(vbTab & "tgc_t* gc = malloc(sizeof(tgc_t));")
@@ -208,7 +208,7 @@ Namespace CodeGen
 
             If INTEGRATE_DEBUG Then
                 RegisterStruct(New Struct(RUNTIME_CONTEXT_STRUCT_NAME, {$"{RUNTIME_CONTEXT_STRUCT_NAME}* upper;", "int functionId;", "tgc_t* gc;"}, "Function stack context"))
-                RegisterGlobalVariable("static const char* functionNames[] = {" & String.Join(", ", [Function].FunctionNames) & "};")
+                RegisterGlobalVariable("static const char* functionNames[] = {" & String.Join(", ", ContextedFunction.FunctionNames) & "};")
                 RegisterFunction(New BaseFunction(
                     $"void {PRINT_STACK_TRACE_FUNCTION_NAME}({RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME})",
                     {
