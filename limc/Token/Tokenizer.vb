@@ -289,6 +289,10 @@ Public Module Tokenizer
                         AddToken(TokenType.KEYWORD_IN, Loc)
                     Case "struct"
                         AddToken(TokenType.KEYWORD_STRUCT, Loc)
+                    Case "class"
+                        AddToken(TokenType.KEYWORD_CLASS, Loc)
+                    Case "new"
+                        AddToken(TokenType.KEYWORD_NEW, Loc)
                     Case Else
                         AddToken(TokenType.TEXT, Text, Loc)
                 End Select

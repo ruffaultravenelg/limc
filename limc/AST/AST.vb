@@ -80,7 +80,7 @@
         '=======================
         '===== CONSTRUCTOR =====
         '=======================
-        Private ReadOnly FileConstructs As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetFunctionConstructNode, AddressOf GetConstantConstructNode, AddressOf GetRecordConstructNode, AddressOf GetStructConstructNode}
+        Private ReadOnly FileConstructs As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetFunctionConstructNode, AddressOf GetConstantConstructNode, AddressOf GetRecordConstructNode, AddressOf GetStructConstructNode, AddressOf GetClassConstructNode}
 
         Public Sub New(Tokens As IEnumerable(Of Token))
 
@@ -512,6 +512,25 @@
                 Case TokenType.KEYWORD_NOT
                     Dim Expression As ExpressionNode = GetExpression()
                     Return New UnaryNotExpression(Expression, Tok.Location + Expression.Location)
+
+                Case TokenType.KEYWORD_NEW
+                    Dim ClassType As TypeNode = GetTypeNode()
+
+                    Dim Arguments As New List(Of ExpressionNode)
+                    If CurrentToken.Type = TokenType.SYMBOL_LEFT_PARENTHESIS Then
+                        Advance()
+                        If Not CurrentToken.Type = TokenType.SYMBOL_RIGHT_PARENTHESIS Then
+                            Arguments.Add(GetExpression())
+                            While CurrentToken.Type = TokenType.SYMBOL_COMMA
+                                Advance()
+                                Arguments.Add(GetExpression())
+                            End While
+                            CheckTokenType(TokenType.SYMBOL_RIGHT_PARENTHESIS, "A comma or a closing parenthesis was expected here.")
+                        End If
+                        Advance()
+                    End If
+
+                    Return New NewExpression(ClassType, Arguments, Tok.Location + LastTokPos)
 
             End Select
 
@@ -1163,7 +1182,7 @@
 
         Private Function GetStructConstructNode() As StructConstruct
 
-            ' Check if this is a record
+            ' Check if this is a structure
             If Not CurrentToken.Type = TokenType.KEYWORD_STRUCT Then
                 Throw New NotTheRightElementException()
             End If
@@ -1213,6 +1232,109 @@
 
             ' Create record
             Return New StructConstruct(Name, GenericArguments, Fields, Methods, RetrievePosition())
+
+        End Function
+
+        Private Function GetConstructorConstructNode() As ConstructorConstruct
+
+            If Not CurrentToken.Type = TokenType.KEYWORD_NEW Then
+                Throw New NotTheRightElementException()
+            End If
+
+            'Get arguments
+            PushPosition()
+            Advance()
+            If CurrentToken.Type = TokenType.TEXT Then
+                Throw New SyntaxError("A constructor does not have a name.", CurrentToken.Location)
+            ElseIf CurrentToken.Type = TokenType.SYMBOL_LESSTHAN Then
+                Throw New SyntaxError("A constructor does not have generic arguments.", CurrentToken.Location)
+            End If
+
+            Dim Arguments As New List(Of ArgumentNode)
+            If CurrentToken.Type = TokenType.SYMBOL_LEFT_PARENTHESIS Then
+                Advance()
+                If Not CurrentToken.Type = TokenType.SYMBOL_RIGHT_PARENTHESIS Then
+                    Arguments.Add(GetArgumentNode())
+                    While CurrentToken.Type = TokenType.SYMBOL_COMMA
+                        Advance()
+                        Arguments.Add(GetArgumentNode())
+                    End While
+                    CheckTokenType(TokenType.SYMBOL_RIGHT_PARENTHESIS, "A comma or a closing parenthesis was expected here.")
+                End If
+                Advance()
+            End If
+
+            'Return type
+            If CurrentToken.Type = TokenType.SYMBOL_COLON Then
+                Throw New SyntaxError("A constructor does not have a return type.", CurrentToken.Location)
+            End If
+
+            'Body
+            Dim Body As IEnumerable(Of StatementNode) = GetBody(2)
+
+            'Return node
+            Return New ConstructorConstruct(Arguments, Body, RetrievePosition())
+
+
+        End Function
+
+        Private Function GetClassConstructNode() As ClassConstruct
+
+            ' Check if this is a class
+            If Not CurrentToken.Type = TokenType.KEYWORD_CLASS Then
+                Throw New NotTheRightElementException()
+            End If
+
+            ' Get name
+            PushPosition()
+            Advance()
+            CheckTokenType(TokenType.TEXT, "A class must have a name")
+            Dim Name As String = CurrentToken.Value
+            Advance()
+
+            ' Get generic types
+            Dim GenericArguments As IEnumerable(Of String) = GetGenericTypeNames()
+
+            ' Get constructs
+            Dim Methods As New List(Of FunctionConstruct)
+            Dim Fields As New List(Of ClassConstruct.Field)
+            Dim Constructors As New List(Of ConstructorConstruct)
+            While True
+
+                'Check linestart
+                CheckTokenType(TokenType.LINESTART)
+                If CurrentToken.Value < 1 Then
+                    Exit While
+                ElseIf CurrentToken.Value > 1 Then
+                    Throw New IndentationError(CurrentToken.Location, 1)
+                End If
+                Advance()
+
+                ' Get construct
+                If CurrentToken.Type = TokenType.KEYWORD_FUNC Then
+                    Methods.Add(GetFunctionConstructNode(1))
+
+                ElseIf CurrentToken.Type = TokenType.KEYWORD_NEW Then
+                    Constructors.Add(GetConstructorConstructNode())
+
+                ElseIf CurrentToken.Type = TokenType.KEYWORD_LET Then
+                    PushPosition()
+                    Advance()
+                    CheckTokenType(TokenType.TEXT, "A propertie name was expected here")
+                    Dim PropertieName As String = CurrentToken.Value
+                    Advance()
+                    CheckTokenType(TokenType.SYMBOL_COLON)
+                    Advance()
+                    Dim PropertieType As TypeNode = GetTypeNode()
+                    Fields.Add(New ClassConstruct.Field(PropertieName, PropertieType, RetrievePosition()))
+                Else
+                    Throw New UnexpectedTokenError(CurrentToken.Location, "A struct construct was expected there (method, getter, variable)")
+                End If
+
+            End While
+
+            ' Create record
+            Return New ClassConstruct(Name, GenericArguments, Fields, Methods, Constructors, RetrievePosition())
 
         End Function
 

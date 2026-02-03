@@ -20,10 +20,13 @@
             Return GenerateName() & "_m"
         End Function
         Public Overridable Function [Struct](Optional Info As String = "") As String
-            Return GenerateName() & "_t"
+            Return GenerateName() & "_st"
         End Function
         Public Overridable Function Constant(Optional Info As String = "") As String
-            Return GenerateName() & "_c"
+            Return GenerateName() & "_im"
+        End Function
+        Public Overridable Function Classe(Optional Info As String = "") As String
+            Return GenerateName() & "_ct"
         End Function
         Public Function Rack(Info As String) As String
             Return GenerateName() & "_r" ' Keep ending _r for RackType.ValidateStructFieldDefinition

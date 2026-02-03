@@ -55,7 +55,7 @@ Namespace Lazy
             If TypeOf ParentType IsNot TypeSystem.ITypeWithBoneContext Then
                 Throw New InternalError()
             End If
-            Me.ParentTypeContext = DirectCast(ParentType, TypeSystem.ITypeWithBoneContext).BoneContext
+            Me.ParentTypeContext = DirectCast(ParentType, TypeSystem.ITypeWithBoneContext).InnerContext
 
             Me.PassedGenericTypes = PassedGenericTypes
             If Not PassedGenericTypes.Count = Node.GenericArguments.Count Then

@@ -1,57 +1,67 @@
 ﻿Namespace TypeSystem
-    Public Class StructType
+    Public Class ClassType
         Inherits CommonType
         Implements ITypeWithBoneContext
 
-        Private ReadOnly Struct As AST.StructConstruct
+        Private ReadOnly Classe As AST.ClassConstruct
         Private ReadOnly Property InnerContext As Context.Context Implements ITypeWithBoneContext.InnerContext
         Private ReadOnly Property BoneContext As Context.Context Implements ITypeWithBoneContext.BoneContext
 
+        Private ReadOnly ConstructorRepository As Repository.ConstructorRepository
+
         ' Constructor
-        Public Sub New(Struct As AST.StructConstruct, PassedGenericTypes As IEnumerable(Of TypeSystem.Type))
-            MyBase.New(Struct.Name, PassedGenericTypes, Struct.Exported)
-            Me.Struct = Struct
-            cRepresentation = CodeGen.Namer.Struct(Struct.Name)
-            BoneContext = New Context.GenericContext(Struct.Location.File)
+        Public Sub New(Classe As AST.ClassConstruct, PassedGenericTypes As IEnumerable(Of TypeSystem.Type))
+            MyBase.New(Classe.Name, PassedGenericTypes, Classe.Exported)
+            Me.Classe = Classe
+            structName = CodeGen.Namer.Classe(Classe.Name)
+            cRepresentation = structName & "*"
+            BoneContext = New Context.GenericContext(Classe.Location.File)
             InnerContext = New Context.TypeContext(BoneContext, Me)
+            Me.ConstructorRepository = New Repository.ConstructorRepository(Me, Classe.Constructors)
         End Sub
 
         ' All recursion (like typeNode.AssociatedType) must be done in Compile()
         Public Overrides Sub Compile()
 
             ' Create context
-            If Not Struct.GenericTypeNames.Count = GenericTypes.Count Then
+            If Not Classe.GenericTypeNames.Count = GenericTypes.Count Then
                 Throw New InternalError()
             End If
             For i As Integer = 0 To GenericTypes.Count - 1
-                DirectCast(BoneContext, Context.GenericContext).RegisterGenericType(Struct.GenericTypeNames(i), GenericTypes(i))
+                DirectCast(BoneContext, Context.GenericContext).RegisterGenericType(Classe.GenericTypeNames(i), GenericTypes(i))
             Next
 
             ' Compile fields
-            Dim StructFields As New List(Of String)
-            For Each Field In Struct.Fields
+            Dim ClassFields As New List(Of String)
+            For Each Field In Classe.Fields
                 Dim Prop As New Propertie(Field.Name, Field.Type.GetAssociatedType(InnerContext))
                 Properties.Add(Prop)
-                StructFields.Add($"{Prop.Type.cRepresentation} {Prop.CompiledName};")
-                RegisterGetter(New Lazy.DirectAccessGetter(Field.Name, Prop.Type, Function(instance) $"{instance}.{Prop.CompiledName}"))
-                RegisterSetter(New Lazy.DirectAccessSetter(Field.Name, Prop.Type, Function(instance, newValue) $"{instance}.{Prop.CompiledName} = {newValue};"))
+                ClassFields.Add($"{Prop.Type.cRepresentation} {Prop.CompiledName};")
+                RegisterGetter(New Lazy.DirectAccessGetter(Field.Name, Prop.Type, Function(instance) $"{instance}->{Prop.CompiledName}"))
+                RegisterSetter(New Lazy.DirectAccessSetter(Field.Name, Prop.Type, Function(instance, newValue) $"{instance}->{Prop.CompiledName} = {newValue};"))
             Next
 
             ' Register struct
-            CodeGen.RegisterStruct(New CodeGen.Struct(cRepresentation, StructFields, ToString()))
+            CodeGen.RegisterStruct(New CodeGen.Struct(structName, ClassFields, ToString()))
 
             ' Register methods
-            For Each MethodNode In Struct.Methods
+            For Each MethodNode In Classe.Methods
                 RegisterMethod(MethodNode)
             Next
 
         End Sub
 
+        ' Get constructor
+        Public Function GetConstructor(Arguments As IEnumerable(Of TypeSystem.Type)) As Lazy.Constructor
+            Return ConstructorRepository.RetrieveConstructor(Arguments)
+        End Function
+
         Public Overrides ReadOnly Property cRepresentation As String
+        Private structName As String
         Protected Overrides ReadOnly Property Relations As IEnumerable(Of Lazy.Relation) = {}
 
         Public Overrides Function DefaultValue(Scope As Context.Scope) As String
-            Return "(" & cRepresentation & "){" & String.Join(", ", Properties.Select(Function(p) p.Type.DefaultValue(Scope))) & "}"
+            Return "NULL"
         End Function
 
         Private ReadOnly Properties As New List(Of Propertie)

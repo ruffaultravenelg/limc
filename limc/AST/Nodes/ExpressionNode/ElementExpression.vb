@@ -57,7 +57,7 @@
         Public Sub CompileAssignation(NewValue As ExpressionNode, Writer As CWriter, Scope As Context.Scope) Implements IAssignable.CompileAssignation
 
             ' Get value
-            Dim Result As SearchMatch = GetMatchs(Scope).Where(Function(Match) Match.Type = SearchMatch.MatchType.MATCH_VARIABLE OrElse Match.Type = SearchMatch.MatchType.MATCH_SETTER).FirstOrDefault()
+            Dim Result As SearchMatch = GetMatchs(Scope).Where(Function(Match) Match.Type = SearchMatch.MatchType.MATCH_VARIABLE OrElse Match.Type = SearchMatch.MatchType.MATCH_SCOPE_SETTER).FirstOrDefault()
             If Result Is Nothing Then
                 Throw New UnknownOrUnreachableElementError(ElementName, Location)
             End If
@@ -76,10 +76,18 @@
                 Variable.Type.SetVariableValue(Writer, Variable.CompiledName, NewValue.CompileExpression(Writer, Scope))
 
 
-            ElseIf Result.Type = SearchMatch.MatchType.MATCH_SETTER Then
+            ElseIf Result.Type = SearchMatch.MatchType.MATCH_SCOPE_SETTER Then
 
                 'Get setter
-                Throw New NotImplementedException() 'TODO
+                Dim Setter As ScopeSetter = Result.MatchingScopeSetter
+
+                'Check type error
+                If Setter.Type <> NewValue.GetExpressionReturnType(Scope) Then
+                    Throw New TypeMismatchError(Setter.Type, NewValue.GetExpressionReturnType(Scope), NewValue.Location)
+                End If
+
+                'Write assignment
+                Setter.CompileCall(Writer, NewValue.CompileExpression(Writer, Scope))
 
             Else
                 Throw New InternalError()

@@ -111,7 +111,7 @@ Namespace TypeSystem
             ' Search in setters
             For Each S In Setters
                 If S.Name = Name Then
-                    'Results.Add(New SearchMatch(S))
+                    Results.Add(New SearchMatch(New ScopeSetter(S)))
                     Exit For
                 End If
             Next
