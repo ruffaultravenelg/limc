@@ -1,18 +1,53 @@
-﻿Namespace Lazy
+﻿Imports limc.CodeGen
+Imports limc.TypeSystem
+
+Namespace Lazy
     Public Class UserMethod
         Inherits Lazy.Method
 
+        ' Name
+        Public Overrides ReadOnly Property Name As String
+            Get
+                Return Node.Name
+            End Get
+        End Property
+
+        ' Passed generic types
+        Public Overrides ReadOnly Property PassedGenericTypes As IEnumerable(Of Type)
+
+        ' Method arguments
+        Private _ArgumentTypes As IEnumerable(Of TypeSystem.Type) = Nothing
+        Public Overrides ReadOnly Property ArgumentTypes As IEnumerable(Of TypeSystem.Type)
+            Get
+                If _ArgumentTypes Is Nothing Then
+                    _ArgumentTypes = Node.Arguments.Select(Function(a) a.ArgumentType.GetAssociatedType(MethodScope))
+                End If
+                Return _ArgumentTypes
+            End Get
+        End Property
+
+        ' Method return type
+        Private _ReturnType As TypeSystem.Type = Nothing
+        Public Overrides ReadOnly Property ReturnType As TypeSystem.Type
+            Get
+                If Node.ReturnType Is Nothing Then
+                    Return Nothing
+                Else
+                    If _ReturnType Is Nothing Then
+                        _ReturnType = Node.ReturnType.GetAssociatedType(MethodScope)
+                    End If
+                    Return _ReturnType
+                End If
+            End Get
+        End Property
+
         ' Not compiled
         Private Node As AST.FunctionConstruct
-        Private BoneContext As Context.Context
-
+        Private ParentTypeContext As Context.Context
         Private MethodScope As Context.Scope
-        Private BodyScope As Context.Scope
-
-        Private ShouldHaveAReturnValue As Boolean
 
         ' Constructor
-        Public Sub New(ParentType As TypeSystem.Type, Node As AST.FunctionConstruct)
+        Public Sub New(ParentType As TypeSystem.Type, Node As AST.FunctionConstruct, PassedGenericTypes As IEnumerable(Of TypeSystem.Type))
             MyBase.New(ParentType)
             Me.Node = Node
 
@@ -20,79 +55,53 @@
             If TypeOf ParentType IsNot TypeSystem.ITypeWithBoneContext Then
                 Throw New InternalError()
             End If
-            Me.BoneContext = DirectCast(ParentType, TypeSystem.ITypeWithBoneContext).BoneContext
+            Me.ParentTypeContext = DirectCast(ParentType, TypeSystem.ITypeWithBoneContext).BoneContext
 
-            Me.MethodScope = New Context.Scope(BoneContext, Node.Location)
+            Me.PassedGenericTypes = PassedGenericTypes
+            If Not PassedGenericTypes.Count = Node.GenericArguments.Count Then
+                Throw New InternalError()
+            End If
 
-            ShouldHaveAReturnValue = Node.ReturnType IsNot Nothing OrElse Node.DoContainsStatement(Of AST.ReturnStatement)()
-            If ShouldHaveAReturnValue Then
-                Dim ReturnableScope As New Context.ReturnableScope(MethodScope, Node.Location)
-                If Node.ReturnType IsNot Nothing Then
-                    ReturnableScope.DefineReturnType(Node.ReturnType.GetAssociatedType(BoneContext), Node.Location)
-                End If
-                Me.BodyScope = ReturnableScope
+            If PassedGenericTypes.Count > 0 Then
+                Dim GenericContext As New Context.GenericContext(ParentTypeContext)
+                For i As Integer = 0 To PassedGenericTypes.Count - 1
+                    GenericContext.RegisterGenericType(Node.GenericArguments(i), PassedGenericTypes(i))
+                Next
+                Me.MethodScope = New Context.Scope(GenericContext, Node.Location)
             Else
-                Me.BodyScope = New Context.Scope(MethodScope, Node.Location)
+                Me.MethodScope = New Context.Scope(ParentTypeContext, Node.Location)
             End If
 
         End Sub
 
-        Public Overrides ReadOnly Property Name As String
-            Get
-                Return Node.Name
-            End Get
-        End Property
 
-        Private _ArgumentTypes As IEnumerable(Of TypeSystem.Type) = Nothing
-        Public Overrides ReadOnly Property ArgumentTypes As IEnumerable(Of TypeSystem.Type)
-            Get
-                If _ArgumentTypes Is Nothing Then
-                    _ArgumentTypes = Node.Arguments.Select(Function(a) a.ArgumentType.GetAssociatedType(BoneContext))
-                End If
-                Return _ArgumentTypes
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property ReturnType As TypeSystem.Type
-            Get
-                If ShouldHaveAReturnValue Then
-                    Dim a = MyBase.GeneratedFunction 'Compile body: mega sus
-                    Return DirectCast(BodyScope, Context.ReturnableScope).ReturnType
-                Else
-                    Return Nothing
-                End If
-            End Get
-        End Property
-
-        Protected Overrides Function CompileGeneratedFunction() As CodeGen.PassingContextFunction
-
-            ' Arguments
-            Dim CompiledArguments As New List(Of String) From {$"{ParentType.cRepresentation} {Constants.INSTANCE_ARGUMENT_NAME}"}
-            For Each Arg As AST.ArgumentNode In Node.Arguments
-                Dim Var As VariableData = MethodScope.CreateVariable(Arg.ArgumentName, Arg.ArgumentType.GetAssociatedType(MethodScope), Arg.Location)
-                CompiledArguments.Add($"{Var.Type.cRepresentation} {Var.CompiledName}")
+        ' Create compiled function (to provide compiledName)
+        Protected Overrides Function GenerateCompiledMethod() As ContextedFunction
+            Dim ArgumentSignature As New List(Of String) From {$"{ParentType.cRepresentation} {Constants.INSTANCE_ARGUMENT_NAME}"}
+            For Each Arg In Node.Arguments
+                Dim Variable As New VariableData(Namer.Variable(Arg.ArgumentName), Arg.ArgumentType.GetAssociatedType(MethodScope))
+                MethodScope.RegisterVariable(Arg.ArgumentName, Variable, Arg.Location)
+                ArgumentSignature.Add($"{Variable.Type.cRepresentation} {Variable.CompiledName}")
             Next
 
-            ' Create c function
-            Dim CFun As New CodeGen.ContextedFunction(Name, CodeGen.Namer.Method(Name), CompiledArguments)
+            Dim ReturnTypeSignature As String = If(Node.ReturnType Is Nothing, "void", ReturnType.cRepresentation)
 
-            ' Compile body
-            For Each Statement In Node.Body
-                Statement.Compile(BodyScope)
-            Next
-
-            ' Set return type
-            If ShouldHaveAReturnValue Then
-                CFun.SetReturnType(DirectCast(BodyScope, Context.ReturnableScope).ReturnType.cRepresentation)
-            Else
-                CFun.SetReturnType("void")
-            End If
-            CFun.AppendBody(BodyScope.GetLines())
-
-            ' Return c function
-            Return CFun
+            Return New OwnContextFunction(Name, ArgumentSignature, ReturnTypeSignature)
 
         End Function
+
+        ' Compile body (after compiledName is known)
+        Protected Overrides Sub CompileBody()
+            If ReturnType IsNot Nothing Then
+                MethodScope = New Context.MustReturnScope(MethodScope, Node.Location, ReturnType) 'TODO: this create another scope, update this later
+            End If
+
+            Dim Writer As New CWriter()
+            For Each Statement In Node.Body
+                Statement.Compile(Writer, MethodScope)
+            Next
+            DirectCast(GeneratedMethod, OwnContextFunction).AppendBody(Writer.GetLines())
+        End Sub
 
     End Class
 End Namespace

@@ -13,7 +13,7 @@
         End Sub
 
         Protected Overridable Function GetMatch(Context As Context.Context) As SearchMatch
-            Return Context.RetrieveMatchingElement(ElementName, PassedGenericTypes.Select(Function(g) g.GetAssociatedType(Context)), Location)
+            Return Context.RetrieveMatchingElements(ElementName, PassedGenericTypes.Select(Function(g) g.GetAssociatedType(Context))).First() 'TODO: .First() is weird
         End Function
 
         Public Overrides Function GetExpressionReturnType(Context As Context.Context) As TypeSystem.Type
@@ -28,12 +28,12 @@
 
         End Function
 
-        Public Overrides Function CompileExpression(Scope As Context.Scope) As String
+        Public Overrides Function CompileExpression(Writer As CWriter, Scope As Context.Scope) As String
 
             Dim Element As SearchMatch = GetMatch(Scope)
 
             If Element.Type = SearchMatch.MatchType.MATCH_FUNCTION Then
-                Return Element.MatchingFunction.AssociatedFunctionType.GetValueFromFunctionName(Element.MatchingFunction.GeneratedFunction.CompiledName)
+                Return Element.MatchingFunction.CompileFunctionPointer()
             Else
                 Throw New UnknownOrUnreachableElementError(ElementName, Location)
             End If

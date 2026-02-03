@@ -13,13 +13,13 @@
             Return TypeSystem.Type.Bool
         End Function
 
-        Public Overrides Function CompileExpression(Scope As Context.Scope) As String
+        Public Overrides Function CompileExpression(Writer As CWriter, Scope As Context.Scope) As String
             Dim ValueType As TypeSystem.Type = Value.GetExpressionReturnType(Scope)
             If ValueType <> TypeSystem.Type.Bool Then
                 Throw New TypeMismatchError(TypeSystem.Type.Bool, ValueType, Value.Location)
             End If
 
-            Return $"!({Value.CompileExpression(Scope)})"
+            Return $"!({Value.CompileExpression(Writer, Scope)})"
 
         End Function
 

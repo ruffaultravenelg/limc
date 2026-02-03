@@ -11,7 +11,7 @@
             Me.Instructions = Instructions
         End Sub
 
-        Public Overrides Sub Compile(Scope As Context.Scope)
+        Public Overrides Sub Compile(Writer As CWriter, Scope As Context.Scope)
 
             ' Check condition type
             Dim ConditionType As TypeSystem.Type = Condition.GetExpressionReturnType(Scope)
@@ -21,14 +21,15 @@
 
             ' Compile body
             Dim BodyContext As New Context.LoopScope(Scope, Location)
+            Dim BodyWriter As New CWriter()
             For Each Statement In Instructions
-                Statement.Compile(BodyContext)
+                Statement.Compile(BodyWriter, BodyContext)
             Next
 
             ' Compile whole loop
-            Scope.WriteLine($"while ({Condition.CompileExpression(Scope)}){{")
-            Scope.WriteScope(BodyContext)
-            Scope.WriteLine("}")
+            Writer.WriteLine($"while ({Condition.CompileExpression(Writer, Scope)}){{")
+            Writer.WriteLines(BodyWriter.GetLinesIndented())
+            Writer.WriteLine("}")
 
         End Sub
 

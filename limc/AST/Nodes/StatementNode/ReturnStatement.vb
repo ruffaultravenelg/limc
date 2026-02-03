@@ -9,20 +9,22 @@
             Me.ReturnValue = ReturnValue
         End Sub
 
-        Public Overrides Sub Compile(Scope As Context.Scope)
+        Public Overrides Sub Compile(Writer As CWriter, Scope As Context.Scope)
 
             ' Get returnableScope
-            Dim ReturnableScope As Context.ReturnableScope = Scope.GetParent(Of Context.ReturnableScope)
+            Dim ReturnableScope As Context.MustReturnScope = Scope.GetParent(Of Context.MustReturnScope)
             If ReturnableScope Is Nothing Then
                 Throw New SyntaxError("This scope does not allow you to return values.", Location)
             End If
 
             ' Check return type correspond to upper returnableSCope
             Dim ReturnType As TypeSystem.Type = ReturnValue.GetExpressionReturnType(Scope)
-            ReturnableScope.DefineReturnType(ReturnType, Location)
+            If Not ReturnType = ReturnableScope.ReturnType Then
+                Throw New TypeMismatchError(ReturnableScope.ReturnType, ReturnType, Location)
+            End If
 
             ' Compile
-            Scope.WriteLine($"return {ReturnValue.CompileExpression(Scope)};")
+            Writer.WriteLine($"return {ReturnValue.CompileExpression(Writer, Scope)};")
 
         End Sub
 

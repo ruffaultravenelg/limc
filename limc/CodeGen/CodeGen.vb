@@ -208,7 +208,7 @@ Namespace CodeGen
 
             If INTEGRATE_DEBUG Then
                 RegisterStruct(New Struct(RUNTIME_CONTEXT_STRUCT_NAME, {$"{RUNTIME_CONTEXT_STRUCT_NAME}* upper;", "int functionId;", "tgc_t* gc;"}, "Function stack context"))
-                RegisterGlobalVariable("static const char* functionNames[] = {" & String.Join(", ", ContextedFunction.FunctionNames) & "};")
+                RegisterGlobalVariable("static const char* functionNames[] = {" & String.Join(", ", OwnContextFunction.FunctionNames) & "};")
                 RegisterFunction(New BaseFunction(
                     $"void {PRINT_STACK_TRACE_FUNCTION_NAME}({RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME})",
                     {

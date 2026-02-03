@@ -13,7 +13,7 @@
             Return TypeSystem.Type.Bool
         End Function
 
-        Public Overrides Function CompileExpression(Scope As Context.Scope) As String
+        Public Overrides Function CompileExpression(Writer As CWriter, Scope As Context.Scope) As String
             Return If(Value, "true", "false")
         End Function
 

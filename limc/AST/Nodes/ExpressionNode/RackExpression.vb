@@ -16,7 +16,7 @@
             Return TypeSystem.RackType.FromLengthAndType(Elements.Count, Elements.First.GetExpressionReturnType(Context))
         End Function
 
-        Public Overrides Function CompileExpression(Scope As Context.Scope) As String
+        Public Overrides Function CompileExpression(Writer As CWriter, Scope As Context.Scope) As String
 
             Dim FirstType As TypeSystem.Type = Elements.First.GetExpressionReturnType(Scope)
 
@@ -25,7 +25,7 @@
                 If Elm.GetExpressionReturnType(Scope) <> FirstType Then
                     Throw New TypeMismatchError(FirstType, Elm.GetExpressionReturnType(Scope), Elm.Location)
                 End If
-                CompiledElements.Add(Elm.CompileExpression(Scope))
+                CompiledElements.Add(Elm.CompileExpression(Writer, Scope))
             Next
 
             Return "{" & String.Join(", ", CompiledElements) & "}"

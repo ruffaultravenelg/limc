@@ -7,7 +7,7 @@
         Public MustOverride ReadOnly Property ReturnType As TypeSystem.Type
 
         ' Compiled function
-        Public MustOverride ReadOnly Property GeneratedFunction As CodeGen.PassingContextFunction 'IMPORTANT: first argument must be the instance
+        Public MustOverride ReadOnly Property GeneratedFunction As CodeGen.ContextedFunction 'IMPORTANT: first argument must be the instance
 
         ' Constructor
         Public Sub New(ParentType As TypeSystem.Type)
@@ -15,7 +15,7 @@
         End Sub
 
         ' Compile call
-        Public Function CompileCall(Instance As AST.ExpressionNode, Arguments As IEnumerable(Of AST.ExpressionNode), Scope As Context.Scope, Location As Location)
+        Public Function CompileCall(Instance As AST.ExpressionNode, Arguments As IEnumerable(Of AST.ExpressionNode), Writer As CWriter, Scope As Context.Scope, Location As Location)
 
             ' Check instance type
             If Not Instance.GetExpressionReturnType(Scope) = ParentType Then
@@ -32,7 +32,7 @@
             End If
 
             ' Compile arguments
-            Dim CompiledArguments As New List(Of String) From {Instance.CompileExpression(Scope)}
+            Dim CompiledArguments As New List(Of String) From {Instance.CompileExpression(Writer, Scope)}
             For i As Integer = 0 To Arguments.Count - 1
 
                 ' Check if types are the same type
@@ -41,7 +41,7 @@
                 End If
 
                 ' Compile
-                CompiledArguments.Add(Arguments(i).CompileExpression(Scope))
+                CompiledArguments.Add(Arguments(i).CompileExpression(Writer, Scope))
 
             Next
 

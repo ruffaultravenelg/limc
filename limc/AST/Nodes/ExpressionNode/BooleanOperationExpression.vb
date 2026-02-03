@@ -30,14 +30,14 @@
             Return TypeSystem.Type.Bool
         End Function
 
-        Public Overrides Function CompileExpression(Scope As Context.Scope) As String
+        Public Overrides Function CompileExpression(Writer As CWriter, Scope As Context.Scope) As String
             CheckTypes(Scope)
 
             Select Case Op
                 Case TokenType.KEYWORD_AND
-                    Return $"({Left.CompileExpression(Scope)} && {Right.CompileExpression(Scope)})"
+                    Return $"({Left.CompileExpression(Writer, Scope)} && {Right.CompileExpression(Writer, Scope)})"
                 Case TokenType.KEYWORD_OR
-                    Return $"({Left.CompileExpression(Scope)} || {Right.CompileExpression(Scope)})"
+                    Return $"({Left.CompileExpression(Writer, Scope)} || {Right.CompileExpression(Writer, Scope)})"
                 Case Else
                     Throw New InternalError()
             End Select

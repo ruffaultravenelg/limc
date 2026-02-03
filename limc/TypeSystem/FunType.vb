@@ -53,11 +53,11 @@ Namespace TypeSystem
 
         End Function
 
-        Private ConstructorFromFunction As CodeGen.PassingContextFunction = Nothing
+        Private ConstructorFromFunction As CodeGen.ContextedFunction = Nothing
         Public Function GetValueFromFunctionName(FunctionName As String) As String
 
             If ConstructorFromFunction Is Nothing Then
-                ConstructorFromFunction = New CodeGen.PassingContextFunction(
+                ConstructorFromFunction = New CodeGen.ContextedFunction(
                     {FuncPtrType},
                     cRepresentation,
                     {
@@ -78,7 +78,7 @@ Namespace TypeSystem
 
 
 
-        Private ConstructorsFromMethod As New Dictionary(Of String, CodeGen.PassingContextFunction)
+        Private ConstructorsFromMethod As New Dictionary(Of String, CodeGen.ContextedFunction)
         Public Function GetValueFromMethodNameAndInstance(Scope As Context.Scope, MethodName As String, InstanceReference As String, InstanceType As TypeSystem.Type) As String
 
             If Not ConstructorsFromMethod.ContainsKey(MethodName) Then
@@ -90,7 +90,7 @@ Namespace TypeSystem
                     Args &= ", arg" & I
                 Next
 
-                Dim UnwrapFunction As New CodeGen.PassingContextFunction(
+                Dim UnwrapFunction As New CodeGen.ContextedFunction(
                     UnwrapFunctionArgs,
                     ReturnType_C,
                     {
@@ -100,7 +100,7 @@ Namespace TypeSystem
                     $"unwrap and execute {InstanceType.ToString()}.{ToString()} to {MethodName}"
                 )
 
-                Dim Wrapper As New CodeGen.PassingContextFunction( 'TODO: this shit don't work with reference cause it will do pointer of pointer, TGC doesn't handle it well. And it's also really ugly
+                Dim Wrapper As New CodeGen.ContextedFunction( 'TODO: this shit don't work with reference cause it will do pointer of pointer, TGC doesn't handle it well. And it's also really ugly
                     {$"{InstanceType.cRepresentation} instance"},
                     cRepresentation,
                     {
@@ -128,8 +128,8 @@ Namespace TypeSystem
 
 
 
-        Private ExecuteFunction As CodeGen.PassingContextFunction = Nothing
-        Public Function ExecuteProcedure(Scope As Context.Scope, ProcedureObject As String, Arguments As IEnumerable(Of ExpressionNode)) As String
+        Private ExecuteFunction As CodeGen.ContextedFunction = Nothing
+        Public Function ExecuteProcedure(Writer As CWriter, Scope As Context.Scope, ProcedureObject As String, Arguments As IEnumerable(Of ExpressionNode)) As String
 
             'Execute function generation
             If ExecuteFunction Is Nothing Then
@@ -139,7 +139,7 @@ Namespace TypeSystem
                     ExecuteFunctionArguments.Add(ArgumentTypes(I).cRepresentation & " arg" & I)
                     Args &= ", arg" & I
                 Next
-                ExecuteFunction = New CodeGen.PassingContextFunction(
+                ExecuteFunction = New CodeGen.ContextedFunction(
                     ExecuteFunctionArguments,
                     ReturnType_C,
                     {
@@ -165,7 +165,7 @@ Namespace TypeSystem
                 If ActualArgType <> ArgumentTypes(I) Then
                     Throw New TypeMismatchError(ArgumentTypes(I), ActualArgType, Arguments(I).Location)
                 End If
-                CompiledArgs.Add(Arguments(I).CompileExpression(Scope))
+                CompiledArgs.Add(Arguments(I).CompileExpression(Writer, Scope))
 
             Next
 

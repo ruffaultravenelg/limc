@@ -16,7 +16,7 @@ Namespace AST
             Return TypeSystem.Type.Str
         End Function
 
-        Public Overrides Function CompileExpression(Scope As Context.Scope) As String
+        Public Overrides Function CompileExpression(Writer As CWriter, Scope As Context.Scope) As String
             Return """" & Sanitaze(Value) & """"
         End Function
 

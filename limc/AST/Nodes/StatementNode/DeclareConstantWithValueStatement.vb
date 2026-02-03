@@ -11,15 +11,15 @@
             Me.ConstantValue = ConstantValue
         End Sub
 
-        Public Overrides Sub Compile(Scope As Context.Scope)
+        Public Overrides Sub Compile(Writer As CWriter, Scope As Context.Scope)
 
             Dim Type As TypeSystem.Type = ConstantValue.GetExpressionReturnType(Scope)
             Dim ConstantInfo As ConstantData = Scope.CreateConstant(ConstantName, Type, Location)
 
             If Type.cRepresentation.Contains("*") Then
-                Scope.WriteLine($"{Type.cRepresentation} const {ConstantInfo.CompiledName} = {ConstantValue.CompileExpression(Scope)};")
+                Writer.WriteLine($"{Type.cRepresentation} const {ConstantInfo.CompiledName} = {ConstantValue.CompileExpression(Writer, Scope)};")
             Else
-                Scope.WriteLine($"const {Type.cRepresentation} {ConstantInfo.CompiledName} = {ConstantValue.CompileExpression(Scope)};")
+                Writer.WriteLine($"const {Type.cRepresentation} {ConstantInfo.CompiledName} = {ConstantValue.CompileExpression(Writer, Scope)};")
             End If
 
         End Sub

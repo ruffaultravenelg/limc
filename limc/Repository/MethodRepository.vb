@@ -3,44 +3,68 @@
 Namespace Repository
     Public Class MethodRepository
 
-        ' Contains all methods with their C variants
-        Private ReadOnly Methods As New Dictionary(Of String, IMethodVariantContainer)
+        ' Contains all functions with their C variants
+        Private ReadOnly Methods As New Dictionary(Of String, MethodSet)
 
-        ' Register uncompiled function
-        Public Sub RegisterUncompiledMethod(Method As AST.FunctionConstruct, AssociatedType As TypeSystem.Type)
-            If Methods.ContainsKey(Method.Name) Then
-                Throw New InternalError()
+        ' Register uncompiled method
+        Public Sub RegisterMethod(Model As AST.FunctionConstruct, AssociatedType As TypeSystem.Type)
+            If Not Methods.ContainsKey(Model.Name) Then
+                Methods(Model.Name) = New MethodSet()
             End If
-            Methods(Method.Name) = New UserMethodVariantContainer(Method, AssociatedType)
+            Methods(Model.Name).RegisterVariant(New MethodVariantContainer(Model, AssociatedType))
         End Sub
+
+        ' Register compiled method
         Public Sub RegisterMethod(Method As Lazy.Method)
-            If Methods.ContainsKey(Method.Name) Then
-                Throw New InternalError()
+            If Not Methods.ContainsKey(Method.Name) Then
+                Methods(Method.Name) = New MethodSet()
             End If
-            Methods(Method.Name) = New HardMethodVariantContainer(Method)
+            Methods(Method.Name).RegisterVariant(New MethodContainer(Method))
         End Sub
 
         ' General repository endpoint
-        Public Function RetrieveMethod(Name As String, GenericTypes As IEnumerable(Of TypeSystem.Type)) As Lazy.Method
+        Public Function RetrieveMethods(Name As String, GenericTypes As IEnumerable(Of TypeSystem.Type)) As IEnumerable(Of Lazy.Method)
             If Methods.ContainsKey(Name) Then
                 Return Methods(Name).RetrieveWithGenerics(GenericTypes)
             Else
-                Return Nothing
+                Return {}
             End If
         End Function
 
-        ' Represent a specific method, contains all C subfunctions
-        Private Interface IMethodVariantContainer
-            Function RetrieveWithGenerics(GenericTypes As IEnumerable(Of TypeSystem.Type)) As Lazy.Method
+        ' Represent a set of functions with the same name
+        Private Class MethodSet
+
+            Private Variants As New List(Of IMethodContainer)
+
+            Public Sub RegisterVariant(V As IMethodContainer)
+                Variants.Add(V)
+            End Sub
+
+            Public Function RetrieveWithGenerics(GenericTypes As IEnumerable(Of TypeSystem.Type)) As IEnumerable(Of Lazy.Method)
+                Dim Results As New List(Of Lazy.Method)
+
+                For Each V In Variants
+                    Dim RetrievedMethod As Lazy.Method = V.RetrieveMethod(GenericTypes)
+                    If RetrievedMethod IsNot Nothing Then
+                        Results.Add(RetrievedMethod)
+                    End If
+                Next
+
+                Return Results
+            End Function
+
+        End Class
+
+        ' Represent a function, contains all C subfunctions for each generic type combination
+        Private Interface IMethodContainer
+            Function RetrieveMethod(GenericTypes As IEnumerable(Of TypeSystem.Type)) As Lazy.Method
         End Interface
 
-        ' Represent all variant of a user defined method
-        Private Class UserMethodVariantContainer
-            Implements IMethodVariantContainer
+        Private Class MethodVariantContainer
+            Implements IMethodContainer
 
-            Public ReadOnly Property Model As AST.FunctionConstruct
+            Private Model As AST.FunctionConstruct
             Private AssociatedType As TypeSystem.Type
-
             Private LazyMethods As New List(Of Lazy.Method)
 
             Public Sub New(Model As AST.FunctionConstruct, AssociatedType As TypeSystem.Type)
@@ -48,30 +72,31 @@ Namespace Repository
                 Me.AssociatedType = AssociatedType
             End Sub
 
-            Public Function RetrieveWithGenerics(GenericTypes As IEnumerable(Of TypeSystem.Type)) As Lazy.Method Implements IMethodVariantContainer.RetrieveWithGenerics
+            Public Function RetrieveMethod(GenericTypes As IEnumerable(Of TypeSystem.Type)) As Lazy.Method Implements IMethodContainer.RetrieveMethod
 
                 ' Count error
                 If GenericTypes.Count <> Model.GenericArguments.Count Then
-                    Throw New NotTheRightAmountOfGenericTypesException(GenericTypes.Count, Model.GenericArguments.Count)
+                    Return Nothing
                 End If
 
-                ' Search if there is a function already defined
-                For Each Fn In LazyMethods
-                    Return Fn 'TODO: handle generic types when there will be
-                Next
+                ' Get the matching lazy function
+                Dim MatchingLazyMethod As Lazy.Method = LazyMethods.FirstOrDefault(Function(Fn) Fn.PassedGenericTypes.SequenceEqual(GenericTypes))
 
-                ' No function returned -> compile a new one
-                Dim NewFn As New Lazy.UserMethod(AssociatedType, Model)
-                LazyMethods.Add(NewFn)
-                Return NewFn
+                ' If not found, create it
+                If MatchingLazyMethod Is Nothing Then
+                    Dim LazyFn As New Lazy.UserMethod(AssociatedType, Model, GenericTypes)
+                    LazyMethods.Add(LazyFn)
+                    Return LazyFn
+                Else
+                    Return MatchingLazyMethod
+                End If
 
             End Function
 
         End Class
 
-        ' Represent a hard defined method
-        Private Class HardMethodVariantContainer
-            Implements IMethodVariantContainer
+        Private Class MethodContainer
+            Implements IMethodContainer
 
             Private Method As Lazy.Method
 
@@ -79,8 +104,20 @@ Namespace Repository
                 Me.Method = Method
             End Sub
 
-            Public Function RetrieveWithGenerics(GenericTypes As IEnumerable(Of Type)) As Lazy.Method Implements IMethodVariantContainer.RetrieveWithGenerics
-                Return Method 'TODO: check for generic when there will be
+            Public Function RetrieveMethod(GenericTypes As IEnumerable(Of Type)) As Lazy.Method Implements IMethodContainer.RetrieveMethod
+
+                ' Count error
+                If GenericTypes.Count <> Method.PassedGenericTypes.Count Then
+                    Return Nothing
+                End If
+
+                ' If not found, create it
+                If Method.PassedGenericTypes.SequenceEqual(GenericTypes) Then
+                    Return Method
+                Else
+                    Return Nothing
+                End If
+
             End Function
 
         End Class

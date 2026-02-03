@@ -1,4 +1,5 @@
-﻿Imports limc.TypeSystem.Type
+﻿Imports limc.Context
+Imports limc.TypeSystem.Type
 Namespace AST
     Public Class ForStatement
         Inherits StatementNode
@@ -18,7 +19,7 @@ Namespace AST
             Me.Instructions = Instructions
         End Sub
 
-        Public Overrides Sub Compile(Scope As Context.Scope)
+        Public Overrides Sub Compile(Writer As CWriter, Scope As Context.Scope)
 
             ' Check only INT
             If Value_From IsNot Nothing AndAlso Value_From.GetExpressionReturnType(Scope) IsNot Int Then
@@ -33,17 +34,18 @@ Namespace AST
 
             ' Create scope & variable
             Dim LoopScope As New Context.LoopScope(Scope, Location)
-            Dim IteratorVariable As VariableData = LoopScope.CreateVariable(VariableName, Int)
+            Dim IteratorVariable As VariableData = LoopScope.CreateVariable(VariableName, Int, Location)
 
             ' Compile body
+            Dim BodyWriter As New CWriter()
             For Each Statement In Instructions
-                Statement.Compile(LoopScope)
+                Statement.Compile(Writer, LoopScope)
             Next
 
             ' Compile header
-            Scope.WriteLine($"for (int {IteratorVariable.CompiledName} = {If(Value_From IsNot Nothing, Value_From.CompileExpression(Scope), "0")}; {IteratorVariable.CompiledName} < {Value_To.CompileExpression(Scope)}; {IteratorVariable.CompiledName}++){{")
-            Scope.WriteScope(LoopScope)
-            Scope.WriteLine("}")
+            Writer.WriteLine($"for (int {IteratorVariable.CompiledName} = {If(Value_From IsNot Nothing, Value_From.CompileExpression(Writer, Scope), "0")}; {IteratorVariable.CompiledName} < {Value_To.CompileExpression(writer, Scope)}; {IteratorVariable.CompiledName}++){{")
+            Writer.WriteLines(BodyWriter.GetLinesIndented())
+            Writer.WriteLine("}")
 
         End Sub
 

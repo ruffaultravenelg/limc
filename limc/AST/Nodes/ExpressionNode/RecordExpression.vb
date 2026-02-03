@@ -20,7 +20,7 @@
             Return RecordType
         End Function
 
-        Public Overrides Function CompileExpression(Scope As Context.Scope) As String
+        Public Overrides Function CompileExpression(Writer As CWriter, Scope As Context.Scope) As String
             Dim RecordType As TypeSystem.Type = Record.GetAssociatedType(Scope)
             If TypeOf RecordType IsNot TypeSystem.RecordType Then
                 Throw New UnknownOrUnreachableElementError(Record.ToString(), Record.Location)
@@ -43,11 +43,10 @@
                     If Value.GetExpressionReturnType(Scope) <> Field.Type Then
                         Throw New TypeMismatchError(Field.Type, Value.GetExpressionReturnType(Scope), Value.Location)
                     End If
-                    CompiledValues.Add(Value.CompileExpression(Scope))
+                    CompiledValues.Add(Value.CompileExpression(Writer, Scope))
                 Else
                     Dim TmpScope As New Context.Scope(DirectCast(RecordType, TypeSystem.RecordType).BoneContext, Location)
-                    Scope.WriteLines(TmpScope.GetLines())
-                    CompiledValues.Add(Field.DefaultValue.CompileExpression(TmpScope))
+                    CompiledValues.Add(Field.DefaultValue.CompileExpression(Writer, TmpScope))
                 End If
 
             Next

@@ -2,43 +2,47 @@
 
 Namespace CodeGen
     Public Class ContextedFunction
-        Inherits PassingContextFunction
+        Inherits BaseFunction
 
-        Private Shared FunctionId As Integer = -1
-        Public Shared ReadOnly FunctionNames As New List(Of String)
+        Public ReadOnly Property CompiledName As String
+        Protected Args As String
+        Protected ReturnType As String
 
-        Public Sub New(Name As String, CompiledName As String, Arguments As IEnumerable(Of String))
-            MyBase.New(Arguments, "void", New List(Of String), Name)
-            FunctionId += 1
-            FunctionNames.Add("""" & Name & """")
+        Protected Overrides ReadOnly Property Signature As String
+            Get
+                Return $"{ReturnType} {CompiledName}({Args})"
+            End Get
+        End Property
+
+        Public Sub New(Arguments As IEnumerable(Of String), ReturnType As String, Body As IEnumerable(Of String), Comment As String)
+            MyBase.New("", Body, Comment)
+
+            'Create compiledname
+            CompiledName = Namer.Function(Comment)
 
             ' Compile arguments
             Dim Args As New StringBuilder
             Args.Append(RUNTIME_CONTEXT_STRUCT_NAME)
-            Args.Append(" _")
+            Args.Append(" "c)
             Args.Append(RUNTIME_CONTEXT_VARIABLE_NAME)
             For Each Arg In Arguments
                 Args.Append(", ")
-                Args.Append(Arg) 'type arg
+                Args.Append(Arg)
             Next
             Me.Args = Args.ToString()
 
-            ' Add context creation to body
-            If INTEGRATE_DEBUG Then
-                DirectCast(MyBase.Body, List(Of String)).Add($"{RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME} = {{&_{RUNTIME_CONTEXT_VARIABLE_NAME}, {FunctionId}, _{RUNTIME_CONTEXT_VARIABLE_NAME}.gc}};")
-            Else
-                DirectCast(MyBase.Body, List(Of String)).Add($"{RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME} = {{&_{RUNTIME_CONTEXT_VARIABLE_NAME}, _{RUNTIME_CONTEXT_VARIABLE_NAME}.gc}};")
-            End If
-
-        End Sub
-
-        Public Sub SetReturnType(ReturnType As String)
+            ' Create signature
             Me.ReturnType = ReturnType
+
         End Sub
 
-        Public Sub AppendBody(Body As IEnumerable(Of String))
-            DirectCast(MyBase.Body, List(Of String)).AddRange(Body)
-        End Sub
+        Public Function WriteCall(Args As IEnumerable(Of String)) As String
+            If Args.Count = 0 Then
+                Return $"{CompiledName}({RUNTIME_CONTEXT_VARIABLE_NAME})"
+            Else
+                Return $"{CompiledName}({RUNTIME_CONTEXT_VARIABLE_NAME}, {String.Join(", ", Args)})"
+            End If
+        End Function
 
     End Class
 End Namespace

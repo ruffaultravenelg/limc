@@ -15,7 +15,7 @@
             Me.ElseInstructions = ElseInstructions
         End Sub
 
-        Public Overrides Sub Compile(Scope As Context.Scope)
+        Public Overrides Sub Compile(Writer As CWriter, Scope As Context.Scope)
 
             ' Check main condition type
             Dim ConditionType As TypeSystem.Type = MainCondition.GetExpressionReturnType(Scope)
@@ -25,12 +25,13 @@
 
             ' Compile main
             Dim MainBodyScope As New Context.Scope(Scope, Location)
+            Dim MainBodyWriter As New CWriter()
             For Each Statement In MainInstructions
-                Statement.Compile(MainBodyScope)
+                Statement.Compile(MainBodyWriter, MainBodyScope)
             Next
-            Scope.WriteLine($"if ({MainCondition.CompileExpression(Scope)}){{")
-            Scope.WriteScope(MainBodyScope)
-            Scope.WriteLine("}")
+            Writer.WriteLine($"if ({MainCondition.CompileExpression(Writer, Scope)}){{")
+            Writer.WriteLines(MainBodyWriter.GetLinesIndented())
+            Writer.WriteLine("}")
 
             ' Compile elseifs
             For Each ElseIfBlock In ElseIfBlocks
@@ -43,24 +44,26 @@
 
                 'Compile block
                 Dim BlockBodyScope As New Context.Scope(Scope, Location)
+                Dim BlockBodyWriter As New CWriter()
                 For Each Statement In ElseIfBlock.Body
-                    Statement.Compile(BlockBodyScope)
+                    Statement.Compile(BlockBodyWriter, BlockBodyScope)
                 Next
-                Scope.AppendLastLine($" else if ({ElseIfBlock.Condition.CompileExpression(Scope)}){{")
-                Scope.WriteScope(BlockBodyScope)
-                Scope.WriteLine("}")
+                Writer.AppendLastLine($" else if ({ElseIfBlock.Condition.CompileExpression(Writer, Scope)}){{")
+                Writer.WriteLines(BlockBodyWriter.GetLinesIndented())
+                Writer.WriteLine("}")
 
             Next
 
             ' Compile else
             If ElseInstructions IsNot Nothing Then
                 Dim ElseBodyScope As New Context.Scope(Scope, Location)
+                Dim ElseBodyWriter As New CWriter()
                 For Each Statement In ElseInstructions
-                    Statement.Compile(ElseBodyScope)
+                    Statement.Compile(ElseBodyWriter, ElseBodyScope)
                 Next
-                Scope.AppendLastLine(" else {")
-                Scope.WriteScope(ElseBodyScope)
-                Scope.WriteLine("}")
+                Writer.AppendLastLine(" else {")
+                Writer.WriteLines(ElseBodyWriter.GetLinesIndented())
+                Writer.WriteLine("}")
             End If
 
         End Sub

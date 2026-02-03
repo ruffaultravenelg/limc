@@ -1,83 +1,65 @@
-﻿Namespace Context
+﻿Imports limc.TypeSystem
+
+Namespace Context
     Public Class Scope
         Inherits Context
 
+        Private VariableStore As New Dictionary(Of String, VariableData)
+        Private ConstantStore As New Dictionary(Of String, ConstantData)
         Public ReadOnly Property Location As Location
+
         Public Sub New(Parent As Context, Location As Location)
             MyBase.New(Parent)
             Me.Location = Location
         End Sub
 
-
-        ' Lines
-        Private Lines As New List(Of String)
-
-        Public Sub WriteLine(Line As String)
-            Lines.Add(Line)
-        End Sub
-        Public Sub WriteLines(Lines As IEnumerable(Of String))
-            Me.Lines.AddRange(Lines)
-        End Sub
-        Public Sub AppendLastLine(Chars As String)
-            If Lines.Count > 0 Then
-                Lines(Lines.Count - 1) &= Chars
-            Else
-                Throw New InternalError()
-            End If
-        End Sub
-
-        Public Sub WriteScope(Scope As Scope)
-            For Each Line In Scope.Lines
-                Lines.Add(vbTab & Line)
-            Next
-        End Sub
-
-        Public Function GetLines() As IEnumerable(Of String)
-            Return Lines
-        End Function
-
         ' Variables
-        Private VariableStore As New Dictionary(Of String, VariableData)
-
-        Public Function CreateVariable(Name As String, Type As TypeSystem.Type) As VariableData
-            Dim VarData As New VariableData(CodeGen.Namer.Variable(Name), Type)
-            VariableStore(Name) = VarData
-            Return VarData
-        End Function
-        Public Function CreateVariable(Name As String, Type As TypeSystem.Type, Location As Location) As VariableData
+        Public Sub RegisterVariable(Name As String, Data As VariableData, Location As Location)
             If VariableStore.ContainsKey(Name) Then
                 Throw New VariableAlreadyExistError(Name, Location)
+            Else
+                VariableStore(Name) = Data
             End If
-            Return CreateVariable(Name, Type)
+        End Sub
+
+        Public Function CreateVariable(Name As String, Type As Type, Location As Location) As VariableData
+            Dim VariableInfo As New VariableData(CodeGen.Namer.Variable(Name), Type)
+            Me.RegisterVariable(Name, VariableInfo, Location)
+            Return VariableInfo
         End Function
 
         ' Constants
-        Private ConstantStore As New Dictionary(Of String, ConstantData)
-
-        Public Function CreateConstant(Name As String, Type As TypeSystem.Type) As ConstantData
-            Dim ConstData As New ConstantData(CodeGen.Namer.Constant(Name), Type)
-            ConstantStore(Name) = ConstData
-            Return ConstData
-        End Function
-        Public Function CreateConstant(Name As String, Type As TypeSystem.Type, Location As Location) As ConstantData
+        Public Sub RegisterConstant(Name As String, Data As ConstantData, Location As Location)
             If ConstantStore.ContainsKey(Name) Then
                 Throw New ConstantAlreadyExistError(Name, Location)
+            Else
+                ConstantStore(Name) = Data
             End If
-            Return CreateConstant(Name, Type)
+        End Sub
+
+        Public Function CreateConstant(Name As String, Type As Type, Location As Location) As ConstantData
+            Dim ConstantData As New ConstantData(CodeGen.Namer.Variable(Name), Type)
+            Me.RegisterConstant(Name, ConstantData, Location)
+            Return ConstantData
         End Function
 
-        ' Search
-        Protected Overrides Function GetLocalMatchingElement(Name As String) As IEnumerable(Of SearchMatch)
-            Dim Results As New List(Of SearchMatch)
+        Protected Overrides Function GetLocalMatchingElements(Name As String, GenericTypes As IEnumerable(Of Type)) As IEnumerable(Of SearchMatch)
+            Dim Matches As New List(Of SearchMatch)
+
+            If GenericTypes.Count > 0 Then
+                Return Matches
+            End If
+
             If VariableStore.ContainsKey(Name) Then
-                Results.Add(New SearchMatch(VariableStore(Name)))
+                Matches.Add(New SearchMatch(VariableStore(Name)))
             End If
+
             If ConstantStore.ContainsKey(Name) Then
-                Results.Add(New SearchMatch(ConstantStore(Name)))
+                Matches.Add(New SearchMatch(ConstantStore(Name)))
             End If
-            Return Results
+
+            Return Matches
         End Function
 
     End Class
-
 End Namespace

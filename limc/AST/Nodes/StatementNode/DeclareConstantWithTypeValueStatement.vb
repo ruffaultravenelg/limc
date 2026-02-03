@@ -13,7 +13,7 @@
             Me.ConstantValue = ConstantValue
         End Sub
 
-        Public Overrides Sub Compile(Scope As Context.Scope)
+        Public Overrides Sub Compile(Writer As CWriter, Scope As Context.Scope)
 
             Dim WantedType As TypeSystem.Type = ConstantType.GetAssociatedType(Scope)
             Dim ValueType As TypeSystem.Type = ConstantValue.GetExpressionReturnType(Scope)
@@ -25,9 +25,9 @@
             Dim ConstantInfo As ConstantData = Scope.CreateConstant(ConstantName, WantedType, Location)
 
             If WantedType.cRepresentation.Contains("*") Then
-                Scope.WriteLine($"{WantedType.cRepresentation} const {ConstantInfo.CompiledName} = {ConstantValue.CompileExpression(Scope)};")
+                Writer.WriteLine($"{WantedType.cRepresentation} const {ConstantInfo.CompiledName} = {ConstantValue.CompileExpression(Writer, Scope)};")
             Else
-                Scope.WriteLine($"const {WantedType.cRepresentation} {ConstantInfo.CompiledName} = {ConstantValue.CompileExpression(Scope)};")
+                Writer.WriteLine($"const {WantedType.cRepresentation} {ConstantInfo.CompiledName} = {ConstantValue.CompileExpression(Writer, Scope)};")
             End If
 
         End Sub

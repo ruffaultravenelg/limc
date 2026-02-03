@@ -17,12 +17,18 @@
             If TypeOf Target Is IFunctionReference Then
                 Dim Func As Lazy.Function = DirectCast(Target, IFunctionReference).TryGetReferencedFunction(Context)
                 If Func IsNot Nothing Then
+                    If Func.ReturnType Is Nothing Then
+                        Throw New SyntaxError($"The designated function is of type ""{Func.AssociatedFunctionType.ToString()}"" and does not return a value. However, this expression must return a value.", Location)
+                    End If
                     Return Func.ReturnType
                 End If
 
             ElseIf TypeOf Target Is IMethodReference Then
                 Dim Meth As Lazy.Method = DirectCast(Target, IMethodReference).TryGetReferencedMethod(Context)
                 If Meth IsNot Nothing Then
+                    If Meth.ReturnType Is Nothing Then
+                        Throw New SyntaxError($"The designated function is of type ""{Meth.AssociatedFunctionType.ToString()}"" and does not return a value. However, this expression must return a value.", Location)
+                    End If
                     Return Meth.ReturnType
                 End If
 
@@ -43,19 +49,19 @@
 
         End Function
 
-        Public Overrides Function CompileExpression(Scope As Context.Scope) As String
+        Public Overrides Function CompileExpression(Writer As CWriter, Scope As Context.Scope) As String
 
             ' Direct reference
             If TypeOf Target Is IFunctionReference Then
                 Dim Func As Lazy.Function = DirectCast(Target, IFunctionReference).TryGetReferencedFunction(Scope)
                 If Func IsNot Nothing Then
-                    Return Func.CompileCall(PassedArguments, Scope, Location)
+                    Return Func.CompileCall(PassedArguments, Writer, Scope, Location)
                 End If
 
             ElseIf TypeOf Target Is IMethodReference Then
                 Dim Meth As Lazy.Method = DirectCast(Target, IMethodReference).TryGetReferencedMethod(Scope)
                 If Meth IsNot Nothing Then
-                    Return Meth.CompileCall(DirectCast(Target, IMethodReference).GetInstanceExpression(), PassedArguments, Scope)
+                    Return Meth.CompileCall(DirectCast(Target, IMethodReference).GetInstanceExpression(), PassedArguments, Writer, Scope)
                 End If
 
             End If
@@ -66,7 +72,7 @@
                 Throw New TypeMismatchError("fun", FunctionType.ToString(), Location)
             End If
 
-            Return DirectCast(FunctionType, TypeSystem.FunType).ExecuteProcedure(Scope, Target.CompileExpression(Scope), PassedArguments)
+            Return DirectCast(FunctionType, TypeSystem.FunType).ExecuteProcedure(Writer, Scope, Target.CompileExpression(Writer, Scope), PassedArguments)
 
         End Function
 

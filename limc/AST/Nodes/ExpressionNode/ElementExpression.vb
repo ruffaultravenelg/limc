@@ -10,13 +10,17 @@
             Me.ElementName = ElementName
         End Sub
 
-        Protected Overridable Function GetMatch(Context As Context.Context) As SearchMatch
-            Return Context.RetrieveMatchingElement(ElementName, Location)
+        Protected Overridable Function GetMatchs(Context As Context.Context) As IEnumerable(Of SearchMatch)
+            Dim Matches = Context.RetrieveMatchingElements(ElementName, {})
+            If Matches.Count = 0 Then
+                Throw New UnknownOrUnreachableElementError(ElementName, Location)
+            End If
+            Return Matches
         End Function
 
         Public Overrides Function GetExpressionReturnType(Context As Context.Context) As TypeSystem.Type
 
-            Dim Element As SearchMatch = GetMatch(Context)
+            Dim Element As SearchMatch = GetMatchs(Context).First()
 
             If Element.Type = SearchMatch.MatchType.MATCH_VARIABLE Then
                 Return Element.MatchingVariable.Type
@@ -24,51 +28,70 @@
                 Return Element.MatchingConstant.Type
             ElseIf Element.Type = SearchMatch.MatchType.MATCH_FUNCTION Then
                 Return Element.MatchingFunction.AssociatedFunctionType
-            ElseIf Element.Type = SearchMatch.MatchType.MATCH_GETTER Then
-                Return Element.MatchingGetter.Type 'TODO: GetMatch want to return getter&setter, so GetMatch/Context.RetrieveMatchingElement cannot return just the first value of the result list
+            ElseIf Element.Type = SearchMatch.MatchType.MATCH_SCOPE_GETTER Then
+                Return Element.MatchingScopeGetter.Type
             Else
                 Throw New UnknownOrUnreachableElementError(ElementName, Location)
             End If
 
         End Function
 
-        Public Overrides Function CompileExpression(Scope As Context.Scope) As String
+        Public Overrides Function CompileExpression(Writer As CWriter, Scope As Context.Scope) As String
 
-            Dim Element As SearchMatch = GetMatch(Scope)
+            Dim Element As SearchMatch = GetMatchs(Scope).First()
 
             If Element.Type = SearchMatch.MatchType.MATCH_VARIABLE Then
                 Return Element.MatchingVariable.CompiledName
             ElseIf Element.Type = SearchMatch.MatchType.MATCH_CONSTANT Then
                 Return Element.MatchingConstant.CompiledName
             ElseIf Element.Type = SearchMatch.MatchType.MATCH_FUNCTION Then
-                Return Element.MatchingFunction.AssociatedFunctionType.GetValueFromFunctionName(Element.MatchingFunction.GeneratedFunction.CompiledName)
-            ElseIf Element.Type = SearchMatch.MatchType.MATCH_GETTER Then
-                Return Element.MatchingGetter.CallGetter() 'TODO: find parent TypeContext to give to CallGetter, weird asf
+                Return Element.MatchingFunction.CompileFunctionPointer()
+            ElseIf Element.Type = SearchMatch.MatchType.MATCH_SCOPE_GETTER Then
+                Return Element.MatchingScopeGetter.CompileCall()
             Else
                 Throw New UnknownOrUnreachableElementError(ElementName, Location)
             End If
 
         End Function
 
-        Public Sub CompileAssignation(NewValue As ExpressionNode, Scope As Context.Scope) Implements IAssignable.CompileAssignation
+        Public Sub CompileAssignation(NewValue As ExpressionNode, Writer As CWriter, Scope As Context.Scope) Implements IAssignable.CompileAssignation
 
-            'Search variable
-            Dim Variable As VariableData = Scope.GetVariable(ElementName, Location)
-
-            'Check type error
-            If Variable.Type <> NewValue.GetExpressionReturnType(Scope) Then
-                Throw New TypeMismatchError(Variable.Type, NewValue.GetExpressionReturnType(Scope), NewValue.Location)
+            ' Get value
+            Dim Result As SearchMatch = GetMatchs(Scope).Where(Function(Match) Match.Type = SearchMatch.MatchType.MATCH_VARIABLE OrElse Match.Type = SearchMatch.MatchType.MATCH_SETTER).FirstOrDefault()
+            If Result Is Nothing Then
+                Throw New UnknownOrUnreachableElementError(ElementName, Location)
             End If
 
-            'Write assignment
-            Variable.Type.SetVariableValue(Scope, Variable.CompiledName, NewValue.CompileExpression(Scope))
+            If Result.Type = SearchMatch.MatchType.MATCH_VARIABLE Then
+
+                'Get variable
+                Dim Variable As VariableData = Result.MatchingVariable
+
+                'Check type error
+                If Variable.Type <> NewValue.GetExpressionReturnType(Scope) Then
+                    Throw New TypeMismatchError(Variable.Type, NewValue.GetExpressionReturnType(Scope), NewValue.Location)
+                End If
+
+                'Write assignment
+                Variable.Type.SetVariableValue(Writer, Variable.CompiledName, NewValue.CompileExpression(Writer, Scope))
+
+
+            ElseIf Result.Type = SearchMatch.MatchType.MATCH_SETTER Then
+
+                'Get setter
+                Throw New NotImplementedException() 'TODO
+
+            Else
+                Throw New InternalError()
+
+            End If
 
         End Sub
 
         ' If the first element is a functions, return it (called by FunctionCallExpression to avoid wrapping a function)
         Public Function TryGetReferencedFunction(Context As Context.Context) As Lazy.Function Implements IFunctionReference.TryGetReferencedFunction
 
-            Dim Element As SearchMatch = GetMatch(Context)
+            Dim Element As SearchMatch = GetMatchs(Context).First()
             If Element.Type = SearchMatch.MatchType.MATCH_FUNCTION Then
                 Return Element.MatchingFunction
             Else

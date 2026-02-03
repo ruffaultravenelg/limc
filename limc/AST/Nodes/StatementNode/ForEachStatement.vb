@@ -15,7 +15,7 @@
             Me.Instructions = Instructions
         End Sub
 
-        Public Overrides Sub Compile(Scope As Context.Scope)
+        Public Overrides Sub Compile(Writer As CWriter, Scope As Context.Scope)
             Throw New NotImplementedException()
         End Sub
 

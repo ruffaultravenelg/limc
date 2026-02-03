@@ -22,13 +22,13 @@ Namespace AST
             End If
         End Function
 
-        Public Overrides Function CompileExpression(Scope As Context.Scope) As String
+        Public Overrides Function CompileExpression(Writer As CWriter, Scope As Context.Scope) As String
             Dim ValueType As TypeSystem.Type = Value.GetExpressionReturnType(Scope)
 
             If ValueType Is Int OrElse ValueType Is Float Then
-                Return $"(-{Value.CompileExpression(Scope)})"
+                Return $"(-{Value.CompileExpression(Writer, Scope)})"
             Else
-                Return ValueType.GetRelation(TypeSystem.RelationType.RELATION_UNARY_MINUS, {}, Location).CompileCall(Value, {}, Scope, Location)
+                Return ValueType.GetRelation(TypeSystem.RelationType.RELATION_UNARY_MINUS, {}, Location).CompileCall(Value, {}, Writer, Scope, Location)
             End If
         End Function
 

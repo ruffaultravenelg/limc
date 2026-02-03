@@ -11,12 +11,12 @@
             Me.VariableValue = VariableValue
         End Sub
 
-        Public Overrides Sub Compile(Scope As Context.Scope)
+        Public Overrides Sub Compile(Writer As CWriter, Scope As Context.Scope)
 
             Dim Type As TypeSystem.Type = VariableValue.GetExpressionReturnType(Scope)
             Dim VariableInfo As VariableData = Scope.CreateVariable(VariableName, Type, Location)
 
-            Scope.WriteLine($"{Type.cRepresentation} {VariableInfo.CompiledName} = {VariableValue.CompileExpression(Scope)};")
+            Writer.WriteLine($"{Type.cRepresentation} {VariableInfo.CompiledName} = {VariableValue.CompileExpression(Writer, Scope)};")
 
         End Sub
 

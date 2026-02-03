@@ -9,20 +9,20 @@
             Me.ModuleName = ModuleName
         End Sub
 
-        Protected Overrides Function GetMatch(Context As Context.Context) As SearchMatch
+        Protected Overrides Function GetMatchs(Context As Context.Context) As IEnumerable(Of SearchMatch)
 
             For Each UseStatement In Location.File.AST.Include_Uses
                 If UseStatement.ModuleName = ModuleName Then
                     Dim Results As IEnumerable(Of SearchMatch)
                     Try
-                        Results = UseStatement.AssociatedFile.SearchMatchingElementsAtFileLevel(ElementName, False)
+                        Results = UseStatement.AssociatedFile.SearchMatchingElementsAtFileLevel(ElementName, {}, False)
                     Catch ex As MissingLocationError
                         Throw ex.CreateError(Location)
                     End Try
                     If Results.Count = 0 Then
                         Throw New UnknownOrUnreachableElementError(ElementName, Location)
                     Else
-                        Return Results(0)
+                        Return Results
                     End If
                 End If
             Next

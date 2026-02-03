@@ -2,33 +2,61 @@
     Public Class FunctionRepository
 
         ' Contains all functions with their C variants
-        Private ReadOnly Functions As New Dictionary(Of String, FunctionChilds)
+        Private ReadOnly Functions As New Dictionary(Of String, FunctionSet)
 
         ' Repository constructor
         Public Sub New(UncompiledFunctions As IEnumerable(Of AST.FunctionConstruct), CompilationContext As Context.Context)
             For Each Fn In UncompiledFunctions
-                If Functions.ContainsKey(Fn.Name) Then
-                    Throw New InternalError()
+                If Not Functions.ContainsKey(Fn.Name) Then
+                    Functions(Fn.Name) = New FunctionSet(CompilationContext)
                 End If
-                Functions(Fn.Name) = New FunctionChilds(Fn, CompilationContext)
+                Functions(Fn.Name).RegisterModel(Fn)
             Next
         End Sub
 
         ' General repository endpoint
-        Public Function RetrieveFunction(Name As String, GenericTypes As IEnumerable(Of TypeSystem.Type)) As Lazy.Function
+        Public Function RetrieveFunctions(Name As String, GenericTypes As IEnumerable(Of TypeSystem.Type)) As IEnumerable(Of Lazy.Function)
             If Functions.ContainsKey(Name) Then
                 Return Functions(Name).RetrieveWithGenerics(GenericTypes)
             Else
-                Return Nothing
+                Return {}
             End If
         End Function
 
-        ' Represent a specific function, contains all C subfunctions
-        Private Class FunctionChilds
+        ' Represent a set of functions with the same name
+        Private Class FunctionSet
 
-            Public ReadOnly Property Model As AST.FunctionConstruct
+            Private Variants As New List(Of FunctionVariantContainer)
             Private CompilationContext As Context.Context
 
+            Public Sub New(CompilationContext As Context.Context)
+                Me.CompilationContext = CompilationContext
+            End Sub
+
+            Public Sub RegisterModel(Model As AST.FunctionConstruct)
+                Variants.Add(New FunctionVariantContainer(Model, CompilationContext))
+            End Sub
+
+            Public Function RetrieveWithGenerics(GenericTypes As IEnumerable(Of TypeSystem.Type)) As IEnumerable(Of Lazy.Function)
+                Dim Results As New List(Of Lazy.Function)
+
+                For Each V In Variants
+                    Dim RetrievedFunction As Lazy.Function = V.RetrieveFunction(GenericTypes)
+                    If RetrievedFunction IsNot Nothing Then
+                        Results.Add(RetrievedFunction)
+                    End If
+                Next
+
+                Return Results
+            End Function
+
+        End Class
+
+        ' Represent a function, contains all C subfunctions for each generic type combination
+        Private Class FunctionVariantContainer
+
+            Private Model As AST.FunctionConstruct
+            Private CompilationContext As Context.Context
             Private LazyFunctions As New List(Of Lazy.Function)
 
             Public Sub New(Model As AST.FunctionConstruct, CompilationContext As Context.Context)
@@ -36,36 +64,24 @@
                 Me.CompilationContext = CompilationContext
             End Sub
 
-            Public Function RetrieveWithGenerics(GenericTypes As IEnumerable(Of TypeSystem.Type)) As Lazy.Function
+            Public Function RetrieveFunction(GenericTypes As IEnumerable(Of TypeSystem.Type)) As Lazy.Function
 
                 ' Count error
                 If GenericTypes.Count <> Model.GenericArguments.Count Then
-                    Throw New NotTheRightAmountOfGenericTypesException(GenericTypes.Count, Model.GenericArguments.Count)
+                    Return Nothing
                 End If
 
-                ' Search if there is a function already defined
-                For Each Fn In LazyFunctions
+                ' Get the matching lazy function
+                Dim MatchingLazyFunction As Lazy.Function = LazyFunctions.FirstOrDefault(Function(Fn) Fn.PassedGenericTypes.SequenceEqual(GenericTypes))
 
-                    ' Check passed generic types match
-                    Dim AllGood As Boolean = True
-                    For I As Integer = 0 To GenericTypes.Count - 1
-                        If Fn.PassedGenericTypes(I) <> GenericTypes(I) Then
-                            AllGood = False
-                            Exit For
-                        End If
-                    Next
-
-                    ' If ok return this function
-                    If AllGood Then
-                        Return Fn
-                    End If
-
-                Next
-
-                ' No function returned -> compile a new one
-                Dim NewFn As New Lazy.UserFunction(Model, GenericTypes, CompilationContext)
-                LazyFunctions.Add(NewFn)
-                Return NewFn
+                ' If not found, create it
+                If MatchingLazyFunction Is Nothing Then
+                    Dim LazyFn As New Lazy.UserFunction(Model, GenericTypes, CompilationContext)
+                    LazyFunctions.Add(LazyFn)
+                    Return LazyFn
+                Else
+                    Return MatchingLazyFunction
+                End If
 
             End Function
 

@@ -6,7 +6,7 @@
             MyBase.New(Location)
         End Sub
 
-        Public MustOverride Sub Compile(Scope As Context.Scope)
+        Public MustOverride Sub Compile(Writer As CWriter, Scope As Context.Scope)
 
         Protected Overridable Function GetChildNodes() As IEnumerable(Of StatementNode)
             Return {}

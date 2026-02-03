@@ -14,6 +14,7 @@
         MATCH_GETTER
         MATCH_SETTER
         MATCH_CONSTANT
+        MATCH_SCOPE_GETTER
     End Enum
 
 
@@ -73,6 +74,16 @@
         Me.New(Element, MatchType.MATCH_SETTER)
     End Sub
     Public ReadOnly Property MatchingSetter As Lazy.Setter
+        Get
+            Return Result
+        End Get
+    End Property
+
+    'Scope Getter
+    Public Sub New(Element As ScopeGetter)
+        Me.New(Element, MatchType.MATCH_SCOPE_GETTER)
+    End Sub
+    Public ReadOnly Property MatchingScopeGetter As ScopeGetter
         Get
             Return Result
         End Get

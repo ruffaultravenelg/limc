@@ -1,4 +1,6 @@
-﻿Namespace Context
+﻿Imports limc.TypeSystem
+
+Namespace Context
     Public Class TypeContext
         Inherits Context
 
@@ -9,8 +11,8 @@
             Me.AssociatedType = AssociatedType
         End Sub
 
-        Protected Overrides Function GetLocalMatchingElement(Name As String) As IEnumerable(Of SearchMatch)
-            Return AssociatedType.RetrieveElements(Name)
+        Protected Overrides Function GetLocalMatchingElements(Name As String, GenericTypes As IEnumerable(Of Type)) As IEnumerable(Of SearchMatch)
+            Return AssociatedType.RetrieveElementsFromInside(Name, GenericTypes)
         End Function
 
     End Class

@@ -189,25 +189,19 @@ Public Module Tokenizer
                 Dim Number As String = ""
                 Dim HasPoint As Boolean = False
                 While DIGITS_WITH_POINT.Contains(CurrentChar)
-                    Number &= CurrentChar
                     If CurrentChar = "."c Then
                         If HasPoint Then
-                            Throw New LocatedError("Number with multiple points", "This number already contains a point.", LocationFromChar())
+                            Exit While
                         Else
                             HasPoint = True
                         End If
                     End If
+                    Number &= CurrentChar
                     AdvanceChar()
                 End While
 
                 Dim AddDotToken As Boolean = False
                 Dim Loc As Location = LocationFromSave()
-                If Number.EndsWith(".") Then
-                    HasPoint = False
-                    Number = Number.Substring(0, Number.Length - 1)
-                    AddDotToken = True
-                    Loc.ToCol -= 1
-                End If
 
                 Try
                     If HasPoint Then

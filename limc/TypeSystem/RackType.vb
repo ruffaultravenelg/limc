@@ -1,5 +1,4 @@
 ﻿Imports System.Text.RegularExpressions
-Imports Microsoft.VisualBasic.FileIO
 
 Namespace TypeSystem
     Public Class RackType
@@ -58,18 +57,26 @@ Namespace TypeSystem
             Get
                 If _Relations.Count = 0 Then
 
+                    ' GET [idx]
                     _Relations.Add(New Lazy.HardRelation(Me, RelationType.RELATION_BRACKETS, {Type.Int}, {"index"}, ElementType, {
                         $"if (index < 0) index = {Length} + index;",
                         $"if (index >= {Length} || index < 0) {CodeGen.WritePanicCall("""Index out of range""")};",
                         $"return {INSTANCE_ARGUMENT_NAME}[index];"
                     }))
 
+                    ' SET [idx]
+                    '_Relations.Add(New Lazy.HardRelation(Me, RelationType.RELATION_SET_BRACKETS, {Type.Int, ElementType}, {"index", "newValue"}, Nothing, {
+                    '    $"if (index < 0) index = {Length} + index;",
+                    '    $"if (index >= {Length} || index < 0) {CodeGen.WritePanicCall("""Index out of range""")};",
+                    '    $"{INSTANCE_ARGUMENT_NAME}[index] = newValue;"
+                    '}))
+
                 End If
                 Return _Relations
             End Get
         End Property
 
-        Public Sub WriteElementAssignation(Instance As AST.ExpressionNode, Index As AST.ExpressionNode, NewValue As AST.ExpressionNode, Scope As Context.Scope)
+        Public Sub WriteElementAssignation(Instance As AST.ExpressionNode, Index As AST.ExpressionNode, NewValue As AST.ExpressionNode, Writer As CWriter, Scope As Context.Scope)
 
             'Check index type
             If Index.GetExpressionReturnType(Scope) <> Type.Int Then
@@ -82,7 +89,8 @@ Namespace TypeSystem
             End If
 
             ' Compile assignation
-            Scope.WriteLine($"{Instance.CompileExpression(Scope)}[{Index.CompileExpression(Scope)}] = {NewValue.CompileExpression(Scope)};")
+            Writer.WriteLine($"{Instance.CompileExpression(Writer, Scope)}[{Index.CompileExpression(Writer, Scope)}] = {NewValue.CompileExpression(Writer, Scope)};")
+            'TODO: no index check??????? just use RELATION_SET_BRACKETS relation
 
         End Sub
 

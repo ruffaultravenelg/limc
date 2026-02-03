@@ -13,7 +13,7 @@
             Return TypeSystem.Type.Float
         End Function
 
-        Public Overrides Function CompileExpression(Scope As Context.Scope) As String
+        Public Overrides Function CompileExpression(Writer As CWriter, Scope As Context.Scope) As String
             Dim Value_STR As String = Value.ToString().Replace(",", ".")
             If Value_STR.Contains(".") Then
                 Return Value_STR

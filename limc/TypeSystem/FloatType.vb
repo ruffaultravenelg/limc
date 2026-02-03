@@ -18,6 +18,15 @@
                 $"sprintf(buffer, ""%f"", {INSTANCE_ARGUMENT_NAME});",
                 "return buffer;"
             }))
+            RegisterMethod(New Lazy.HardMethod(Me, "round", {}, Type.Int, {
+                $"return (int)round({INSTANCE_ARGUMENT_NAME});"
+            }))
+            RegisterMethod(New Lazy.HardMethod(Me, "floor", {}, Type.Int, {
+                $"return (int)floor({INSTANCE_ARGUMENT_NAME});"
+            }))
+            RegisterMethod(New Lazy.HardMethod(Me, "ceil", {}, Type.Int, {
+                $"return (int)ceil({INSTANCE_ARGUMENT_NAME});"
+            }))
         End Sub
 
         Protected Overrides ReadOnly Property Relations As IEnumerable(Of Lazy.Relation) = {} 'Operations are hardcoded in nodes

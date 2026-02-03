@@ -64,21 +64,21 @@ Namespace AST
             Return Nothing
         End Function
 
-        Public Overrides Function CompileExpression(Scope As Context.Scope) As String
+        Public Overrides Function CompileExpression(Writer As CWriter, Scope As Context.Scope) As String
             Dim leftType As TypeSystem.Type = Left.GetExpressionReturnType(Scope)
             Dim rightType As TypeSystem.Type = Right.GetExpressionReturnType(Scope)
 
             ' Try shortcut
-            Dim fastCompiled As String = TryHardcodedCompilation(leftType, rightType, Scope)
+            Dim fastCompiled As String = TryHardcodedCompilation(leftType, rightType, Writer, Scope)
             If fastCompiled IsNot Nothing Then
                 Return fastCompiled
             End If
 
             ' Fallback to relations
-            Return GetRelation(leftType, rightType).CompileCall(Left, {Right}, Scope, Location)
+            Return GetRelation(leftType, rightType).CompileCall(Left, {Right}, Writer, Scope, Location)
         End Function
 
-        Private Function TryHardcodedCompilation(L As TypeSystem.Type, R As TypeSystem.Type, Scope As Context.Scope) As String
+        Private Function TryHardcodedCompilation(L As TypeSystem.Type, R As TypeSystem.Type, Writer As CWriter, Scope As Context.Scope) As String
             ' All operations compiles the same way -> just check if this is between known types (int, float)
             Dim isIntOp = (L Is Int AndAlso R Is Int)
             Dim isFloatOp = (L Is Float AndAlso R Is Float)
@@ -88,8 +88,8 @@ Namespace AST
                 Dim opSym As String = GetOperatorSymbol(Op)
 
                 If opSym IsNot Nothing Then
-                    Dim lCode = Left.CompileExpression(Scope)
-                    Dim rCode = Right.CompileExpression(Scope)
+                    Dim lCode = Left.CompileExpression(Writer, Scope)
+                    Dim rCode = Right.CompileExpression(Writer, Scope)
                     Return $"({lCode} {opSym} {rCode})"
                 End If
             End If

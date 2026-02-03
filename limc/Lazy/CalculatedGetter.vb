@@ -14,10 +14,10 @@
             Me.Body = Body
         End Sub
 
-        Private GeneratedFunction As CodeGen.PassingContextFunction = Nothing
+        Private GeneratedFunction As CodeGen.ContextedFunction = Nothing
         Public Overrides Function CallGetter(CompiledObject As String) As String
             If GeneratedFunction Is Nothing Then
-                GeneratedFunction = New CodeGen.PassingContextFunction({$"{AssociatedType.cRepresentation} {INSTANCE_ARGUMENT_NAME}"}, Type.cRepresentation, Body, Type.ToString() & " GET " & Name)
+                GeneratedFunction = New CodeGen.ContextedFunction({$"{AssociatedType.cRepresentation} {INSTANCE_ARGUMENT_NAME}"}, Type.cRepresentation, Body, Type.ToString() & " GET " & Name)
                 CodeGen.RegisterFunction(GeneratedFunction)
             End If
             Return GeneratedFunction.WriteCall({CompiledObject})

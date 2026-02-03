@@ -15,7 +15,7 @@
                 If UseStatement.ModuleName = ModuleName Then
                     Dim Results As SearchMatch
                     Try
-                        Results = UseStatement.AssociatedFile.SearchMatchingElementAtFileLevel(ElementName, PassedGenericTypes.Select(Function(g) g.GetAssociatedType(Context)), False)
+                        Results = UseStatement.AssociatedFile.SearchMatchingElementsAtFileLevel(ElementName, PassedGenericTypes.Select(Function(g) g.GetAssociatedType(Context)), False).FirstOrDefault() 'TODO: .First() is weird
                     Catch ex As MissingLocationError
                         Throw ex.CreateError(Location)
                     End Try

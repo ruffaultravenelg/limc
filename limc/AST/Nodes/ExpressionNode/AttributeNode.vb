@@ -12,18 +12,18 @@
             Me.ElementName = ElementName
         End Sub
 
-        Protected Overridable Function GetMatch(Context As Context.Context) As SearchMatch
+        Protected Overridable Function GetMatchs(Context As Context.Context) As IEnumerable(Of SearchMatch)
             Dim ParentType As TypeSystem.Type = Parent.GetExpressionReturnType(Context)
-            Dim Elements As IEnumerable(Of SearchMatch) = ParentType.RetrieveElements(ElementName)
+            Dim Elements As IEnumerable(Of SearchMatch) = ParentType.RetrieveElementsFromOutside(ElementName, {})
             If Elements.Count = 0 Then
                 Throw New UnknownOrUnreachableElementError(ElementName, Location)
             End If
-            Return Elements.First()
+            Return Elements
         End Function
 
         Public Overrides Function GetExpressionReturnType(Context As Context.Context) As TypeSystem.Type
 
-            Dim Element As SearchMatch = GetMatch(Context)
+            Dim Element As SearchMatch = GetMatchs(Context).First()
 
             If Element.Type = SearchMatch.MatchType.MATCH_METHOD Then
                 Return Element.MatchingMethod.AssociatedFunctionType
@@ -35,29 +35,28 @@
 
         End Function
 
-        Public Overrides Function CompileExpression(Scope As Context.Scope) As String
+        Public Overrides Function CompileExpression(Writer As CWriter, Scope As Context.Scope) As String
 
-            Dim Element As SearchMatch = GetMatch(Scope)
+            Dim Element As SearchMatch = GetMatchs(Scope).First()
 
             If Element.Type = SearchMatch.MatchType.MATCH_METHOD Then
-                Return Element.MatchingMethod.AssociatedFunctionType.GetValueFromMethodNameAndInstance(Scope, Element.MatchingMethod.GeneratedFunction.CompiledName, Parent.CompileExpression(Scope), Parent.GetExpressionReturnType(Scope))
+                Throw New LocatedError("Methods cannot be referenced for now", "referencing object methods can lead to double pointer variable, breaking tgc", Location)
             ElseIf Element.Type = SearchMatch.MatchType.MATCH_GETTER Then
-                Return Element.MatchingGetter.CallGetter(Parent.CompileExpression(Scope))
+                Return Element.MatchingGetter.CallGetter(Parent.CompileExpression(Writer, Scope))
             Else
                 Throw New UnknownOrUnreachableElementError(ElementName, Location)
             End If
 
         End Function
 
-        Public Sub CompileAssignation(NewValue As ExpressionNode, Scope As Context.Scope) Implements IAssignable.CompileAssignation
+        Public Sub CompileAssignation(NewValue As ExpressionNode, Writer As CWriter, Scope As Context.Scope) Implements IAssignable.CompileAssignation
 
-            Dim ParentType As TypeSystem.Type = Parent.GetExpressionReturnType(Scope)
-            Dim MatchingSetters As IEnumerable(Of SearchMatch) = ParentType.RetrieveElements(ElementName).Where(Function(elm) elm.Type = SearchMatch.MatchType.MATCH_SETTER)
+            Dim MatchingSetters = GetMatchs(Scope).Where(Function(elm) elm.Type = SearchMatch.MatchType.MATCH_SETTER)
             Dim NewValueType As TypeSystem.Type = NewValue.GetExpressionReturnType(Scope)
 
             For Each Match In MatchingSetters
                 If Match.MatchingSetter.Type = NewValueType Then
-                    Match.MatchingSetter.WriteSetterCall(Scope, Parent.CompileExpression(Scope), NewValue.CompileExpression(Scope))
+                    Match.MatchingSetter.WriteSetterCall(Writer, Parent.CompileExpression(Writer, Scope), NewValue.CompileExpression(Writer, Scope))
                     Exit Sub
                 End If
             Next
@@ -69,11 +68,9 @@
         ' If the first element is a functions, return it (called by FunctionCallExpression to avoid wrapping a function)
         Public Function TryGetReferencedMethod(Context As Context.Context) As Lazy.Method Implements IMethodReference.TryGetReferencedMethod
 
-            Dim ParentType As TypeSystem.Type = Parent.GetExpressionReturnType(Context)
-            Dim Elements As IEnumerable(Of SearchMatch) = ParentType.RetrieveElements(ElementName).Where(Function(m) m.Type = SearchMatch.MatchType.MATCH_METHOD)
-
-            If Elements.Count > 0 Then
-                Return Elements.First().MatchingMethod
+            Dim Element As SearchMatch = GetMatchs(Context).First()
+            If Element.Type = SearchMatch.MatchType.MATCH_METHOD Then
+                Return Element.MatchingMethod
             Else
                 Return Nothing
             End If

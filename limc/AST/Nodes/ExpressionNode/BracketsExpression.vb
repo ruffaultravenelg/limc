@@ -16,11 +16,11 @@
             Return Target.GetExpressionReturnType(Context).GetRelation(TypeSystem.RelationType.RELATION_BRACKETS, Arguments.Select(Function(arg) arg.GetExpressionReturnType(Context)), Location).ReturnType
         End Function
 
-        Public Overrides Function CompileExpression(Scope As Context.Scope) As String
-            Return Target.GetExpressionReturnType(Scope).GetRelation(TypeSystem.RelationType.RELATION_BRACKETS, Arguments.Select(Function(arg) arg.GetExpressionReturnType(Scope)), Location).CompileCall(Target, Arguments, Scope, Location)
+        Public Overrides Function CompileExpression(Writer As CWriter, Scope As Context.Scope) As String
+            Return Target.GetExpressionReturnType(Scope).GetRelation(TypeSystem.RelationType.RELATION_BRACKETS, Arguments.Select(Function(arg) arg.GetExpressionReturnType(Scope)), Location).CompileCall(Target, Arguments, Writer, Scope, Location)
         End Function
 
-        Public Sub CompileAssignation(NewValue As ExpressionNode, Scope As Context.Scope) Implements IAssignable.CompileAssignation
+        Public Sub CompileAssignation(NewValue As ExpressionNode, Writer As CWriter, Scope As Context.Scope) Implements IAssignable.CompileAssignation
             Dim TargetType As TypeSystem.Type = Target.GetExpressionReturnType(Scope)
             If TypeOf TargetType Is TypeSystem.RackType Then
                 If Arguments.Count > 1 Then
@@ -28,9 +28,9 @@
                 ElseIf Arguments.Count < 1 Then
                     Throw New SyntaxError("A index was expected here.", Arguments(1).Location)
                 End If
-                DirectCast(TargetType, TypeSystem.RackType).WriteElementAssignation(Target, Arguments.First, NewValue, Scope)
+                DirectCast(TargetType, TypeSystem.RackType).WriteElementAssignation(Target, Arguments.First, NewValue, Writer, Scope)
             Else
-                Scope.WriteLine(TargetType.GetRelation(TypeSystem.RelationType.RELATION_SET_BRACKETS, Arguments.Select(Function(arg) arg.GetExpressionReturnType(Scope)).Append(NewValue.GetExpressionReturnType(Scope)), Location).CompileCall(Target, Arguments.Append(NewValue), Scope, Location) & ";")
+                Writer.WriteLine(TargetType.GetRelation(TypeSystem.RelationType.RELATION_SET_BRACKETS, Arguments.Select(Function(arg) arg.GetExpressionReturnType(Scope)).Append(NewValue.GetExpressionReturnType(Scope)), Location).CompileCall(Target, Arguments.Append(NewValue), Writer, Scope, Location) & ";")
             End If
         End Sub
 

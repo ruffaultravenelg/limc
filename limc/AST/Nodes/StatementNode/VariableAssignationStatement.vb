@@ -11,8 +11,8 @@
             Me.NewValue = NewValue
         End Sub
 
-        Public Overrides Sub Compile(Scope As Context.Scope)
-            Target.CompileAssignation(NewValue, Scope)
+        Public Overrides Sub Compile(Writer As CWriter, Scope As Context.Scope)
+            Target.CompileAssignation(NewValue, Writer, Scope)
         End Sub
 
     End Class

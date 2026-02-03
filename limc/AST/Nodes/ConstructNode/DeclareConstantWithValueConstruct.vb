@@ -28,15 +28,16 @@ Namespace AST
 
             ' Create constant element
             Dim TmpScope As New Scope(Nothing, Location)
+            Dim TmpWriter As New CWriter()
             Dim Type As TypeSystem.Type = ConstantValue.GetExpressionReturnType(TmpScope)
             Data = New ConstantData(CodeGen.Namer.Constant(ConstantName).ToUpper(), Type)
             ConstantStore(ConstantName) = Me
 
             ' Register const to c file
-            CodeGen.RegisterConst($"#define {Data.CompiledName} {ConstantValue.CompileExpression(TmpScope)}", $"{Location.File.RelativePath} -> {ConstantName}")
+            CodeGen.RegisterConst($"#define {Data.CompiledName} {ConstantValue.CompileExpression(TmpWriter, TmpScope)}", $"{Location.File.RelativePath} -> {ConstantName}")
 
             ' Check that nothing was written on scope
-            If TmpScope.GetLines().Count > 0 Then
+            If TmpWriter.GetLines().Count > 0 Then
                 Throw New InternalError()
             End If
 

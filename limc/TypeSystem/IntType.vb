@@ -18,6 +18,9 @@
                 $"sprintf(buffer, ""%d"", {Constants.INSTANCE_ARGUMENT_NAME});",
                 "return buffer;"
             }))
+            RegisterMethod(New Lazy.HardMethod(Me, "float", {}, Type.Float, {
+                $"return (double){Constants.INSTANCE_ARGUMENT_NAME};"
+            }))
         End Sub
 
         Protected Overrides ReadOnly Property Relations As IEnumerable(Of Lazy.Relation) = {} 'Operations are hardcoded in nodes

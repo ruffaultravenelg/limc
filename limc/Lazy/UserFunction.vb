@@ -1,46 +1,56 @@
-﻿Namespace Lazy
+﻿Imports limc.CodeGen
+Imports limc.Context
+
+Namespace Lazy
     Public Class UserFunction
         Inherits Lazy.Function
 
-        ' Main properties
+        ' Function name
         Public Overrides ReadOnly Property Name As String
             Get
                 Return Node.Name
             End Get
         End Property
-        Private _ArgumentTypes As List(Of TypeSystem.Type) = Nothing
+
+        ' Passed generic types
+        Public Overrides ReadOnly Property PassedGenericTypes As IEnumerable(Of TypeSystem.Type)
+
+        ' Function arguments types
+        Private _ArgumentTypes As IEnumerable(Of TypeSystem.Type) = Nothing
         Public Overrides ReadOnly Property ArgumentTypes As IEnumerable(Of TypeSystem.Type)
             Get
                 If _ArgumentTypes Is Nothing Then
-                    _ArgumentTypes = New List(Of TypeSystem.Type)
-                    For Each Arg In Node.Arguments
-                        _ArgumentTypes.Add(Arg.ArgumentType.GetAssociatedType(Context))
-                    Next
+                    _ArgumentTypes = Node.Arguments.Select(Function(a) a.ArgumentType.GetAssociatedType(FunctionScope))
                 End If
                 Return _ArgumentTypes
             End Get
         End Property
+
+        ' Function return type
+        Private _ReturnType As TypeSystem.Type = Nothing
         Public Overrides ReadOnly Property ReturnType As TypeSystem.Type
             Get
-                If Node.ReturnType IsNot Nothing Then
-                    Return Node.ReturnType.GetAssociatedType(Context)
-                ElseIf Node.DoContainsStatement(Of AST.ReturnStatement) Then
-                    Return FuncScope.ReturnType
-                Else
+                If Node.ReturnType Is Nothing Then
                     Return Nothing
+                Else
+                    If _ReturnType Is Nothing Then
+                        _ReturnType = Node.ReturnType.GetAssociatedType(FunctionScope)
+                    End If
+                    Return _ReturnType
                 End If
             End Get
         End Property
+
+        ' Function is exported
         Public Overrides ReadOnly Property Exported As Boolean
             Get
                 Return Node.Exported
             End Get
         End Property
-        Public Overrides ReadOnly Property PassedGenericTypes As IEnumerable(Of TypeSystem.Type)
 
         ' Not compiled
         Private Node As AST.FunctionConstruct
-        Private Context As Context.Context
+        Private FunctionScope As Context.Scope
 
         ' Constructor
         Public Sub New(Node As AST.FunctionConstruct, PassedGenericTypes As IEnumerable(Of TypeSystem.Type), Context As Context.Context)
@@ -51,34 +61,45 @@
             End If
 
             If PassedGenericTypes.Count > 0 Then
-                Me.Context = New Context.GenericContext(Context)
+                Dim GenericContext As New Context.GenericContext(Context)
                 For i As Integer = 0 To PassedGenericTypes.Count - 1
-                    DirectCast(Me.Context, Context.GenericContext).RegisterGenericType(Node.GenericArguments(i), PassedGenericTypes(i))
+                    GenericContext.RegisterGenericType(Node.GenericArguments(i), PassedGenericTypes(i))
                 Next
+                Me.FunctionScope = New Scope(GenericContext, Node.Location)
             Else
-                Me.Context = Context
+                Me.FunctionScope = New Scope(Context, Node.Location)
             End If
 
         End Sub
 
-        ' Functino scope -> compilation
-        Private _FuncScope As Context.FunctionScope = Nothing
-        Private ReadOnly Property FuncScope As Context.FunctionScope
-            Get
-                If _FuncScope Is Nothing Then
-                    _FuncScope = New Context.FunctionScope(Context, Node)
-                    _FuncScope.CompileBody()
-                End If
-                Return _FuncScope
-            End Get
-        End Property
+        ' Create compiled function (to provide compiledName)
+        Protected Overrides Function GenerateCompiledFunction() As ContextedFunction
 
-        ' Get generated function
-        Public Overrides ReadOnly Property GeneratedFunction As CodeGen.PassingContextFunction
-            Get
-                Return FuncScope.GeneratedFunction
-            End Get
-        End Property
+            Dim ArgumentSignature As New List(Of String)
+            For Each Arg In Node.Arguments
+                Dim Variable As New VariableData(Namer.Variable(Arg.ArgumentName), Arg.ArgumentType.GetAssociatedType(FunctionScope))
+                FunctionScope.RegisterVariable(Arg.ArgumentName, Variable, Arg.Location)
+                ArgumentSignature.Add($"{Variable.Type.cRepresentation} {Variable.CompiledName}")
+            Next
+
+            Dim ReturnTypeSignature As String = If(Node.ReturnType Is Nothing, "void", ReturnType.cRepresentation)
+
+            Return New OwnContextFunction(Name, ArgumentSignature, ReturnTypeSignature)
+
+        End Function
+
+        ' Compile body (after compiledName is known)
+        Protected Overrides Sub CompileBody()
+            If ReturnType IsNot Nothing Then
+                FunctionScope = New Context.MustReturnScope(FunctionScope, Node.Location, ReturnType) 'TODO: this create another scope, update this later
+            End If
+
+            Dim Writer As New CWriter()
+            For Each Statement In Node.Body
+                Statement.Compile(Writer, FunctionScope)
+            Next
+            DirectCast(GeneratedFunction, OwnContextFunction).AppendBody(Writer.GetLines())
+        End Sub
 
     End Class
 End Namespace

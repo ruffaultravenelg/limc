@@ -11,15 +11,15 @@
             Me.ConstantType = ConstantType
         End Sub
 
-        Public Overrides Sub Compile(Scope As Context.Scope)
+        Public Overrides Sub Compile(Writer As CWriter, Scope As Context.Scope)
 
             Dim Type As TypeSystem.Type = ConstantType.GetAssociatedType(Scope)
             Dim ConstantInfo As ConstantData = Scope.CreateConstant(ConstantName, Type, Location)
 
             If Type.cRepresentation.Contains("*") Then
-                Scope.WriteLine($"{Type.cRepresentation} const {ConstantInfo.CompiledName} = {Type.DefaultValue(Scope)};")
+                Writer.WriteLine($"{Type.cRepresentation} const {ConstantInfo.CompiledName} = {Type.DefaultValue(Scope)};")
             Else
-                Scope.WriteLine($"const {Type.cRepresentation} {ConstantInfo.CompiledName} = {Type.DefaultValue(Scope)};")
+                Writer.WriteLine($"const {Type.cRepresentation} {ConstantInfo.CompiledName} = {Type.DefaultValue(Scope)};")
             End If
 
         End Sub

@@ -9,8 +9,8 @@
             Me.CallExpression = CallExpression
         End Sub
 
-        Public Overrides Sub Compile(Scope As Context.Scope)
-            Scope.WriteLine(CallExpression.CompileExpression(Scope) & ";")
+        Public Overrides Sub Compile(Writer As CWriter, Scope As Context.Scope)
+            Writer.WriteLine(CallExpression.CompileExpression(Writer, Scope) & ";")
         End Sub
 
     End Class

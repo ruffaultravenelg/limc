@@ -13,8 +13,8 @@
             Me.Callback = Callback
         End Sub
 
-        Public Overrides Sub WriteSetterCall(Scope As Context.Scope, CompiledObject As String, NewValue As String)
-            Scope.WriteLine(Callback(CompiledObject, NewValue))
+        Public Overrides Sub WriteSetterCall(Writer As CWriter, CompiledObject As String, NewValue As String)
+            Writer.WriteLine(Callback(CompiledObject, NewValue))
         End Sub
 
     End Class

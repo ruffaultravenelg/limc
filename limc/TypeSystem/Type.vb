@@ -24,8 +24,8 @@ Namespace TypeSystem
         Public MustOverride Function DefaultValue(Scope As Context.Scope) As String
 
         ' Assgin value
-        Public Overridable Sub SetVariableValue(Scope As Context.Scope, Variable As String, NewValue As String)
-            Scope.WriteLine($"{Variable} = {NewValue};")
+        Public Overridable Sub SetVariableValue(Writer As CWriter, Variable As String, NewValue As String)
+            Writer.WriteLine($"{Variable} = {NewValue};")
         End Sub
 
         ' Equality
@@ -90,14 +90,40 @@ Namespace TypeSystem
         ' Method
         Private MethodRepository As New MethodRepository()
         Protected Sub RegisterMethod(Model As AST.FunctionConstruct)
-            MethodRepository.RegisterUncompiledMethod(Model, Me)
+            MethodRepository.RegisterMethod(Model, Me)
         End Sub
         Protected Sub RegisterMethod(Method As Lazy.Method)
             MethodRepository.RegisterMethod(Method)
         End Sub
 
-        ' Search element
-        Public Function RetrieveElements(Name As String) As IEnumerable(Of SearchMatch)
+        ' Search element (from inside of the type scope)
+        Public Function RetrieveElementsFromInside(Name As String, GenericTypes As IEnumerable(Of TypeSystem.Type)) As IEnumerable(Of SearchMatch)
+            Dim Results As New List(Of SearchMatch)
+
+            ' Search in getters
+            For Each G In Getters
+                If G.Name = Name Then
+                    Results.Add(New SearchMatch(New ScopeGetter(G)))
+                    Exit For
+                End If
+            Next
+
+            ' Search in setters
+            For Each S In Setters
+                If S.Name = Name Then
+                    'Results.Add(New SearchMatch(S))
+                    Exit For
+                End If
+            Next
+
+            ' Search in methods
+            'Results.AddRange(MethodRepository.RetrieveMethods(Name, GenericTypes).Select(Function(fn) New SearchMatch(fn)))
+
+            Return Results
+        End Function
+
+        ' Search element (from external element, only show exported elements)
+        Public Function RetrieveElementsFromOutside(Name As String, GenericTypes As IEnumerable(Of TypeSystem.Type)) As IEnumerable(Of SearchMatch)
             Dim Results As New List(Of SearchMatch)
 
             ' Search in getters
@@ -117,10 +143,7 @@ Namespace TypeSystem
             Next
 
             ' Search in methods
-            Dim M = MethodRepository.RetrieveMethod(Name, {})
-            If M IsNot Nothing Then
-                Results.Add(New SearchMatch(M))
-            End If
+            Results.AddRange(MethodRepository.RetrieveMethods(Name, GenericTypes).Select(Function(fn) New SearchMatch(fn)))
 
             Return Results
         End Function

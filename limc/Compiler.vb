@@ -16,9 +16,7 @@ Public Module Compiler
         Compiler.Destination = Destination
 
         'Compile lim source code to c source code
-        Console.WriteLine("start compile to c")
         CompileToC()
-        Console.WriteLine("end compile to c")
 
         'Compile c source code to executable
         If Not ONLY_COMPILE_SOURCE Then
@@ -39,16 +37,16 @@ Public Module Compiler
         Dim MainFile As Context.SourceFile = Context.SourceFile.FromFile(LimSourceFile)
 
         'Getting main function from MainFile will trigger lazy-compilation
-        Dim MainFunction As Lazy.Function = MainFile.FunctionRepository.RetrieveFunction("main", {})
+        Dim MainFunction As Lazy.Function = MainFile.FunctionRepository.RetrieveFunctions("main", {}).FirstOrDefault()
         If MainFunction Is Nothing Then
             Throw New NotMainFunctionError(MainFile)
         End If
 
         'Assemble all sources
         If ONLY_COMPILE_SOURCE Then
-            CodeGen.AssembleFile(Destination, MainFunction.GeneratedFunction)
+            CodeGen.AssembleFile(Destination, MainFunction.GetCompiledFunction())
         Else
-            CodeGen.AssembleFile(TEMP_C_FILE, MainFunction.GeneratedFunction)
+            CodeGen.AssembleFile(TEMP_C_FILE, MainFunction.GetCompiledFunction())
         End If
 
     End Sub

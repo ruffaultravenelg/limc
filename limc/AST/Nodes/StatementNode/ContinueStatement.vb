@@ -6,7 +6,7 @@
             MyBase.New(Location)
         End Sub
 
-        Public Overrides Sub Compile(Scope As Context.Scope)
+        Public Overrides Sub Compile(Writer As CWriter, Scope As Context.Scope)
 
             ' Check if this statement is in a loop
             Dim LoopScope As Context.LoopScope = Scope.GetParent(Of Context.LoopScope)
@@ -15,7 +15,7 @@
             End If
 
             ' Compile
-            Scope.WriteLine("continue;")
+            Writer.WriteLine("continue;")
 
         End Sub
 

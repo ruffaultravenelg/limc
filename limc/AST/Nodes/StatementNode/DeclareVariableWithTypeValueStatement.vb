@@ -13,7 +13,7 @@
             Me.VariableValue = VariableValue
         End Sub
 
-        Public Overrides Sub Compile(Scope As Context.Scope)
+        Public Overrides Sub Compile(Writer As CWriter, Scope As Context.Scope)
 
             Dim WantedType As TypeSystem.Type = VariableType.GetAssociatedType(Scope)
             Dim ValueType As TypeSystem.Type = VariableValue.GetExpressionReturnType(Scope)
@@ -23,7 +23,7 @@
             End If
 
             Dim VariableInfo As VariableData = Scope.CreateVariable(VariableName, WantedType, Location)
-            Scope.WriteLine($"{WantedType.cRepresentation} {VariableInfo.CompiledName} = {VariableValue.CompileExpression(Scope)};")
+            Writer.WriteLine($"{WantedType.cRepresentation} {VariableInfo.CompiledName} = {VariableValue.CompileExpression(Writer, Scope)};")
 
         End Sub
 

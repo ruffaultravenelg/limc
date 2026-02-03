@@ -11,12 +11,12 @@
             Me.VariableType = VariableType
         End Sub
 
-        Public Overrides Sub Compile(Scope As Context.Scope)
+        Public Overrides Sub Compile(Writer As CWriter, Scope As Context.Scope)
 
             Dim Type As TypeSystem.Type = VariableType.GetAssociatedType(Scope)
             Dim VariableInfo As VariableData = Scope.CreateVariable(VariableName, Type, Location)
 
-            Scope.WriteLine($"{Type.cRepresentation} {VariableInfo.CompiledName} = {Type.DefaultValue(Scope)};")
+            Writer.WriteLine($"{Type.cRepresentation} {VariableInfo.CompiledName} = {Type.DefaultValue(Scope)};")
 
         End Sub
 

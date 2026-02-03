@@ -47,6 +47,7 @@ Namespace TypeSystem
                 Dim CompiledAttributeName As String = CodeGen.Namer.Attribute()
                 StructFields.Add($"{FieldType.cRepresentation} {CompiledAttributeName};")
                 RegisterGetter(New Lazy.DirectAccessGetter(Field.Name, FieldType, Function(instance) $"{instance}.{CompiledAttributeName}"))
+                'Record don't have setters, that intended btw
 
             Next
             Me.FieldTypes = _FieldTypes

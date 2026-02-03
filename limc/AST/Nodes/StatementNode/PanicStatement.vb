@@ -9,11 +9,11 @@
             Me.Message = Message
         End Sub
 
-        Public Overrides Sub Compile(Scope As Context.Scope)
+        Public Overrides Sub Compile(Writer As CWriter, Scope As Context.Scope)
             If Not Message.GetExpressionReturnType(Scope) = TypeSystem.Type.Str Then
                 Throw New TypeMismatchError(TypeSystem.Type.Str, Message.GetExpressionReturnType(Scope), Location)
             End If
-            Scope.WriteLine($"{PANIC_FUNCTION_NAME}({RUNTIME_CONTEXT_VARIABLE_NAME}, {Message.CompileExpression(Scope)});")
+            Writer.WriteLine($"{PANIC_FUNCTION_NAME}({RUNTIME_CONTEXT_VARIABLE_NAME}, {Message.CompileExpression(Writer, Scope)});")
         End Sub
 
     End Class
