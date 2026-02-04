@@ -9,6 +9,10 @@ Namespace Repository
         ' Constructor (get uncompiled constructors)
         Public Sub New(AssociatedType As Type, Constructors As IEnumerable(Of AST.ConstructorConstruct))
             Me.Constructors = Constructors.Select(Function(c) New Lazy.UserConstructor(AssociatedType, c))
+
+            If Me.Constructors.Count = 0 Then
+                Me.Constructors = {New Lazy.HardConstructor(AssociatedType, {}, {})}
+            End If
         End Sub
 
         ' General repository endpoint

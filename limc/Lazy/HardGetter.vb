@@ -1,5 +1,5 @@
 ﻿Namespace Lazy
-    Public Class HardCalculatedGetter
+    Public Class HardGetter
         Inherits Getter
 
         Public Overrides ReadOnly Property Name As String

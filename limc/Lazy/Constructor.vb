@@ -8,8 +8,8 @@ Namespace Lazy
         Public ReadOnly Property AssociatedType As TypeSystem.Type
 
         ' Constructor
-        Protected Sub New(ParentType As TypeSystem.Type)
-            Me.AssociatedType = ParentType
+        Protected Sub New(AssociatedType As TypeSystem.Type)
+            Me.AssociatedType = AssociatedType
         End Sub
 
         ' Compile to C
