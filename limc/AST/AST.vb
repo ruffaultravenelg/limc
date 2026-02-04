@@ -1298,6 +1298,7 @@
             ' Get constructs
             Dim Methods As New List(Of FunctionConstruct)
             Dim Fields As New List(Of ClassConstruct.Field)
+            Dim SourceFields As New List(Of String)
             Dim Constructors As New List(Of ConstructorConstruct)
             While True
 
@@ -1327,6 +1328,11 @@
                     Advance()
                     Dim PropertieType As TypeNode = GetTypeNode()
                     Fields.Add(New ClassConstruct.Field(PropertieName, PropertieType, RetrievePosition()))
+
+                ElseIf CurrentToken.Type = TokenType.SOURCE_LINE Then
+                    SourceFields.Add(CurrentToken.Value)
+                    Advance()
+
                 Else
                     Throw New UnexpectedTokenError(CurrentToken.Location, "A struct construct was expected there (method, getter, variable)")
                 End If
@@ -1334,7 +1340,7 @@
             End While
 
             ' Create record
-            Return New ClassConstruct(Name, GenericArguments, Fields, Methods, Constructors, RetrievePosition())
+            Return New ClassConstruct(Name, GenericArguments, Fields, SourceFields, Methods, Constructors, RetrievePosition())
 
         End Function
 

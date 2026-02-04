@@ -41,6 +41,11 @@
                 RegisterSetter(New Lazy.DirectAccessSetter(Field.Name, Prop.Type, Function(instance, newValue) $"{instance}->{Prop.CompiledName} = {newValue};"))
             Next
 
+            ' Compile source fields
+            For Each SourceField In Classe.SourceFields
+                ClassFields.Add(SourceField)
+            Next
+
             ' Register struct
             CodeGen.RegisterStruct(New CodeGen.Struct(structName, ClassFields, ToString()))
 

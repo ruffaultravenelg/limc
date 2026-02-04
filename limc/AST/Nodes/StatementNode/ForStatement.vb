@@ -39,7 +39,7 @@ Namespace AST
             ' Compile body
             Dim BodyWriter As New CWriter()
             For Each Statement In Instructions
-                Statement.Compile(Writer, LoopScope)
+                Statement.Compile(BodyWriter, LoopScope)
             Next
 
             ' Compile header

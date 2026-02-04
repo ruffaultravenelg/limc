@@ -6,14 +6,16 @@
         Public ReadOnly Property Name As String
         Public ReadOnly Property GenericTypeNames As IEnumerable(Of String)
         Public ReadOnly Property Fields As IEnumerable(Of Field)
+        Public ReadOnly Property SourceFields As IEnumerable(Of String)
         Public ReadOnly Property Methods As IEnumerable(Of FunctionConstruct)
         Public ReadOnly Property Constructors As IEnumerable(Of ConstructorConstruct)
 
-        Public Sub New(Name As String, GenericTypeNames As IEnumerable(Of String), Fields As IEnumerable(Of Field), Methods As IEnumerable(Of FunctionConstruct), Constructors As IEnumerable(Of ConstructorConstruct), Location As Location)
+        Public Sub New(Name As String, GenericTypeNames As IEnumerable(Of String), Fields As IEnumerable(Of Field), SourceFields As IEnumerable(Of String), Methods As IEnumerable(Of FunctionConstruct), Constructors As IEnumerable(Of ConstructorConstruct), Location As Location)
             MyBase.New(Location)
             Me.Name = Name
             Me.GenericTypeNames = GenericTypeNames
             Me.Fields = Fields
+            Me.SourceFields = SourceFields
             Me.Methods = Methods
             Me.Constructors = Constructors
         End Sub

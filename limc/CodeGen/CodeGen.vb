@@ -241,6 +241,7 @@ Namespace CodeGen
             RegisterMacro($"#define {LIM_ALLOC}(size) tgc_alloc({RUNTIME_CONTEXT_VARIABLE_NAME}.gc, size);")
             RegisterMacro("#define LIM_ALLOC_STANDALONE(gc, size) tgc_alloc(gc, size);")
             RegisterMacro($"#define {LIM_FREE}(ptr) tgc_free({RUNTIME_CONTEXT_VARIABLE_NAME}.gc, ptr);")
+            RegisterMacro($"#define {LIM_REALLOC}(ptr, size) tgc_realloc({RUNTIME_CONTEXT_VARIABLE_NAME}.gc, ptr, size);")
 
         End Sub
 
