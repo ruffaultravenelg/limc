@@ -32,7 +32,14 @@
             End If
 
             ' Compile arguments
-            Dim CompiledArguments As New List(Of String) From {Instance.CompileExpression(Writer, Scope)}
+            Dim CompiledArguments As New List(Of String)
+
+            If Type = TypeSystem.RelationType.RELATION_BRACKETS_PTR Then
+                CompiledArguments.Add(Instance.GetPointerToValue(Writer, Scope))
+            Else
+                CompiledArguments.Add(Instance.CompileExpression(Writer, Scope))
+            End If
+
             For i As Integer = 0 To Arguments.Count - 1
 
                 ' Check if types are the same type

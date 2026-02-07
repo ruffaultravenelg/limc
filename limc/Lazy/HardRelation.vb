@@ -20,7 +20,8 @@
                         Args.Add($"{ArgumentsTypes(i).cRepresentation} {ArgumentNames(i)}")
                     Next
 
-                    _GeneratedFunction = New CodeGen.ContextedFunction(Args, ReturnType.cRepresentation, Body, $"{ParentType.ToString()} -> {Type.ToString()}({String.Join(", ", ArgumentsTypes.Select(Function(arg) arg.ToString()))}):{ReturnType.ToString()}")
+                    Dim returnType_STR As String = If(Type = TypeSystem.RelationType.RELATION_BRACKETS_PTR, ReturnType.cRepresentation & "*", ReturnType.cRepresentation)
+                    _GeneratedFunction = New CodeGen.ContextedFunction(Args, returnType_STR, Body, $"{ParentType.ToString()} -> {Type.ToString()}({String.Join(", ", ArgumentsTypes.Select(Function(arg) arg.ToString()))}):{ReturnType.ToString()}")
                     CodeGen.RegisterFunction(_GeneratedFunction)
                 End If
                 Return _GeneratedFunction

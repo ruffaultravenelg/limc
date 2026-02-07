@@ -16,9 +16,11 @@ Namespace TypeSystem
             Float.Compile()
         End Sub
 
-
         ' C representation (ex: void*)
         Public MustOverride ReadOnly Property cRepresentation As String
+
+        ' Is a pointer
+        Public MustOverride ReadOnly Property IsPointer As Boolean
 
         ' Create a default value (ex: NULL)
         Public MustOverride Function DefaultValue(Scope As Context.Scope) As String

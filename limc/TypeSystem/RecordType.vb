@@ -6,6 +6,7 @@ Namespace TypeSystem
 
         Private ReadOnly Record As AST.RecordConstruct
         Public ReadOnly BoneContext As Context.GenericContext
+        Public Overrides ReadOnly Property IsPointer As Boolean = False
 
         ' Constructor
         Public Sub New(Record As AST.RecordConstruct, PassedGenericTypes As IEnumerable(Of TypeSystem.Type))

@@ -7,6 +7,7 @@ Namespace TypeSystem
         Private Length As Integer
         Private ElementType As Type
         Private TypedefName As String
+        Public Overrides ReadOnly Property IsPointer As Boolean = True
 
         Private Sub New(Length As Integer, ElementType As Type)
             Me.Length = Length
@@ -62,6 +63,11 @@ Namespace TypeSystem
                         $"if (index < 0) index = {Length} + index;",
                         $"if (index >= {Length} || index < 0) {CodeGen.WritePanicCall("""Index out of range""")};",
                         $"return {INSTANCE_ARGUMENT_NAME}[index];"
+                    }))
+                    _Relations.Add(New Lazy.HardRelation(Me, RelationType.RELATION_BRACKETS_PTR, {Type.Int}, {"index"}, ElementType, {
+                        $"if (index < 0) index = {Length} + index;",
+                        $"if (index >= {Length} || index < 0) {CodeGen.WritePanicCall("""Index out of range""")};",
+                        $"return &{INSTANCE_ARGUMENT_NAME}[index];"
                     }))
 
                     ' SET [idx]

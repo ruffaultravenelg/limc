@@ -49,6 +49,23 @@
 
         End Function
 
+        Public Overrides Function GetPointerToValue(Writer As CWriter, Scope As Context.Scope) As String
+
+            Dim Element As SearchMatch = GetMatchs(Scope).First()
+            Dim ParentType As TypeSystem.Type = Parent.GetExpressionReturnType(Scope)
+
+            If Element.Type = SearchMatch.MatchType.MATCH_GETTER Then
+                If Element.MatchingGetter.Type.IsPointer Then
+                    Return Element.MatchingGetter.CallGetter(Parent.CompileExpression(Writer, Scope))
+                Else
+                    Return Element.MatchingGetter.GetReference(Parent.GetPointerToValue(Writer, Scope), Location)
+                End If
+            Else
+                Throw New ExpressionDoesNotReferToAVariableError(Location)
+            End If
+
+        End Function
+
         Public Sub CompileAssignation(NewValue As ExpressionNode, Writer As CWriter, Scope As Context.Scope) Implements IAssignable.CompileAssignation
 
             Dim MatchingSetters = GetMatchs(Scope).Where(Function(elm) elm.Type = SearchMatch.MatchType.MATCH_SETTER)
@@ -56,7 +73,12 @@
 
             For Each Match In MatchingSetters
                 If Match.MatchingSetter.Type = NewValueType Then
-                    Match.MatchingSetter.WriteSetterCall(Writer, Parent.CompileExpression(Writer, Scope), NewValue.CompileExpression(Writer, Scope))
+                    If NewValueType.IsPointer Then
+                        Match.MatchingSetter.WriteSetterCall(Writer, Parent.CompileExpression(Writer, Scope), NewValue.CompileExpression(Writer, Scope))
+                    Else
+                        Match.MatchingSetter.WriteSetterCall(Writer, Parent.GetPointerToValue(Writer, Scope), NewValue.CompileExpression(Writer, Scope))
+                    End If
+
                     Exit Sub
                 End If
             Next

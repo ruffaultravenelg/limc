@@ -28,8 +28,8 @@ Namespace Lazy
             Writer.WriteLine($"return {INSTANCE_ARGUMENT_NAME};")
 
             Return New CodeGen.ContextedFunction(
-                ArgumentTypes.Select(Function(a, i) $"{a.cRepresentation} arg{i}").Prepend($"{AssociatedType.cRepresentation} {Constants.INSTANCE_ARGUMENT_NAME}"),
-                "void",
+                ArgumentTypes.Select(Function(a, i) $"{a.cRepresentation} arg{i}"),
+                AssociatedType.cRepresentation,
                 Writer.GetLines(),
                 $"{AssociatedType.ToString()}.new"
             )

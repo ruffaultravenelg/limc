@@ -8,6 +8,7 @@
         Private ReadOnly Property BoneContext As Context.Context Implements ITypeWithBoneContext.BoneContext
 
         Private ReadOnly ConstructorRepository As Repository.ConstructorRepository
+        Public Overrides ReadOnly Property IsPointer As Boolean = True
 
         ' Constructor
         Public Sub New(Classe As AST.ClassConstruct, PassedGenericTypes As IEnumerable(Of TypeSystem.Type))
@@ -38,15 +39,18 @@
                 Properties.Add(Prop)
                 ClassFields.Add($"{Prop.Type.cRepresentation} {Prop.CompiledName};")
 
-                RegisterGetter(New Lazy.HardGetter(Me, Field.Name, Prop.Type, {
-                    $"if ({INSTANCE_ARGUMENT_NAME} == NULL) {CodeGen.WritePanicCall("""Null pointer exception""")};",
-                    $"return {INSTANCE_ARGUMENT_NAME}->{Prop.CompiledName};"
-                }))
+                RegisterGetter(New Lazy.DirectAccessGetter(Field.Name, Prop.Type, Function(instance) $"{instance}->{Prop.CompiledName}", Function(instance) $"(&{instance}->{Prop.CompiledName})"))
+                RegisterSetter(New Lazy.DirectAccessSetter(Field.Name, Prop.Type, Function(instance, newValue) $"{instance}->{Prop.CompiledName} = {newValue};"))
 
-                RegisterSetter(New Lazy.HardSetter(Me, Field.Name, Prop.Type, {
-                    $"if ({INSTANCE_ARGUMENT_NAME} == NULL) {CodeGen.WritePanicCall("""Null pointer exception""")};",
-                    $"{INSTANCE_ARGUMENT_NAME}->{Prop.CompiledName} = newValue;"
-                }))
+                'RegisterGetter(New Lazy.HardGetter(Me, Field.Name, Prop.Type, {
+                '    $"if ({INSTANCE_ARGUMENT_NAME} == NULL) {CodeGen.WritePanicCall("""Null pointer exception""")};",
+                '    $"return {INSTANCE_ARGUMENT_NAME}->{Prop.CompiledName};"
+                '}))
+
+                'RegisterSetter(New Lazy.HardSetter(Me, Field.Name, Prop.Type, {
+                '    $"if ({INSTANCE_ARGUMENT_NAME} == NULL) {CodeGen.WritePanicCall("""Null pointer exception""")};",
+                '    $"{INSTANCE_ARGUMENT_NAME}->{Prop.CompiledName} = newValue;"
+                '}))
             Next
 
             ' Compile source fields

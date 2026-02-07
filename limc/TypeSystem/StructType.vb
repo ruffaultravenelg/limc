@@ -6,6 +6,7 @@
         Private ReadOnly Struct As AST.StructConstruct
         Private ReadOnly Property InnerContext As Context.Context Implements ITypeWithBoneContext.InnerContext
         Private ReadOnly Property BoneContext As Context.Context Implements ITypeWithBoneContext.BoneContext
+        Public Overrides ReadOnly Property IsPointer As Boolean = False
 
         ' Constructor
         Public Sub New(Struct As AST.StructConstruct, PassedGenericTypes As IEnumerable(Of TypeSystem.Type))
@@ -33,8 +34,8 @@
                 Dim Prop As New Propertie(Field.Name, Field.Type.GetAssociatedType(InnerContext))
                 Properties.Add(Prop)
                 StructFields.Add($"{Prop.Type.cRepresentation} {Prop.CompiledName};")
-                RegisterGetter(New Lazy.DirectAccessGetter(Field.Name, Prop.Type, Function(instance) $"{instance}.{Prop.CompiledName}"))
-                RegisterSetter(New Lazy.DirectAccessSetter(Field.Name, Prop.Type, Function(instance, newValue) $"{instance}.{Prop.CompiledName} = {newValue};"))
+                RegisterGetter(New Lazy.DirectAccessGetter(Field.Name, Prop.Type, Function(instance) $"{instance}.{Prop.CompiledName}", Function(instance) $"{instance}->{Prop.CompiledName}"))
+                RegisterSetter(New Lazy.DirectAccessSetter(Field.Name, Prop.Type, Function(instance, newValue) $"{instance}->{Prop.CompiledName} = {newValue};"))
             Next
 
             ' Register struct

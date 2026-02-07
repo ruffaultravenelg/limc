@@ -3,6 +3,7 @@
         Inherits Type
 
         Public Overrides ReadOnly Property cRepresentation As String = "bool"
+        Public Overrides ReadOnly Property IsPointer As Boolean = False
 
         Public Overrides Function DefaultValue(Scope As Context.Scope) As String
             Return "false"

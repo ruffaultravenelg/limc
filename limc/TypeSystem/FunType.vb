@@ -12,6 +12,7 @@ Namespace TypeSystem
 
         Private FuncPtrType As String
         Private MethodPtrType As String
+        Public Overrides ReadOnly Property IsPointer As Boolean = True
 
         Private Sub New(ArgumentTypes As IEnumerable(Of Type), ReturnType As Type)
 
