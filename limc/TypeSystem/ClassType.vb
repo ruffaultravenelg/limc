@@ -55,7 +55,7 @@
 
             ' Compile source fields
             For Each SourceField In Classe.SourceFields
-                ClassFields.Add(SourceField)
+                ClassFields.Add(CAPI.CompileSourceStringWithoutContext(SourceField))
             Next
 
             ' Register struct

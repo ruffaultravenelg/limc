@@ -10,7 +10,7 @@
             Throw New ExpressionDoesNotReferToAVariableError(Location)
         End Function
 
-        Public Overridable Function CallGetterButReturnsValuePointer(CompiledObjectPointer As String, Location As Location) As String
+        Public Function CallGetterButReturnsValuePointer(CompiledObjectPointer As String, Location As Location) As String
             If Type.IsPointer Then
                 Return CallGetter(CompiledObjectPointer)
             Else

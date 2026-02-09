@@ -116,7 +116,7 @@ Namespace TypeSystem
             ' Search in getters
             For Each G In Getters
                 If G.Name = Name Then
-                    Results.Add(New SearchMatch(New ScopeGetter(G)))
+                    Results.Add(New SearchMatch(New ScopeGetter(G, Not IsPointer)))
                     Exit For
                 End If
             Next
@@ -124,7 +124,7 @@ Namespace TypeSystem
             ' Search in setters
             For Each S In Setters
                 If S.Name = Name Then
-                    Results.Add(New SearchMatch(New ScopeSetter(S)))
+                    Results.Add(New SearchMatch(New ScopeSetter(S, Not IsPointer)))
                     Exit For
                 End If
             Next

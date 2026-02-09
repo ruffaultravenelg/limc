@@ -1,5 +1,4 @@
-﻿Imports limc.AST
-Imports limc.CodeGen
+﻿Imports limc.CodeGen
 
 Namespace Lazy
     Public Class HardConstructor
@@ -18,8 +17,16 @@ Namespace Lazy
             Dim Writer As New CWriter()
 
             ' Create self
-            Writer.WriteLine($"{AssociatedType.cRepresentation} {INSTANCE_ARGUMENT_NAME} = {Constants.LIM_ALLOC}(sizeof({AssociatedType.cRepresentation}));")
-            Writer.WriteLine($"if ({INSTANCE_ARGUMENT_NAME} == NULL) {CodeGen.WritePanicCall("""Not enough memory""")};")
+            If TypeOf AssociatedType Is TypeSystem.ClassType Then
+                Writer.WriteLine($"{AssociatedType.cRepresentation} {INSTANCE_ARGUMENT_NAME} = {Constants.LIM_ALLOC}(sizeof({AssociatedType.cRepresentation}));")
+                Writer.WriteLine($"if ({INSTANCE_ARGUMENT_NAME} == NULL) {CodeGen.WritePanicCall("""Not enough memory""")};")
+
+            ElseIf TypeOf AssociatedType Is TypeSystem.StructType Then
+                Writer.WriteLine($"{AssociatedType.cRepresentation} {INSTANCE_ARGUMENT_NAME} = {AssociatedType.DefaultValue(New Context.Scope(Nothing, Nothing))};")
+
+            Else
+                Throw New InternalError()
+            End If
 
             ' Add body
             Writer.WriteLines(Body)

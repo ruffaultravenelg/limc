@@ -6,6 +6,7 @@
         Private ReadOnly Struct As AST.StructConstruct
         Private ReadOnly Property InnerContext As Context.Context Implements ITypeWithBoneContext.InnerContext
         Private ReadOnly Property BoneContext As Context.Context Implements ITypeWithBoneContext.BoneContext
+        Private ReadOnly ConstructorRepository As Repository.ConstructorRepository
         Public Overrides ReadOnly Property IsPointer As Boolean = False
 
         ' Constructor
@@ -15,6 +16,7 @@
             cRepresentation = CodeGen.Namer.Struct(Struct.Name)
             BoneContext = New Context.GenericContext(Struct.Location.File)
             InnerContext = New Context.TypeContext(BoneContext, Me)
+            Me.ConstructorRepository = New Repository.ConstructorRepository(Me, Struct.Constructors)
         End Sub
 
         ' All recursion (like typeNode.AssociatedType) must be done in Compile()
@@ -38,6 +40,11 @@
                 RegisterSetter(New Lazy.DirectAccessSetter(Field.Name, Prop.Type, Function(instance, newValue) $"{instance}->{Prop.CompiledName} = {newValue};"))
             Next
 
+            ' Compile source fields
+            For Each SourceField In Struct.SourceFields
+                StructFields.Add(CAPI.CompileSourceStringWithoutContext(SourceField))
+            Next
+
             ' Register struct
             CodeGen.RegisterStruct(New CodeGen.Struct(cRepresentation, StructFields, ToString()))
 
@@ -47,6 +54,11 @@
             Next
 
         End Sub
+
+        ' Get constructor
+        Public Function GetConstructor(Arguments As IEnumerable(Of TypeSystem.Type)) As Lazy.Constructor
+            Return ConstructorRepository.RetrieveConstructor(Arguments)
+        End Function
 
         Public Overrides ReadOnly Property cRepresentation As String
         Protected Overrides ReadOnly Property Relations As IEnumerable(Of Lazy.Relation) = {}

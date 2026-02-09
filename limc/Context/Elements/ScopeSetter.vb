@@ -2,6 +2,7 @@
 Public Class ScopeSetter
 
     Private Setter As Lazy.Setter
+    Private UsePointerForInstance As Boolean
 
     Public ReadOnly Property Type As TypeSystem.Type
         Get
@@ -9,12 +10,17 @@ Public Class ScopeSetter
         End Get
     End Property
 
-    Public Sub New(Setter As Lazy.Setter)
+    Public Sub New(Setter As Lazy.Setter, UsePointerForInstance As Boolean)
         Me.Setter = Setter
+        Me.UsePointerForInstance = UsePointerForInstance
     End Sub
 
     Public Sub CompileCall(Writer As CWriter, NewValue As String)
-        Setter.WriteSetterCall(Writer, Constants.INSTANCE_ARGUMENT_NAME, NewValue)
+        If UsePointerForInstance Then
+            Setter.WriteSetterCall(Writer, $"(&{Constants.INSTANCE_ARGUMENT_NAME})", NewValue)
+        Else
+            Setter.WriteSetterCall(Writer, Constants.INSTANCE_ARGUMENT_NAME, NewValue)
+        End If
     End Sub
 
 End Class

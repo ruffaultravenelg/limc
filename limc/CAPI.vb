@@ -52,6 +52,9 @@ Public Module CAPI
     Public Function CompileSourceString(Source As String, Scope As Context.Scope) As String
         Return ReplaceConstants(ReplaceVariable(Source, Scope))
     End Function
+    Public Function CompileSourceStringWithoutContext(Source As String) As String
+        Return ReplaceConstants(Source)
+    End Function
 
     ' Replace constants
     Private Function ReplaceConstants(input As String) As String

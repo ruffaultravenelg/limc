@@ -59,7 +59,11 @@
             Dim Element As SearchMatch = GetMatchs(Scope).First()
 
             If Element.Type = SearchMatch.MatchType.MATCH_VARIABLE Then
-                Return "&" & Element.MatchingVariable.CompiledName
+                Return $"(&{Element.MatchingVariable.CompiledName})"
+            ElseIf Element.Type = SearchMatch.MatchType.MATCH_CONSTANT Then
+                Return $"(&{Element.MatchingConstant.CompiledName})"
+            ElseIf Element.Type = SearchMatch.MatchType.MATCH_SCOPE_GETTER Then
+                Return Element.MatchingScopeGetter.CallGetterButReturnsValuePointer(Location)
             Else
                 Throw New ExpressionDoesNotReferToAVariableError(Location)
             End If

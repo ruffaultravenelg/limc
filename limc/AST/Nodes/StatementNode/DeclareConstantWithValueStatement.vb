@@ -16,11 +16,7 @@
             Dim Type As TypeSystem.Type = ConstantValue.GetExpressionReturnType(Scope)
             Dim ConstantInfo As ConstantData = Scope.CreateConstant(ConstantName, Type, Location)
 
-            If Type.cRepresentation.Contains("*") Then
-                Writer.WriteLine($"{Type.cRepresentation} const {ConstantInfo.CompiledName} = {ConstantValue.CompileExpression(Writer, Scope)};")
-            Else
-                Writer.WriteLine($"const {Type.cRepresentation} {ConstantInfo.CompiledName} = {ConstantValue.CompileExpression(Writer, Scope)};")
-            End If
+            Writer.WriteLine($"{Type.cRepresentation} {ConstantInfo.CompiledName} = {ConstantValue.CompileExpression(Writer, Scope)};")
 
         End Sub
 

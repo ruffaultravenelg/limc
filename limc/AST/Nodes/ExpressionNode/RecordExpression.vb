@@ -14,19 +14,30 @@
 
         Public Overrides Function GetExpressionReturnType(Context As Context.Context) As TypeSystem.Type
             Dim RecordType As TypeSystem.Type = Record.GetAssociatedType(Context)
-            If TypeOf RecordType IsNot TypeSystem.RecordType Then
+            If TypeOf RecordType IsNot TypeSystem.RecordType AndAlso TypeOf RecordType IsNot TypeSystem.StructType Then
                 Throw New UnknownOrUnreachableElementError(Record.ToString(), Record.Location)
             End If
             Return RecordType
         End Function
 
         Public Overrides Function CompileExpression(Writer As CWriter, Scope As Context.Scope) As String
-            Dim RecordType As TypeSystem.Type = Record.GetAssociatedType(Scope)
-            If TypeOf RecordType IsNot TypeSystem.RecordType Then
+            Dim ConstructedType As TypeSystem.Type = Record.GetAssociatedType(Scope)
+
+            If TypeOf ConstructedType Is TypeSystem.RecordType Then
+                Return CompileRecord(ConstructedType, Writer, Scope)
+
+            ElseIf TypeOf ConstructedType Is TypeSystem.StructType Then
+                Return CompileStructure(ConstructedType, Writer, Scope)
+
+            Else
                 Throw New UnknownOrUnreachableElementError(Record.ToString(), Record.Location)
             End If
 
-            Dim Fields = DirectCast(RecordType, TypeSystem.RecordType).GetConstructionFields(Location)
+        End Function
+
+        Public Function CompileRecord(RecordType As TypeSystem.RecordType, Writer As CWriter, Scope As Context.Scope) As String
+
+            Dim Fields = RecordType.GetConstructionFields(Location)
             If Values.Count > Fields.Count Then
                 Throw New SyntaxError($"This type can only take a maximum of {Fields.Count} values. {Values.Count} are given.", Location)
             End If
@@ -45,13 +56,29 @@
                     End If
                     CompiledValues.Add(Value.CompileExpression(Writer, Scope))
                 Else
-                    Dim TmpScope As New Context.Scope(DirectCast(RecordType, TypeSystem.RecordType).BoneContext, Location)
+                    Dim TmpScope As New Context.Scope(RecordType.BoneContext, Location)
                     CompiledValues.Add(Field.DefaultValue.CompileExpression(Writer, TmpScope))
                 End If
 
             Next
 
             Return "(" & RecordType.cRepresentation & "){" & String.Join(", ", CompiledValues) & "}"
+
+        End Function
+
+        Public Function CompileStructure(StructureType As TypeSystem.StructType, Writer As CWriter, Scope As Context.Scope) As String
+
+            ' Compile types
+            Dim ArgumentTypes = Values.Select(Function(arg) arg.GetExpressionReturnType(Scope))
+
+            ' Get constructor
+            Dim Constructor As Lazy.Constructor = StructureType.GetConstructor(ArgumentTypes)
+            If Constructor Is Nothing Then
+                Throw New UnknownOrUnreachableConstructorError(StructureType, ArgumentTypes, Location)
+            End If
+
+            ' Compile constructor call
+            Return Constructor.CompileCall(Values, Writer, Scope, Location)
 
         End Function
 

@@ -5,7 +5,7 @@ Namespace Lazy
         Inherits Lazy.Constructor
 
         ' Method arguments
-        Private _ArgumentTypes As IEnumerable(Of TypeSystem.Type) = Nothing
+        Protected _ArgumentTypes As IEnumerable(Of TypeSystem.Type) = Nothing
         Public Overrides ReadOnly Property ArgumentTypes As IEnumerable(Of TypeSystem.Type)
             Get
                 If _ArgumentTypes Is Nothing Then
@@ -16,9 +16,9 @@ Namespace Lazy
         End Property
 
         ' Not compiled
-        Private Node As AST.ConstructorConstruct
-        Private AssociatedTypeContext As Context.Context
-        Private ConstructorScope As Context.Scope
+        Protected Node As AST.ConstructorConstruct
+        Protected AssociatedTypeContext As Context.Context
+        Protected ConstructorScope As Context.Scope
 
         ' Constructor
         Public Sub New(ParentType As TypeSystem.Type, Node As AST.ConstructorConstruct)
@@ -53,8 +53,16 @@ Namespace Lazy
             Dim Writer As New CWriter()
 
             ' Create self
-            Writer.WriteLine($"{AssociatedType.cRepresentation} {INSTANCE_ARGUMENT_NAME} = {Constants.LIM_ALLOC}(sizeof({AssociatedType.cRepresentation}));")
-            Writer.WriteLine($"if ({INSTANCE_ARGUMENT_NAME} == NULL) {CodeGen.WritePanicCall("""Not enough memory""")};")
+            If TypeOf AssociatedType Is TypeSystem.ClassType Then
+                Writer.WriteLine($"{AssociatedType.cRepresentation} {INSTANCE_ARGUMENT_NAME} = {Constants.LIM_ALLOC}(sizeof({AssociatedType.cRepresentation}));")
+                Writer.WriteLine($"if ({INSTANCE_ARGUMENT_NAME} == NULL) {CodeGen.WritePanicCall("""Not enough memory""")};")
+
+            ElseIf TypeOf AssociatedType Is TypeSystem.StructType Then
+                Writer.WriteLine($"{AssociatedType.cRepresentation} {INSTANCE_ARGUMENT_NAME} = {AssociatedType.DefaultValue(ConstructorScope)};")
+
+            Else
+                Throw New InternalError()
+            End If
 
             ' Compile content
             For Each Statement In Node.Body

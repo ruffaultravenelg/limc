@@ -765,22 +765,15 @@
 
             'Get value
             Dim VariableValue As ExpressionNode = Nothing
-            If CurrentToken.Type = TokenType.SYMBOL_EQUAL Then
-                Advance()
-                VariableValue = GetExpression()
-            End If
+            CheckTokenType(TokenType.SYMBOL_EQUAL, "A variable must always have a value. Please add a default value.")
+            Advance()
+            VariableValue = GetExpression()
 
             'Create node
-            If VariableType IsNot Nothing AndAlso VariableValue Is Nothing Then
-                Return New DeclareVariableWithTypeStatement(VariableName, VariableType, RetrievePosition())
-            ElseIf VariableType Is Nothing AndAlso VariableValue IsNot Nothing Then
-                'Value
+            If VariableType Is Nothing Then
                 Return New DeclareVariableWithValueStatement(VariableName, VariableValue, RetrievePosition())
-            ElseIf VariableType IsNot Nothing AndAlso VariableValue IsNot Nothing Then
-                'Type
-                Return New DeclareVariableWithTypeValueStatement(VariableName, VariableType, VariableValue, RetrievePosition())
             Else
-                Throw New SyntaxError("A variable declaration must contains at least the type of the variable or a default value.", RetrievePosition())
+                Return New DeclareVariableWithTypeValueStatement(VariableName, VariableType, VariableValue, RetrievePosition())
             End If
 
         End Function
@@ -807,22 +800,15 @@
 
             'Get value
             Dim ConstantValue As ExpressionNode = Nothing
-            If CurrentToken.Type = TokenType.SYMBOL_EQUAL Then
-                Advance()
-                ConstantValue = GetExpression()
-            End If
+            CheckTokenType(TokenType.SYMBOL_EQUAL, "A constant must always have a value. Please add a value.")
+            Advance()
+            ConstantValue = GetExpression()
 
             'Create node
-            If ConstantType IsNot Nothing AndAlso ConstantValue Is Nothing Then
-                Return New DeclareConstantWithTypeStatement(ConstantName, ConstantType, RetrievePosition())
-            ElseIf ConstantType Is Nothing AndAlso ConstantValue IsNot Nothing Then
-                'Value
+            If ConstantType Is Nothing Then
                 Return New DeclareConstantWithValueStatement(ConstantName, ConstantValue, RetrievePosition())
-            ElseIf ConstantType IsNot Nothing AndAlso ConstantValue IsNot Nothing Then
-                'Type
-                Return New DeclareVariableWithTypeValueStatement(ConstantName, ConstantType, ConstantValue, RetrievePosition())
             Else
-                Throw New SyntaxError("A variable declaration must contains at least the type of the variable or a default value.", RetrievePosition())
+                Return New DeclareConstantWithTypeValueStatement(ConstantName, ConstantType, ConstantValue, RetrievePosition())
             End If
 
         End Function
@@ -1200,6 +1186,8 @@
             ' Get constructs
             Dim Methods As New List(Of FunctionConstruct)
             Dim Fields As New List(Of StructConstruct.Field)
+            Dim SourceFields As New List(Of String)
+            Dim Constructors As New List(Of ConstructorConstruct)
             While True
 
                 'Check linestart
@@ -1214,6 +1202,10 @@
                 ' Get construct
                 If CurrentToken.Type = TokenType.KEYWORD_FUNC Then
                     Methods.Add(GetFunctionConstructNode(1))
+
+                ElseIf CurrentToken.Type = TokenType.KEYWORD_NEW Then
+                    Constructors.Add(GetConstructorConstructNode())
+
                 ElseIf CurrentToken.Type = TokenType.KEYWORD_LET Then
                     PushPosition()
                     Advance()
@@ -1224,6 +1216,11 @@
                     Advance()
                     Dim PropertieType As TypeNode = GetTypeNode()
                     Fields.Add(New StructConstruct.Field(PropertieName, PropertieType, RetrievePosition()))
+
+                ElseIf CurrentToken.Type = TokenType.SOURCE_LINE Then
+                    SourceFields.Add(CurrentToken.Value)
+                    Advance()
+
                 Else
                     Throw New UnexpectedTokenError(CurrentToken.Location, "A struct construct was expected there (method, getter, variable)")
                 End If
@@ -1231,7 +1228,7 @@
             End While
 
             ' Create record
-            Return New StructConstruct(Name, GenericArguments, Fields, Methods, RetrievePosition())
+            Return New StructConstruct(Name, GenericArguments, Fields, SourceFields, Methods, Constructors, RetrievePosition())
 
         End Function
 
@@ -1334,7 +1331,7 @@
                     Advance()
 
                 Else
-                    Throw New UnexpectedTokenError(CurrentToken.Location, "A struct construct was expected there (method, getter, variable)")
+                    Throw New UnexpectedTokenError(CurrentToken.Location, "A class construct was expected there (method, getter, variable)")
                 End If
 
             End While

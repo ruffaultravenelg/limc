@@ -24,11 +24,7 @@
 
             Dim ConstantInfo As ConstantData = Scope.CreateConstant(ConstantName, WantedType, Location)
 
-            If WantedType.cRepresentation.Contains("*") Then
-                Writer.WriteLine($"{WantedType.cRepresentation} const {ConstantInfo.CompiledName} = {ConstantValue.CompileExpression(Writer, Scope)};")
-            Else
-                Writer.WriteLine($"const {WantedType.cRepresentation} {ConstantInfo.CompiledName} = {ConstantValue.CompileExpression(Writer, Scope)};")
-            End If
+            Writer.WriteLine($"{WantedType.cRepresentation} {ConstantInfo.CompiledName} = {ConstantValue.CompileExpression(Writer, Scope)};")
 
         End Sub
 
