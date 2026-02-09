@@ -19,7 +19,7 @@
             Return Callback(CompiledObject)
         End Function
 
-        Public Overrides Function GetReference(CompiledObjectPointer As String, Location As Location) As String
+        Public Overrides Function CallGetterButReturnsValuePointer(CompiledObjectPointer As String, Location As Location) As String
             If GetPointerValueCallBack IsNot Nothing Then
                 Return GetPointerValueCallBack(CompiledObjectPointer)
             Else

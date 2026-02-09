@@ -34,7 +34,7 @@
                 Dim Prop As New Propertie(Field.Name, Field.Type.GetAssociatedType(InnerContext))
                 Properties.Add(Prop)
                 StructFields.Add($"{Prop.Type.cRepresentation} {Prop.CompiledName};")
-                RegisterGetter(New Lazy.DirectAccessGetter(Field.Name, Prop.Type, Function(instance) $"{instance}.{Prop.CompiledName}", Function(instance) $"{instance}->{Prop.CompiledName}"))
+                RegisterGetter(New Lazy.DirectAccessGetter(Field.Name, Prop.Type, Function(instance) $"{instance}.{Prop.CompiledName}", Function(instance) $"(&{instance}->{Prop.CompiledName})"))
                 RegisterSetter(New Lazy.DirectAccessSetter(Field.Name, Prop.Type, Function(instance, newValue) $"{instance}->{Prop.CompiledName} = {newValue};"))
             Next
 

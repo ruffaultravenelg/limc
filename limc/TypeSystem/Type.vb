@@ -22,6 +22,17 @@ Namespace TypeSystem
         ' Is a pointer
         Public MustOverride ReadOnly Property IsPointer As Boolean
 
+        ' Has pointer
+        Public ReadOnly Property pointerCRepresentation As String
+            Get
+                If IsPointer Then
+                    Return cRepresentation
+                Else
+                    Return cRepresentation & "*"
+                End If
+            End Get
+        End Property
+
         ' Create a default value (ex: NULL)
         Public MustOverride Function DefaultValue(Scope As Context.Scope) As String
 

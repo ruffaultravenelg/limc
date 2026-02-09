@@ -20,7 +20,7 @@
             Return Target.GetExpressionReturnType(Scope).GetRelation(TypeSystem.RelationType.RELATION_BRACKETS, Arguments.Select(Function(arg) arg.GetExpressionReturnType(Scope)), Location).CompileCall(Target, Arguments, Writer, Scope, Location)
         End Function
 
-        Public Overrides Function GetPointerToValue(Writer As CWriter, Scope As Context.Scope) As String
+        Protected Overrides Function _CompileAsLValue(Writer As CWriter, Scope As Context.Scope) As String
             Dim TargetType As TypeSystem.Type = Target.GetExpressionReturnType(Scope)
             If TypeOf TargetType IsNot TypeSystem.RackType Then
                 Throw New ExpressionDoesNotReferToAVariableError(Location)
@@ -32,11 +32,7 @@
                 Throw New SyntaxError("A index was expected here.", Arguments(1).Location)
             End If
 
-            If TargetType.IsPointer Then
-                Return TargetType.GetRelation(TypeSystem.RelationType.RELATION_BRACKETS, Arguments.Select(Function(arg) arg.GetExpressionReturnType(Scope)), Location).CompileCall(Target, Arguments, Writer, Scope, Location)
-            Else
-                Return TargetType.GetRelation(TypeSystem.RelationType.RELATION_BRACKETS_PTR, Arguments.Select(Function(arg) arg.GetExpressionReturnType(Scope)), Location).CompileCall(Target, Arguments, Writer, Scope, Location)
-            End If
+            Return TargetType.GetRelation(TypeSystem.RelationType.RELATION_BRACKETS_PTR, Arguments.Select(Function(arg) arg.GetExpressionReturnType(Scope)), Location).CompileCall(Target, Arguments, Writer, Scope, Location)
 
         End Function
 

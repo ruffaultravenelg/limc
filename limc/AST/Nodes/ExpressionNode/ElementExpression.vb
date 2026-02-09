@@ -54,17 +54,12 @@
 
         End Function
 
-        Public Overrides Function GetPointerToValue(Writer As CWriter, Scope As Context.Scope) As String
+        Protected Overrides Function _CompileAsLValue(Writer As CWriter, Scope As Context.Scope) As String
 
             Dim Element As SearchMatch = GetMatchs(Scope).First()
 
             If Element.Type = SearchMatch.MatchType.MATCH_VARIABLE Then
-                Dim Variable = Element.MatchingVariable
-                If Variable.Type.IsPointer Then
-                    Return Variable.CompiledName
-                Else
-                    Return "&" & Variable.CompiledName
-                End If
+                Return "&" & Element.MatchingVariable.CompiledName
             Else
                 Throw New ExpressionDoesNotReferToAVariableError(Location)
             End If

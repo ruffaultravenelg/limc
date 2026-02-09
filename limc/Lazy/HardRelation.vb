@@ -15,12 +15,17 @@
                         Throw New InternalError()
                     End If
 
-                    Dim Args As New List(Of String) From {$"{ParentType.cRepresentation} {Constants.INSTANCE_ARGUMENT_NAME}"}
+                    Dim Args As New List(Of String)
+                    If Type = TypeSystem.RelationType.RELATION_BRACKETS_PTR Then
+                        Args.Add($"{ParentType.pointerCRepresentation} {Constants.INSTANCE_ARGUMENT_NAME}")
+                    Else
+                        Args.Add($"{ParentType.cRepresentation} {Constants.INSTANCE_ARGUMENT_NAME}")
+                    End If
                     For i As Integer = 0 To ArgumentsTypes.Count - 1
                         Args.Add($"{ArgumentsTypes(i).cRepresentation} {ArgumentNames(i)}")
                     Next
 
-                    Dim returnType_STR As String = If(Type = TypeSystem.RelationType.RELATION_BRACKETS_PTR, ReturnType.cRepresentation & "*", ReturnType.cRepresentation)
+                    Dim returnType_STR As String = If(Type = TypeSystem.RelationType.RELATION_BRACKETS_PTR, ReturnType.pointerCRepresentation, ReturnType.cRepresentation)
                     _GeneratedFunction = New CodeGen.ContextedFunction(Args, returnType_STR, Body, $"{ParentType.ToString()} -> {Type.ToString()}({String.Join(", ", ArgumentsTypes.Select(Function(arg) arg.ToString()))}):{ReturnType.ToString()}")
                     CodeGen.RegisterFunction(_GeneratedFunction)
                 End If

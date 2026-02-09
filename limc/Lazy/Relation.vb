@@ -35,7 +35,7 @@
             Dim CompiledArguments As New List(Of String)
 
             If Type = TypeSystem.RelationType.RELATION_BRACKETS_PTR Then
-                CompiledArguments.Add(Instance.GetPointerToValue(Writer, Scope))
+                CompiledArguments.Add(Instance.CompileExpressionAsLValue(Writer, Scope))
             Else
                 CompiledArguments.Add(Instance.CompileExpression(Writer, Scope))
             End If

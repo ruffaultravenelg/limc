@@ -41,27 +41,25 @@
 
             If Element.Type = SearchMatch.MatchType.MATCH_METHOD Then
                 Throw New LocatedError("Methods cannot be referenced for now", "referencing object methods can lead to double pointer variable, breaking tgc", Location)
+
             ElseIf Element.Type = SearchMatch.MatchType.MATCH_GETTER Then
                 Return Element.MatchingGetter.CallGetter(Parent.CompileExpression(Writer, Scope))
+
             Else
                 Throw New UnknownOrUnreachableElementError(ElementName, Location)
             End If
 
         End Function
 
-        Public Overrides Function GetPointerToValue(Writer As CWriter, Scope As Context.Scope) As String
+        Protected Overrides Function _CompileAsLValue(Writer As CWriter, Scope As Context.Scope) As String
 
             Dim Element As SearchMatch = GetMatchs(Scope).First()
-            Dim ParentType As TypeSystem.Type = Parent.GetExpressionReturnType(Scope)
 
             If Element.Type = SearchMatch.MatchType.MATCH_GETTER Then
-                If Element.MatchingGetter.Type.IsPointer Then
-                    Return Element.MatchingGetter.CallGetter(Parent.CompileExpression(Writer, Scope))
-                Else
-                    Return Element.MatchingGetter.GetReference(Parent.GetPointerToValue(Writer, Scope), Location)
-                End If
+                Return Element.MatchingGetter.CallGetterButReturnsValuePointer(Parent.CompileExpressionAsLValue(Writer, Scope), Location)
+
             Else
-                Throw New ExpressionDoesNotReferToAVariableError(Location)
+                Throw New UnknownOrUnreachableElementError(ElementName, Location)
             End If
 
         End Function
@@ -73,12 +71,7 @@
 
             For Each Match In MatchingSetters
                 If Match.MatchingSetter.Type = NewValueType Then
-                    If NewValueType.IsPointer Then
-                        Match.MatchingSetter.WriteSetterCall(Writer, Parent.CompileExpression(Writer, Scope), NewValue.CompileExpression(Writer, Scope))
-                    Else
-                        Match.MatchingSetter.WriteSetterCall(Writer, Parent.GetPointerToValue(Writer, Scope), NewValue.CompileExpression(Writer, Scope))
-                    End If
-
+                    Match.MatchingSetter.WriteSetterCall(Writer, Parent.CompileExpressionAsLValue(Writer, Scope), NewValue.CompileExpression(Writer, Scope))
                     Exit Sub
                 End If
             Next
