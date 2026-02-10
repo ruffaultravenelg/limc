@@ -444,6 +444,9 @@ Namespace AST
                 Case TokenType.VAL_STRING
                     Return New StringExpression(Tok.Value, Tok.Location)
 
+                Case TokenType.VAL_FORMATED_STRING
+                    Return New FormattedStringExpression(Tok.Value, Tok.Location)
+
                 Case TokenType.TEXT
 
                     If CurrentToken.Type = TokenType.OP_MODULE_RESOLVER Then

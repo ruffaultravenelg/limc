@@ -357,18 +357,7 @@ Public Module Tokenizer
                         If CurrentChar = Nothing Then
                             Throw New LocatedError("String not closed", "The string was not closed before the end of the line.", LocationFromSave())
                         End If
-                        Select Case CurrentChar
-                            Case "n"c
-                                Str &= vbLf
-                            Case "t"c
-                                Str &= vbTab
-                            Case "\"c
-                                Str &= "\"c
-                            Case "'"c
-                                Str &= "'"c
-                            Case Else
-                                Str &= "\"c & CurrentChar 'Unknown escape, keep it as is
-                        End Select
+                        Str &= "\" & CurrentChar
                     Else
                         Str &= CurrentChar
                     End If

@@ -1,7 +1,4 @@
-﻿Imports System.Globalization
-Imports System.Text
-
-Namespace AST
+﻿Namespace AST
     Public Class StringExpression
         Inherits ExpressionNode
         Implements IConstantExpression

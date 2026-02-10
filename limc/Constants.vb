@@ -6,6 +6,7 @@
     Public Const PANIC_FUNCTION_NAME As String = "lim_panic"
     Public Const PRINT_STACK_TRACE_FUNCTION_NAME As String = "lim_printStackTrace"
     Public Const LIM_ALLOC As String = "LIM_ALLOC"
+    Public Const LIM_ALLOC_LEAF As String = "LIM_ALLOC_LEAF"
     Public Const LIM_FREE As String = "LIM_FREE"
     Public Const LIM_REALLOC As String = "LIM_REALLOC"
     Public Const INT_TO_STR_BUFFERSIZE As String = "12"
