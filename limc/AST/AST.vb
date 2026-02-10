@@ -1305,6 +1305,101 @@ Namespace AST
 
 
         End Function
+        Private Function GetRelationConstructNode() As RelationConstruct
+
+            If Not CurrentToken.Type = TokenType.KEYWORD_RELATION Then
+                Throw New NotTheRightElementException()
+            End If
+            Advance()
+
+            ' Get relation type
+            Dim RelationType As TypeSystem.RelationType
+            Select Case CurrentToken.Type
+                Case TokenType.SYMBOL_PLUS
+                    RelationType = TypeSystem.RelationType.RELATION_ADD
+                Case TokenType.SYMBOL_MINUS
+                    RelationType = TypeSystem.RelationType.RELATION_SUB
+                Case TokenType.SYMBOL_MULTIPLICATE
+                    RelationType = TypeSystem.RelationType.RELATION_MULT
+                Case TokenType.SYMBOL_DIVIDE
+                    RelationType = TypeSystem.RelationType.RELATION_DIV
+                Case TokenType.SYMBOL_MODULO
+                    RelationType = TypeSystem.RelationType.RELATION_MODULO
+                Case TokenType.SYMBOL_GREATERTHAN
+                    RelationType = TypeSystem.RelationType.RELATION_GREATERTHAN
+                Case TokenType.SYMBOL_GREATERTHANEQUAL
+                    RelationType = TypeSystem.RelationType.RELATION_GREATERTHANEQUAL
+                Case TokenType.SYMBOL_LESSTHAN
+                    RelationType = TypeSystem.RelationType.RELATION_LESSTHAN
+                Case TokenType.SYMBOL_LESSTHANEQUAL
+                    RelationType = TypeSystem.RelationType.RELATION_LESSTHANEQUAL
+                Case TokenType.SYMBOL_EQUAL
+                    RelationType = TypeSystem.RelationType.RELATION_EQUAL
+                Case TokenType.SYMBOL_LEFT_BRACKETS
+                    Advance()
+                    CheckTokenType(TokenType.SYMBOL_RIGHT_BRACKETS)
+
+                    Advance()
+                    If CurrentToken.Type = TokenType.SYMBOL_EQUAL Then
+                        RelationType = TypeSystem.RelationType.RELATION_SET_BRACKETS ' []=
+                    Else
+                        Retreat()
+                        RelationType = TypeSystem.RelationType.RELATION_BRACKETS ' []
+                    End If
+
+                Case TokenType.SYMBOL_AT
+                    Advance()
+                    CheckTokenType(TokenType.SYMBOL_LEFT_BRACKETS)
+                    Advance()
+                    CheckTokenType(TokenType.SYMBOL_RIGHT_BRACKETS)
+                    RelationType = TypeSystem.RelationType.RELATION_BRACKETS_PTR ' @[]
+
+                Case Else
+                    Throw New SyntaxError("A relation type was expected here (+, -, /, etc)", CurrentToken.Location)
+            End Select
+            Advance()
+
+            'Get arguments
+            PushPosition()
+            If CurrentToken.Type = TokenType.SYMBOL_LESSTHAN Then
+                Throw New SyntaxError("A relation does not have generic arguments.", CurrentToken.Location)
+            End If
+
+            Dim Arguments As New List(Of ArgumentNode)
+            CheckTokenType(TokenType.SYMBOL_LEFT_PARENTHESIS, "A relation must have at least one argument (itself).")
+            Advance()
+            If CurrentToken.Type = TokenType.SYMBOL_RIGHT_PARENTHESIS Then
+                Throw New UnexpectedTokenError(CurrentToken.Location, "A relation must have at least one argument (itself)")
+            End If
+
+            Dim InstanceArgument As ArgumentNode = Nothing 'For [], []= and @[] relations, there is no "instance" argument, it use "self" like a method
+            If (TypeSystem.RelationUseSelf(RelationType)) Then
+                Arguments.Add(GetArgumentNode())
+            Else
+                InstanceArgument = GetArgumentNode()
+            End If
+
+            While CurrentToken.Type = TokenType.SYMBOL_COMMA
+                Advance()
+                Arguments.Add(GetArgumentNode())
+            End While
+            CheckTokenType(TokenType.SYMBOL_RIGHT_PARENTHESIS, "A comma or a closing parenthesis was expected here.")
+            Advance()
+
+            'Return type
+            Dim ReturnType As TypeNode = Nothing
+            If CurrentToken.Type = TokenType.SYMBOL_COLON Then
+                Advance()
+                ReturnType = GetTypeNode()
+            End If
+
+            'Body
+            Dim Body As IEnumerable(Of StatementNode) = GetBody(2)
+
+            'Return node
+            Return New RelationConstruct(RelationType, InstanceArgument, Arguments, ReturnType, Body, RetrievePosition())
+
+        End Function
 
         Private Function GetClassConstructNode() As ClassConstruct
 
@@ -1328,6 +1423,7 @@ Namespace AST
             Dim Fields As New List(Of ClassConstruct.Field)
             Dim SourceFields As New List(Of String)
             Dim Constructors As New List(Of ConstructorConstruct)
+            Dim Relations As New List(Of RelationConstruct)
             While True
 
                 'Check linestart
@@ -1361,6 +1457,9 @@ Namespace AST
                     SourceFields.Add(CurrentToken.Value)
                     Advance()
 
+                ElseIf CurrentToken.Type = TokenType.KEYWORD_RELATION Then
+                    Relations.Add(GetRelationConstructNode())
+
                 Else
                     Throw New UnexpectedTokenError(CurrentToken.Location, "A class construct was expected there (method, getter, variable)")
                 End If
@@ -1368,7 +1467,7 @@ Namespace AST
             End While
 
             ' Create record
-            Return New ClassConstruct(Name, GenericArguments, Fields, SourceFields, Methods, Constructors, RetrievePosition())
+            Return New ClassConstruct(Name, GenericArguments, Fields, SourceFields, Methods, Constructors, Relations, RetrievePosition())
 
         End Function
 

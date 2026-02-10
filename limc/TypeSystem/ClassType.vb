@@ -66,6 +66,11 @@
                 RegisterMethod(MethodNode)
             Next
 
+            ' Register relations
+            For Each RelationNode In Classe.Relations
+                RegisterRelation(New Lazy.UserRelation(Me, RelationNode))
+            Next
+
         End Sub
 
         ' Get constructor
@@ -75,7 +80,6 @@
 
         Public Overrides ReadOnly Property cRepresentation As String
         Private structName As String
-        Protected Overrides ReadOnly Property Relations As IEnumerable(Of Lazy.Relation) = {}
 
         Public Overrides Function DefaultValue(Scope As Context.Scope) As String
             Return "NULL"

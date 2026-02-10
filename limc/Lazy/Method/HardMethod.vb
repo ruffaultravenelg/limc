@@ -1,5 +1,4 @@
-﻿
-Imports limc.CodeGen
+﻿Imports limc.CodeGen
 Imports limc.TypeSystem
 
 Namespace Lazy

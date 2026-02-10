@@ -186,8 +186,6 @@ Namespace TypeSystem
             Return $"fun<{ArgTypes}><{If(ReturnType Is Nothing, "", ReturnType.ToString())}>"
         End Function
 
-        Protected Overrides ReadOnly Property Relations As IEnumerable(Of Lazy.Relation) = {}
-
     End Class
 
 End Namespace

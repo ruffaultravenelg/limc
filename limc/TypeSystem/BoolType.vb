@@ -13,8 +13,6 @@
             Return "bool"
         End Function
 
-        Protected Overrides ReadOnly Property Relations As IEnumerable(Of Lazy.Relation) = {}
-
         Public Sub Compile()
             RegisterMethod(New Lazy.HardMethod(Me, "str", {}, Type.Str, {
                 $"return {Constants.INSTANCE_ARGUMENT_NAME} ? ""true"" : ""false"";"

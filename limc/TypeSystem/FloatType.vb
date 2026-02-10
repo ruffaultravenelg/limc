@@ -30,7 +30,5 @@
             }))
         End Sub
 
-        Protected Overrides ReadOnly Property Relations As IEnumerable(Of Lazy.Relation) = {} 'Operations are hardcoded in nodes
-
     End Class
 End Namespace

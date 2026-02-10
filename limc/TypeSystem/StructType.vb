@@ -61,8 +61,6 @@
         End Function
 
         Public Overrides ReadOnly Property cRepresentation As String
-        Protected Overrides ReadOnly Property Relations As IEnumerable(Of Lazy.Relation) = {}
-
         Public Overrides Function DefaultValue(Scope As Context.Scope) As String
             Return "(" & cRepresentation & "){" & String.Join(", ", Properties.Select(Function(p) p.Type.DefaultValue(Scope))) & "}"
         End Function

@@ -16,4 +16,20 @@
         RELATION_BRACKETS_PTR
     End Enum
 
+    Module RelationUtil
+
+        Public Function RelationUseSelf(RelationType As RelationType)
+            Select Case RelationType
+                Case RelationType.RELATION_ADD, RelationType.RELATION_SUB, RelationType.RELATION_MULT, RelationType.RELATION_DIV, RelationType.RELATION_MODULO,
+                     RelationType.RELATION_LESSTHAN, RelationType.RELATION_LESSTHANEQUAL, RelationType.RELATION_GREATERTHAN, RelationType.RELATION_GREATERTHANEQUAL,
+                     RelationType.RELATION_EQUAL, RelationType.RELATION_UNARY_MINUS
+                    Return False
+
+                Case Else
+                    Return True
+            End Select
+        End Function
+
+    End Module
+
 End Namespace

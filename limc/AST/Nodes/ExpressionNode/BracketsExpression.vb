@@ -22,9 +22,6 @@
 
         Protected Overrides Function _CompileAsLValue(Writer As CWriter, Scope As Context.Scope) As String
             Dim TargetType As TypeSystem.Type = Target.GetExpressionReturnType(Scope)
-            If TypeOf TargetType IsNot TypeSystem.RackType Then
-                Throw New ExpressionDoesNotReferToAVariableError(Location)
-            End If
 
             If Arguments.Count > 1 Then
                 Throw New SyntaxError("Only one index was expected here.", Arguments(1).Location)
@@ -32,7 +29,13 @@
                 Throw New SyntaxError("A index was expected here.", Arguments(1).Location)
             End If
 
-            Return TargetType.GetRelation(TypeSystem.RelationType.RELATION_BRACKETS_PTR, Arguments.Select(Function(arg) arg.GetExpressionReturnType(Scope)), Location).CompileCall(Target, Arguments, Writer, Scope, Location)
+            Dim Relation As Lazy.Relation
+            Try
+                Relation = TargetType.GetRelation(TypeSystem.RelationType.RELATION_BRACKETS_PTR, Arguments.Select(Function(arg) arg.GetExpressionReturnType(Scope)), Location)
+            Catch ex As SyntaxError
+                Throw New SyntaxError($"The ""{TargetType.ToString()}"" type does not contain a '@[]' relation, and thus cannot be used as a lvalue for assignement.", Location)
+            End Try
+            Return Relation.CompileCall(Target, Arguments, Writer, Scope, Location)
 
         End Function
 

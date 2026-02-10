@@ -9,8 +9,9 @@
         Public ReadOnly Property SourceFields As IEnumerable(Of String)
         Public ReadOnly Property Methods As IEnumerable(Of FunctionConstruct)
         Public ReadOnly Property Constructors As IEnumerable(Of ConstructorConstruct)
+        Public ReadOnly Property Relations As IEnumerable(Of RelationConstruct)
 
-        Public Sub New(Name As String, GenericTypeNames As IEnumerable(Of String), Fields As IEnumerable(Of Field), SourceFields As IEnumerable(Of String), Methods As IEnumerable(Of FunctionConstruct), Constructors As IEnumerable(Of ConstructorConstruct), Location As Location)
+        Public Sub New(Name As String, GenericTypeNames As IEnumerable(Of String), Fields As IEnumerable(Of Field), SourceFields As IEnumerable(Of String), Methods As IEnumerable(Of FunctionConstruct), Constructors As IEnumerable(Of ConstructorConstruct), Relations As IEnumerable(Of RelationConstruct), Location As Location)
             MyBase.New(Location)
             Me.Name = Name
             Me.GenericTypeNames = GenericTypeNames
@@ -18,6 +19,7 @@
             Me.SourceFields = SourceFields
             Me.Methods = Methods
             Me.Constructors = Constructors
+            Me.Relations = Relations
         End Sub
 
         Public Function InstanciateType(GenericTypes As IEnumerable(Of TypeSystem.Type)) As TypeSystem.Type Implements IGenerateType.InstanciateType

@@ -312,6 +312,8 @@ Public Module Tokenizer
                         AddToken(TokenType.KEYWORD_CLASS, Loc)
                     Case "new"
                         AddToken(TokenType.KEYWORD_NEW, Loc)
+                    Case "relation"
+                        AddToken(TokenType.KEYWORD_RELATION, Loc)
                     Case Else
                         AddToken(TokenType.TEXT, Text, Loc)
                 End Select

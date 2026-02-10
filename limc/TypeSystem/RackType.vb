@@ -16,6 +16,33 @@ Namespace TypeSystem
             CodeGen.RegisterTypedef($"typedef {ElementType.cRepresentation} {TypedefName}[{Length}];")
         End Sub
 
+        Private Sub Compile()
+
+            ' GET [idx]
+            RegisterRelation(New Lazy.HardRelation(Me, RelationType.RELATION_BRACKETS, {Type.Int}, {"index"}, ElementType, {
+                $"if (index < 0) index = {Length} + index;",
+                $"if (index >= {Length} || index < 0) {CodeGen.WritePanicCall("""Index out of range""")};",
+                $"return {INSTANCE_ARGUMENT_NAME}[index];"
+            }))
+
+            RegisterRelation(New Lazy.HardRelation(Me, RelationType.RELATION_BRACKETS_PTR, {Type.Int}, {"index"}, ElementType, {
+                $"if (index < 0) index = {Length} + index;",
+                $"if (index >= {Length} || index < 0) {CodeGen.WritePanicCall("""Index out of range""")};",
+                $"return &{INSTANCE_ARGUMENT_NAME}[index];"
+            }))
+
+            ' SET [idx]
+            'RegisterRelation(New Lazy.HardRelation(Me, RelationType.RELATION_SET_BRACKETS, {Type.Int, ElementType}, {"index", "newValue"}, Nothing, {
+            '    $"if (index < 0) index = {Length} + index;",
+            '    $"if (index >= {Length} || index < 0) {CodeGen.WritePanicCall("""Index out of range""")};",
+            '    $"{INSTANCE_ARGUMENT_NAME}[index] = newValue;"
+            '}))
+
+            ' GET len
+            RegisterGetter(New Lazy.DirectAccessGetter("len", Type.Int, Function(instance) Length.ToString()))
+
+        End Sub
+
         Public Overrides ReadOnly Property cRepresentation As String
             Get
                 Return TypedefName
@@ -47,40 +74,13 @@ Namespace TypeSystem
 
             ' Get type
             If Not TypesOfThisLength.ContainsKey(ElementType) Then
-                TypesOfThisLength(ElementType) = New RackType(Length, ElementType)
+                Dim NewRackInstance = New RackType(Length, ElementType)
+                TypesOfThisLength(ElementType) = NewRackInstance
+                NewRackInstance.Compile()
             End If
             Return TypesOfThisLength(ElementType)
 
         End Function
-
-        Private _Relations As New List(Of Lazy.Relation)
-        Protected Overrides ReadOnly Property Relations As IEnumerable(Of Lazy.Relation)
-            Get
-                If _Relations.Count = 0 Then
-
-                    ' GET [idx]
-                    _Relations.Add(New Lazy.HardRelation(Me, RelationType.RELATION_BRACKETS, {Type.Int}, {"index"}, ElementType, {
-                        $"if (index < 0) index = {Length} + index;",
-                        $"if (index >= {Length} || index < 0) {CodeGen.WritePanicCall("""Index out of range""")};",
-                        $"return {INSTANCE_ARGUMENT_NAME}[index];"
-                    }))
-                    _Relations.Add(New Lazy.HardRelation(Me, RelationType.RELATION_BRACKETS_PTR, {Type.Int}, {"index"}, ElementType, {
-                        $"if (index < 0) index = {Length} + index;",
-                        $"if (index >= {Length} || index < 0) {CodeGen.WritePanicCall("""Index out of range""")};",
-                        $"return &{INSTANCE_ARGUMENT_NAME}[index];"
-                    }))
-
-                    ' SET [idx]
-                    '_Relations.Add(New Lazy.HardRelation(Me, RelationType.RELATION_SET_BRACKETS, {Type.Int, ElementType}, {"index", "newValue"}, Nothing, {
-                    '    $"if (index < 0) index = {Length} + index;",
-                    '    $"if (index >= {Length} || index < 0) {CodeGen.WritePanicCall("""Index out of range""")};",
-                    '    $"{INSTANCE_ARGUMENT_NAME}[index] = newValue;"
-                    '}))
-
-                End If
-                Return _Relations
-            End Get
-        End Property
 
         Public Sub WriteElementAssignation(Instance As AST.ExpressionNode, Index As AST.ExpressionNode, NewValue As AST.ExpressionNode, Writer As CWriter, Scope As Context.Scope)
 

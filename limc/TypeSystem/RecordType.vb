@@ -60,8 +60,6 @@ Namespace TypeSystem
 
         Public Overrides ReadOnly Property cRepresentation As String
 
-        Protected Overrides ReadOnly Property Relations As IEnumerable(Of Lazy.Relation) = {}
-
         Private FieldTypes As IEnumerable(Of Type) = Nothing
         Public Overrides Function DefaultValue(Scope As Context.Scope) As String
             If FieldTypes Is Nothing Then

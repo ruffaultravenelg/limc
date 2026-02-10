@@ -56,8 +56,12 @@ Namespace TypeSystem
         End Operator
 
         ' Relations
-        Protected MustOverride ReadOnly Property Relations As IEnumerable(Of Lazy.Relation)
+        Private ReadOnly Relations As New List(Of Lazy.Relation)
+        Protected Sub RegisterRelation(Relation As Lazy.Relation)
+            Relations.Add(Relation)
+        End Sub
         Public Function GetRelation(Type As RelationType, ArgumentsTypes As IEnumerable(Of Type), Location As Location) As Lazy.Relation
+
             For Each Relation In Relations
 
                 ' Check type

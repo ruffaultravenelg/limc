@@ -6,13 +6,25 @@
         Public MustOverride ReadOnly Property ArgumentsTypes As IEnumerable(Of TypeSystem.Type)
         Public MustOverride ReadOnly Property ReturnType As TypeSystem.Type
 
-        ' Compiled function
-        Public MustOverride ReadOnly Property GeneratedFunction As CodeGen.ContextedFunction 'IMPORTANT: first argument must be the instance
-
         ' Constructor
         Public Sub New(ParentType As TypeSystem.Type)
             Me.ParentType = ParentType
         End Sub
+
+        ' Compile to C
+        Protected MustOverride Function GenerateCompiledRelation() As CodeGen.ContextedFunction
+        Protected MustOverride Sub CompileBody()
+        Private _GeneratedRelation As CodeGen.ContextedFunction
+        Protected ReadOnly Property GeneratedRelation As CodeGen.ContextedFunction
+            Get
+                If _GeneratedRelation Is Nothing Then
+                    _GeneratedRelation = GenerateCompiledRelation()
+                    CodeGen.RegisterFunction(_GeneratedRelation)
+                    CompileBody()
+                End If
+                Return _GeneratedRelation
+            End Get
+        End Property
 
         ' Compile call
         Public Function CompileCall(Instance As AST.ExpressionNode, Arguments As IEnumerable(Of AST.ExpressionNode), Writer As CWriter, Scope As Context.Scope, Location As Location)
@@ -53,7 +65,7 @@
             Next
 
             ' Return call
-            Return GeneratedFunction.WriteCall(CompiledArguments)
+            Return GeneratedRelation.WriteCall(CompiledArguments)
 
         End Function
 
