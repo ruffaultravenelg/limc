@@ -101,13 +101,19 @@ Namespace TypeSystem
         End Sub
 
         ' Method
-        Private MethodRepository As New MethodRepository()
+        Private MethodRepository As New MethodRepository(AddressOf DefineStrMethod)
         Protected Sub RegisterMethod(Model As AST.FunctionConstruct)
             MethodRepository.RegisterMethod(Model, Me)
         End Sub
         Protected Sub RegisterMethod(Method As Lazy.Method)
             MethodRepository.RegisterMethod(Method)
         End Sub
+
+        Protected Overridable Function DefineStrMethod() As Lazy.Method
+            Return New Lazy.HardMethod(Me, "str", {}, Type.Str, {
+                $"return ""{CodeGen.Helper.Sanitize(ToString())}"";"
+            })
+        End Function
 
         ' Search element (from inside of the type scope)
         Public Function RetrieveElementsFromInside(Name As String, GenericTypes As IEnumerable(Of TypeSystem.Type)) As IEnumerable(Of SearchMatch)

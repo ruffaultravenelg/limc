@@ -81,6 +81,15 @@
             Return "NULL"
         End Function
 
+        Protected Overrides Function DefineStrMethod() As Lazy.Method
+            Dim Sanitazed As String = CodeGen.Helper.Sanitize(ToString())
+            Return New Lazy.HardMethod(Me, "str", {}, Type.Str, {
+                $"char* result = {Constants.LIM_ALLOC_LEAF}(sizeof(char) * ({Sanitazed.Length} + 100 + 1));",
+                $"sprintf(result, ""{Sanitazed}@%p"", {Constants.INSTANCE_ARGUMENT_NAME});",
+                "return result;"
+            })
+        End Function
+
         Private ReadOnly Properties As New List(Of Propertie)
 
         Private Class Propertie

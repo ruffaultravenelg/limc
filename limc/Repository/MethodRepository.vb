@@ -5,6 +5,12 @@ Namespace Repository
 
         ' Contains all functions with their C variants
         Private ReadOnly Methods As New Dictionary(Of String, MethodSet)
+        Private ReadOnly DefineStrCallback As Func(Of Lazy.Method)
+
+        ' Constructor
+        Public Sub New(DefineStrCallback As Func(Of Lazy.Method))
+            Me.DefineStrCallback = DefineStrCallback
+        End Sub
 
         ' Register uncompiled method
         Public Sub RegisterMethod(Model As AST.FunctionConstruct, AssociatedType As TypeSystem.Type)
@@ -24,11 +30,26 @@ Namespace Repository
 
         ' General repository endpoint
         Public Function RetrieveMethods(Name As String, GenericTypes As IEnumerable(Of TypeSystem.Type)) As IEnumerable(Of Lazy.Method)
+
+            Dim Result As IEnumerable(Of Lazy.Method)
             If Methods.ContainsKey(Name) Then
-                Return Methods(Name).RetrieveWithGenerics(GenericTypes)
+                Result = Methods(Name).RetrieveWithGenerics(GenericTypes)
             Else
-                Return {}
+                Result = {}
             End If
+
+            If Result.Count = 0 AndAlso Name = "str" AndAlso GenericTypes.Count = 0 Then
+                If Not Methods.ContainsKey(Name) Then
+                    Methods(Name) = New MethodSet()
+                End If
+                Dim Method = DefineStrCallback()
+                Methods(Name).RegisterVariant(New MethodContainer(Method))
+                Return {Method}
+
+            Else
+                Return Result
+            End If
+
         End Function
 
         ' Represent a set of functions with the same name
