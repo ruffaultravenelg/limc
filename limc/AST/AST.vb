@@ -1,4 +1,6 @@
-﻿Namespace AST
+﻿Imports System.Globalization
+
+Namespace AST
     Public Class AbstractSyntaxTree
 
         '======================
@@ -83,45 +85,50 @@
         Private ReadOnly FileConstructs As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetFunctionConstructNode, AddressOf GetConstantConstructNode, AddressOf GetRecordConstructNode, AddressOf GetStructConstructNode, AddressOf GetClassConstructNode}
 
         Public Sub New(Tokens As IEnumerable(Of Token))
+            Me.Tokens = Tokens
+        End Sub
+
+        Public Shared Function LoadFile(Tokens As IEnumerable(Of Token)) As AbstractSyntaxTree
+
+            Dim AST As New AbstractSyntaxTree(Tokens)
 
             If Tokens.Count < 2 Then
-                Exit Sub
+                Return AST
             End If
-            Me.Tokens = Tokens
 
-            HandleIncludes()
+            AST.HandleIncludes()
 
-            While TokenIndex < Tokens.Count - 1
+            While AST.TokenIndex < Tokens.Count - 1
 
                 'Check linestart
-                CheckTokenType(TokenType.LINESTART)
-                If Not CurrentToken.Value = 0 Then
-                    Throw New IndentationError(CurrentToken.Location, 0)
+                AST.CheckTokenType(TokenType.LINESTART)
+                If Not AST.CurrentToken.Value = 0 Then
+                    Throw New IndentationError(AST.CurrentToken.Location, 0)
                 End If
-                Advance()
+                AST.Advance()
 
                 'Exported
                 Dim Exported As Boolean = False
-                If CurrentToken.Type = TokenType.KEYWORD_EXPORT Then
+                If AST.CurrentToken.Type = TokenType.KEYWORD_EXPORT Then
                     Exported = True
-                    Advance()
+                    AST.Advance()
                 End If
 
                 'Try parsing a function
                 Dim Construct As ConstructNode = Nothing
-                Dim LineStartIndex As Integer = TokenIndex
-                For Each GetConstruct In FileConstructs
+                Dim LineStartIndex As Integer = AST.TokenIndex
+                For Each GetConstruct In AST.FileConstructs
                     Try
                         Construct = GetConstruct()
                         Exit For
                     Catch ex As NotTheRightElementException
-                        TokenIndex = LineStartIndex
+                        AST.TokenIndex = LineStartIndex
                     End Try
                 Next
 
                 'We don't know what construct we have in front of us
                 If Construct Is Nothing Then
-                    Throw New UnexpectedTokenError(CurrentToken.Location, "A construct was expected there (function, structure, etc.).")
+                    Throw New UnexpectedTokenError(AST.CurrentToken.Location, "A construct was expected there (function, structure, etc.).")
                 End If
 
                 'Set exported
@@ -129,18 +136,30 @@
 
                 'Explode to differents properties (weird i know but i mean it work well)
                 If TypeOf Construct Is FunctionConstruct Then
-                    Functions.Add(Construct)
+                    AST.Functions.Add(Construct)
                 ElseIf TypeOf Construct Is DeclareConstantWithValueConstruct Then
-                    Constants.Add(Construct)
+                    AST.Constants.Add(Construct)
                 ElseIf TypeOf Construct Is IGenerateType Then
-                    TypeConstructs.Add(Construct)
+                    AST.TypeConstructs.Add(Construct)
                 Else
                     Throw New InternalError()
                 End If
 
             End While
 
-        End Sub
+            Return AST
+
+        End Function
+
+        Public Shared Function ParseType(Tokens As IEnumerable(Of Token)) As AST.TypeNode
+            Dim AST As New AbstractSyntaxTree(Tokens)
+            Return AST.GetTypeNode()
+        End Function
+
+        Public Shared Function ParseExpression(Tokens As IEnumerable(Of Token)) As AST.ExpressionNode
+            Dim AST As New AbstractSyntaxTree(Tokens)
+            Return AST.GetExpression()
+        End Function
 
         '====================
         '===== INCLUDES =====
@@ -448,8 +467,17 @@
 
                     ElseIf CurrentToken.Type = TokenType.SYMBOL_LESSTHAN Then
                         'tok<
+                        Dim SaveIndex = TokenIndex
+                        Dim PassedGenericTypes As IEnumerable(Of TypeNode)
+                        Try
+                            PassedGenericTypes = GetPassedGenericTypes()
 
-                        Dim PassedGenericTypes As IEnumerable(Of TypeNode) = GetPassedGenericTypes()
+                        Catch ex As Exception When TypeOf ex Is UnexpectedTokenError OrElse TypeOf ex Is SyntaxError
+                            TokenIndex = SaveIndex
+                            Return New ElementExpression(Tok.Value, Tok.Location)
+
+                        End Try
+
                         If CurrentToken.Type = TokenType.SYMBOL_LEFT_BRACE Then
                             Return ContinueRecordExpression("", Tok.Value, PassedGenericTypes, Tok.Location)
                         Else
@@ -674,7 +702,7 @@
 
                 Dim Op As TypeSystem.RelationType = CurrentToken.Type
                 Advance()
-                Dim Right As ExpressionNode = GetPlusOperation()
+                Dim Right As ExpressionNode = GetComparisonOperation()
 
                 Left = New BooleanOperationExpression(Left, Op, Right, Left.Location + Right.Location)
 

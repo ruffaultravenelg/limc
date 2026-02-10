@@ -44,7 +44,7 @@ Namespace Lazy
                 ArgumentSignature.Add($"{Variable.Type.cRepresentation} {Variable.CompiledName}")
             Next
 
-            Return New OwnContextFunction($"new_{AssociatedType.ToString()}", ArgumentSignature, AssociatedType.cRepresentation)
+            Return New OwnContextFunction($"new_{AssociatedType.ToString()}", Node.Location, ArgumentSignature, AssociatedType.cRepresentation)
 
         End Function
 

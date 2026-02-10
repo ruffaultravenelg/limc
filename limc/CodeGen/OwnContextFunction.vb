@@ -5,12 +5,13 @@ Namespace CodeGen
         Inherits ContextedFunction
 
         Private Shared FunctionId As Integer = -1
-        Public Shared ReadOnly FunctionNames As New List(Of String)
+        Public Shared ReadOnly FunctionInfos As New List(Of String)
 
-        Public Sub New(Name As String, Arguments As IEnumerable(Of String), ReturnType As String)
+        Public Sub New(Name As String, Location As Location, Arguments As IEnumerable(Of String), ReturnType As String)
             MyBase.New(Arguments, ReturnType, New List(Of String), Name)
             FunctionId += 1
-            FunctionNames.Add("""" & Name & """")
+            Dim DebugLocation As String = $"{Location.File.RelativePath} (l.{Location.FromLineNumber + 1})"
+            FunctionInfos.Add("{""" & Sanitize(Name) & """, """ & Sanitize(DebugLocation) & """}")
 
             ' Compile arguments
             Dim Args As New StringBuilder

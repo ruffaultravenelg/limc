@@ -50,10 +50,13 @@ Public Module CAPI
 
     ' Compile source string
     Public Function CompileSourceString(Source As String, Scope As Context.Scope) As String
-        Return ReplaceConstants(ReplaceVariable(Source, Scope))
+        Return ReplaceConstants(ReplaceTypes(ReplaceVariable(Source, Scope), Scope))
     End Function
     Public Function CompileSourceStringWithoutContext(Source As String) As String
         Return ReplaceConstants(Source)
+    End Function
+    Public Function CompileSourceNoVariable(Source As String, Context As Context.Context) As String
+        Return ReplaceConstants(ReplaceTypes(Source, Context))
     End Function
 
     ' Replace constants
@@ -75,6 +78,16 @@ Public Module CAPI
         Return result
     End Function
 
+    ' Replace types
+    Private Function ReplaceTypes(Source As String, Scope As Context.Context)
+        Return Regex.Replace(Source, "\$:([\w<>,]+)", Function(m As Match)
+                                                          Dim Expression As String = m.Groups(1).Value
+                                                          Dim Tokens = Tokenizer.TokenizeExpression(Expression, Scope.ParentFile)
+                                                          Dim Typenode = AST.AbstractSyntaxTree.ParseType(Tokens)
+                                                          Return Typenode.GetAssociatedType(Scope).cRepresentation
+                                                      End Function)
+    End Function
+
     ' Replace variables
     Private Function ReplaceVariable(Source As String, Scope As Context.Scope) As String
         Return Regex.Replace(Source, "\$(\w+)", Function(m As Match)
@@ -83,10 +96,16 @@ Public Module CAPI
                                                     For Each Result In Results
                                                         If Result.Type = SearchMatch.MatchType.MATCH_VARIABLE Then
                                                             Return Result.MatchingVariable.CompiledName
+                                                        ElseIf Result.Type = SearchMatch.MatchType.MATCH_CONSTANT Then
+                                                            Return Result.MatchingConstant.CompiledName
+                                                        ElseIf Result.Type = SearchMatch.MatchType.MATCH_SCOPE_GETTER Then
+                                                            Return Result.MatchingScopeGetter.CompileCall()
                                                         End If
                                                     Next
                                                     Throw New SyntaxError($"The variable ""{VariableName}"" could not be identified in this context. Check its name and visibility.", Scope.Location)
                                                 End Function)
     End Function
+
+    ' String to 
 
 End Module

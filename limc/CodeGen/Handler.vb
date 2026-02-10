@@ -208,7 +208,7 @@ Namespace CodeGen
 
             If INTEGRATE_DEBUG Then
                 RegisterStruct(New Struct(RUNTIME_CONTEXT_STRUCT_NAME, {$"{RUNTIME_CONTEXT_STRUCT_NAME}* upper;", "int functionId;", "tgc_t* gc;"}, "Function stack context"))
-                RegisterGlobalVariable("static const char* functionNames[] = {" & String.Join(", ", OwnContextFunction.FunctionNames) & "};")
+                RegisterGlobalVariable("static const struct{char* name; char* location;} functionInfos[] = {" & String.Join(", ", OwnContextFunction.FunctionInfos) & "};")
                 RegisterFunction(New BaseFunction(
                     $"void {PRINT_STACK_TRACE_FUNCTION_NAME}({RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME})",
                     {
@@ -220,7 +220,11 @@ Namespace CodeGen
                         vbTab & vbTab & vbTab & "fprintf(stderr, ""|   "");",
                         vbTab & vbTab & "fprintf(stderr, ""|-- "");",
                         vbTab & "}",
-                        vbTab & "fprintf(stderr, ""\033[32m%s\033[0m%s\n"", functionNames[ctx.functionId], depth == 0 ? "" < -here"" : """");",
+                        vbTab & "if (depth == 0){",
+                        vbTab & vbTab & "fprintf(stderr, ""\033[32m%s\033[0m <- here '%s'w\n"", functionInfos[ctx.functionId].name, functionInfos[ctx.functionId].location);",
+                        vbTab & "} else {",
+                        vbTab & vbTab & "fprintf(stderr, ""\033[32m%s\033[0m\n"", functionInfos[ctx.functionId].name);",
+                        vbTab & "}",
                         vbTab & "ctx = *ctx.upper;",
                         vbTab & "depth++;",
                         "}"

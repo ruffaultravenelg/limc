@@ -32,6 +32,19 @@ Public Module Tokenizer
         Return Results
     End Function
 
+    Public Function TokenizeExpression(Source As String, ParentFile As SourceFile) As IEnumerable(Of Token)
+        Tokenizer.Line = Source
+        Tokenizer.Source = ParentFile
+        Results = New List(Of Token)
+        LineNumber = 0
+        Col = 0
+
+        TokenizeExpression()
+        Results.Add(New Token(TokenType.LINESTART, New Location(ParentFile, LineNumber - 1, 0, 0), 0))
+
+        Return Results
+    End Function
+
     'Sanitaze results
     Private Sub SanitazeResults()
 
@@ -170,6 +183,12 @@ Public Module Tokenizer
                 Exit Sub
             End If
         End If
+
+        TokenizeExpression()
+
+    End Sub
+
+    Private Sub TokenizeExpression()
 
         'Loop trought chars to create tokens
         While Not CurrentChar = Nothing
@@ -432,7 +451,7 @@ Public Module Tokenizer
             AdvanceChar()
 
         End While
-
     End Sub
+
 
 End Module

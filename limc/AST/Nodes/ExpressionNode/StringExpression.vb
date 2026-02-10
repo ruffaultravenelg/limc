@@ -17,28 +17,8 @@ Namespace AST
         End Function
 
         Public Overrides Function CompileExpression(Writer As CWriter, Scope As Context.Scope) As String
-            Return """" & Sanitaze(Value) & """"
+            Return """" & CodeGen.Sanitize(Value) & """"
         End Function
-
-        Private Shared Function Sanitaze(Value As String) As String
-
-            Dim normalized As String = Value.Normalize(NormalizationForm.FormD)
-            Dim sb As New StringBuilder()
-
-            For Each c As Char In normalized
-                Dim uc As UnicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c)
-                If uc <> UnicodeCategory.NonSpacingMark Then
-                    sb.Append(c)
-                End If
-            Next
-
-            Dim noAccents As String = sb.ToString().Normalize(NormalizationForm.FormC)
-
-            Dim escaped As String = noAccents.Replace("""", "\""")
-
-            Return escaped
-        End Function
-
 
     End Class
 End Namespace

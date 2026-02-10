@@ -57,6 +57,17 @@
             Return {}
         End Function
 
+        ' Parent file
+        Public ReadOnly Property ParentFile As SourceFile
+            Get
+                Dim File = GetParent(Of SourceFile)()
+                If File Is Nothing Then
+                    Throw New InternalError()
+                End If
+                Return File
+            End Get
+        End Property
+
     End Class
 
 End Namespace

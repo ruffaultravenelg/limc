@@ -55,7 +55,7 @@
 
             ' Compile source fields
             For Each SourceField In Classe.SourceFields
-                ClassFields.Add(CAPI.CompileSourceStringWithoutContext(SourceField))
+                ClassFields.Add(CAPI.CompileSourceNoVariable(SourceField, BoneContext))
             Next
 
             ' Register struct

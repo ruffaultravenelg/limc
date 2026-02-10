@@ -61,7 +61,7 @@ Namespace Context
             Dim Tokens As IEnumerable(Of Token) = Tokenizer.TokenizeFile(SourceInstance)
 
             'Generate AST
-            SourceInstance.AST = New AbstractSyntaxTree(Tokens)
+            SourceInstance.AST = AbstractSyntaxTree.LoadFile(Tokens)
             SourceInstance.AST.Include_Imports.Add(New AST.ImportLibNode(New Location(SourceInstance, 0, 0, 0), "std")) 'Import std lib to every source file
 
             'Create function repository

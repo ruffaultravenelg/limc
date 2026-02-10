@@ -42,7 +42,7 @@
 
             ' Compile source fields
             For Each SourceField In Struct.SourceFields
-                StructFields.Add(CAPI.CompileSourceStringWithoutContext(SourceField))
+                StructFields.Add(CAPI.CompileSourceNoVariable(SourceField, BoneContext))
             Next
 
             ' Register struct

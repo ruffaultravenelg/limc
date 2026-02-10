@@ -84,7 +84,7 @@ Namespace Lazy
 
             Dim ReturnTypeSignature As String = If(Node.ReturnType Is Nothing, "void", ReturnType.cRepresentation)
 
-            Return New OwnContextFunction(Name, ArgumentSignature, ReturnTypeSignature)
+            Return New OwnContextFunction(Name, Node.Location, ArgumentSignature, ReturnTypeSignature)
 
         End Function
 
