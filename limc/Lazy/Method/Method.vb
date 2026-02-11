@@ -38,24 +38,21 @@ Namespace Lazy
         End Property
 
         ' Compile a call
-        Public Function CompileCall(Instance As ExpressionNode, Arguments As IEnumerable(Of ExpressionNode), Writer As CWriter, Context As Context.Context) As String
+        Public Function CompileCall(InstanceObject As String, Arguments As IEnumerable(Of ExpressionNode), Writer As CWriter, Context As Context.Context, Location As Location) As String
 
-            ' Check instance type
-            If Not Instance.GetExpressionReturnType(Context) = ParentType Then
-                Throw New TypeMismatchError(ParentType, Instance.GetExpressionReturnType(Context), Instance.Location)
-            End If
+            ' We assume InstanceObject is already compiled and of the correct type
 
             ' Check argument count
             If Not Arguments.Count = ArgumentTypes.Count Then
                 If Arguments.Count > 0 Then
                     Throw New SyntaxError($"{ArgumentTypes.Count} arguments requiered, instead of {Arguments.Count}", Arguments.Last.Location)
                 Else
-                    Throw New SyntaxError($"{ArgumentTypes.Count} arguments requiered, instead of {Arguments.Count}", Instance.Location)
+                    Throw New SyntaxError($"{ArgumentTypes.Count} arguments requiered, instead of {Arguments.Count}", Location)
                 End If
             End If
 
             ' Check & compile arguments
-            Dim CompiledArguments As New List(Of String) From {Instance.CompileExpression(Writer, Context)}
+            Dim CompiledArguments As New List(Of String) From {InstanceObject}
             For i As Integer = 0 To Arguments.Count - 1
                 If Not Arguments(i).GetExpressionReturnType(Context) = ArgumentTypes(i) Then
                     Throw New TypeMismatchError(ArgumentTypes(i), Arguments(i).GetExpressionReturnType(Context), Arguments(i).Location)

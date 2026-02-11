@@ -92,8 +92,8 @@
 
         End Function
 
-        Function GetInstanceExpression() As ExpressionNode Implements IMethodReference.GetInstanceExpression
-            Return Parent
+        Function GetCompiledInstance(Writer As CWriter, Scope As Context.Scope) As String Implements IMethodReference.GetCompiledInstance
+            Return Parent.CompileExpression(Writer, Scope)
         End Function
 
     End Class

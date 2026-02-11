@@ -1,7 +1,7 @@
 ﻿Namespace AST
     Public Class ElementExpression
         Inherits ExpressionNode
-        Implements IAssignable, IFunctionReference
+        Implements IAssignable, IFunctionReference, IMethodReference
 
         Protected ElementName As String
 
@@ -124,5 +124,19 @@
 
         End Function
 
+        Public Function TryGetReferencedMethod(Context As Context.Context) As Lazy.Method Implements IMethodReference.TryGetReferencedMethod
+
+            Dim Element As SearchMatch = GetMatchs(Context).First()
+            If Element.Type = SearchMatch.MatchType.MATCH_METHOD Then
+                Return Element.MatchingMethod
+            Else
+                Return Nothing
+            End If
+
+        End Function
+
+        Public Function GetCompiledInstance(Writer As CWriter, Scope As Context.Scope) As String Implements IMethodReference.GetCompiledInstance
+            Return Constants.INSTANCE_ARGUMENT_NAME
+        End Function
     End Class
 End Namespace

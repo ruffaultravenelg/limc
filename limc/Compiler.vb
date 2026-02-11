@@ -63,7 +63,7 @@ Public Module Compiler
         Dim Process As New Process()
         Process.StartInfo.FileName = C_COMPILER_PATH
         Process.StartInfo.Arguments = GetCompilationArguments()
-        Process.StartInfo.UseShellExecute = True
+        Process.StartInfo.UseShellExecute = False
         Process.StartInfo.CreateNoWindow = True
         Try
             Process.Start()

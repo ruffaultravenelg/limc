@@ -221,7 +221,7 @@ Namespace CodeGen
                         vbTab & vbTab & "fprintf(stderr, ""|-- "");",
                         vbTab & "}",
                         vbTab & "if (depth == 0){",
-                        vbTab & vbTab & "fprintf(stderr, ""\033[32m%s\033[0m <- here '%s'w\n"", functionInfos[ctx.functionId].name, functionInfos[ctx.functionId].location);",
+                        vbTab & vbTab & "fprintf(stderr, ""\033[32m%s\033[0m <- here '%s'\n"", functionInfos[ctx.functionId].name, functionInfos[ctx.functionId].location);",
                         vbTab & "} else {",
                         vbTab & vbTab & "fprintf(stderr, ""\033[32m%s\033[0m\n"", functionInfos[ctx.functionId].name);",
                         vbTab & "}",

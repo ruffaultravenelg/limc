@@ -54,7 +54,7 @@ Namespace Lazy
 
             ' Create self
             If TypeOf AssociatedType Is TypeSystem.ClassType Then
-                Writer.WriteLine($"{AssociatedType.cRepresentation} {INSTANCE_ARGUMENT_NAME} = {Constants.LIM_ALLOC}(sizeof({AssociatedType.cRepresentation}));")
+                Writer.WriteLine($"{AssociatedType.cRepresentation} {INSTANCE_ARGUMENT_NAME} = {Constants.LIM_ALLOC}({AssociatedType.cSize});")
                 Writer.WriteLine($"if ({INSTANCE_ARGUMENT_NAME} == NULL) {CodeGen.WritePanicCall("""Not enough memory""")};")
 
             ElseIf TypeOf AssociatedType Is TypeSystem.StructType Then

@@ -19,6 +19,13 @@ Namespace TypeSystem
         ' C representation (ex: void*)
         Public MustOverride ReadOnly Property cRepresentation As String
 
+        ' Memory size
+        Public Overridable ReadOnly Property cSize As String
+            Get
+                Return $"sizeof({cRepresentation})"
+            End Get
+        End Property
+
         ' Is a pointer
         Public MustOverride ReadOnly Property IsPointer As Boolean
 
@@ -140,7 +147,7 @@ Namespace TypeSystem
             Next
 
             ' Search in methods
-            'Results.AddRange(MethodRepository.RetrieveMethods(Name, GenericTypes).Select(Function(fn) New SearchMatch(fn)))
+            Results.AddRange(MethodRepository.RetrieveMethods(Name, GenericTypes).Select(Function(fn) New SearchMatch(fn)))
 
             Return Results
         End Function

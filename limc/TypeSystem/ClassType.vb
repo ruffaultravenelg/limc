@@ -9,6 +9,7 @@
 
         Private ReadOnly ConstructorRepository As Repository.ConstructorRepository
         Public Overrides ReadOnly Property IsPointer As Boolean = True
+        Public Overrides ReadOnly Property cSize As String = ""
 
         ' Constructor
         Public Sub New(Classe As AST.ClassConstruct, PassedGenericTypes As IEnumerable(Of TypeSystem.Type))
@@ -16,6 +17,7 @@
             Me.Classe = Classe
             structName = CodeGen.Namer.Classe(Classe.Name)
             cRepresentation = structName & "*"
+            cSize = $"sizeof({structName})"
             BoneContext = New Context.GenericContext(Classe.Location.File)
             InnerContext = New Context.TypeContext(BoneContext, Me)
             Me.ConstructorRepository = New Repository.ConstructorRepository(Me, Classe.Constructors)
