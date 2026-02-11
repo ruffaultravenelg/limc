@@ -207,7 +207,7 @@ Namespace CodeGen
         Private Sub WriteContext()
 
             If INTEGRATE_DEBUG Then
-                RegisterStruct(New Struct(RUNTIME_CONTEXT_STRUCT_NAME, {$"{RUNTIME_CONTEXT_STRUCT_NAME}* upper;", "int functionId;", "tgc_t* gc;"}, "Function stack context"))
+                RegisterStruct(New Struct(RUNTIME_CONTEXT_STRUCT_NAME, {$"{RUNTIME_CONTEXT_STRUCT_NAME}* upper;", "int functionId;", "tgc_t* gc;", "bool accept_problem;", "const char* problem;"}, "Function stack context"))
                 RegisterGlobalVariable("static const struct{char* name; char* location;} functionInfos[] = {" & String.Join(", ", OwnContextFunction.FunctionInfos) & "};")
                 RegisterFunction(New BaseFunction(
                     $"void {PRINT_STACK_TRACE_FUNCTION_NAME}({RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME})",
@@ -232,7 +232,7 @@ Namespace CodeGen
                     "Print function trace stack"
                 ))
             Else
-                RegisterStruct(New Struct(RUNTIME_CONTEXT_STRUCT_NAME, {$"{RUNTIME_CONTEXT_STRUCT_NAME}* upper;", "tgc_t* gc;"}, "Function stack context"))
+                RegisterStruct(New Struct(RUNTIME_CONTEXT_STRUCT_NAME, {$"{RUNTIME_CONTEXT_STRUCT_NAME}* upper;", "tgc_t* gc;", "bool accept_problem;", "const char* problem;"}, "Function stack context"))
             End If
 
         End Sub

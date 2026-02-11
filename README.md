@@ -24,20 +24,21 @@ Lim a été avant tout conçu comme un projet ludique, sans la prétention de ri
 
 ### TODO list
 - [X] Fonctions
-- [ ] Structures
+- [X] Records
+- [X] Structures
 - [X] Ajout direct de sources
-- [ ] Classes
+- [X] Classes
 - [X] Collecteur de déchets (Garbage Collector, pour l'instant assuré par [tgc](https://github.com/orangeduck/tgc) mais sera à terme remplacé par une implémentation propre)
 - [X] Système d'import/export
-- [X] Function as value
-- [ ] Types génériques
-- [ ] Relations
+- [~] Function as value
+- [X] Types génériques
+- [X] Relations
 - [X] Méthodes
-- [ ] Accesseurs (getters & setters)
+- [~] Accesseurs (getters & setters)
+- [ ] Error handling
 - [ ] Enums
 - [ ] Enumerateurs
 - [ ] Contrats
-- [ ] Extensions
 - [ ] Multithreading
 - [ ] Better error messages
 
@@ -56,7 +57,7 @@ func main(args:array<str>)
         if not isFlag(arg)
             puts(arg)
 
-func isFlag(arg:str)
+func isFlag(arg:str):bool
     return arg[0] = '-'
 ```
 
@@ -65,18 +66,18 @@ func isFlag(arg:str)
 class stack<T>
     let content:list<T>
 
-    func new
+    new()
         content = new list<T>
     
     func push(elm:T)
         content.add(elm)
 
     func pop:T
-        let elm = content[-1] // index -1 means last element
+        let elm = content[-1] // -1 means last element
         content.pop(-1)
         return elm
     
-    get len // Create a .len accessor on a stack<T> object
+    get len:int // Create a .len accessor on a stack<T> object
         return content.len
 ```
 
@@ -105,21 +106,6 @@ class circle signs drawable
 contract drawable
     func draw(img:image)
 ```
-
-#### Extensions
-Lim ne permet pas l'héritage, mais il est possible d'étendre une classe avec `extend` :
-```go
-extend color
-    func str
-        return 'rgb({r}, {g}, {b})'
-```
-
-Il est également possible d'étendre toutes les classes qui signes un contrat :
-```go
-extend drawable
-    let c:color
-```
-Ici, la propriété `c:color` sera ajoutée aux classes `rectangle` et `circle`.
 
 ## Liens
 - [TGC](https://github.com/orangeduck/tgc) est un ramasse-miettes (garbage collector) de type mark-and-sweep qui me sert temporairement pendant le développement pour réduire la complexité de la tâche...

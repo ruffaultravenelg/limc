@@ -75,6 +75,9 @@ Namespace Context
                 ConstantsConstruct.Compile(SourceInstance.ConstantStore)
             Next
 
+            'Create problem repository
+            SourceInstance.ProblemRepository = New ProblemRepository(SourceInstance.AST.Problems)
+
             'Return object instance
             Return SourceInstance
 
@@ -89,6 +92,40 @@ Namespace Context
         '===== CONSTANTS =====
         '=====================
         Private ConstantStore As New Dictionary(Of String, DeclareConstantWithValueConstruct)
+
+        '====================
+        '===== PROBLEMS =====
+        '====================
+        Private ProblemRepository As ProblemRepository
+
+        Public Function RetrieveProblem(Name As String) As Lazy.Problem
+
+            ' Search in current file
+            Dim Problem = ProblemRepository.RetrieveProblem(Name)
+            If Problem IsNot Nothing Then
+                Return Problem
+            End If
+
+            ' Search in included files
+            For Each Include In AST.Include_Imports
+                Dim Result = Include.AssociatedFile.RetrieveExportedProblem(Name)
+                If Result IsNot Nothing Then
+                    Return Result
+                End If
+            Next
+
+            ' Not found
+            Return Nothing
+
+        End Function
+        Public Function RetrieveExportedProblem(Name As String) As Lazy.Problem
+            Dim Problem = ProblemRepository.RetrieveProblem(Name)
+            If Problem IsNot Nothing AndAlso Problem.Exported Then
+                Return Problem
+            Else
+                Return Nothing
+            End If
+        End Function
 
         '========================
         '===== CUSTOM TYPES =====

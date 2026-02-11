@@ -11,6 +11,7 @@ Namespace AST
         Public ReadOnly Property TypeConstructs As New List(Of IGenerateType)
         Public ReadOnly Property Include_Imports As New List(Of ImportNode)
         Public ReadOnly Property Include_Uses As New List(Of UseNode)
+        Public ReadOnly Property Problems As New List(Of ProblemConstruct)
 
         '==================
         '===== TOKENS =====
@@ -82,7 +83,7 @@ Namespace AST
         '=======================
         '===== CONSTRUCTOR =====
         '=======================
-        Private ReadOnly FileConstructs As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetFunctionConstructNode, AddressOf GetConstantConstructNode, AddressOf GetRecordConstructNode, AddressOf GetStructConstructNode, AddressOf GetClassConstructNode}
+        Private ReadOnly FileConstructs As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetFunctionConstructNode, AddressOf GetConstantConstructNode, AddressOf GetRecordConstructNode, AddressOf GetStructConstructNode, AddressOf GetClassConstructNode, AddressOf GetProblemConstructNode}
 
         Public Sub New(Tokens As IEnumerable(Of Token))
             Me.Tokens = Tokens
@@ -141,6 +142,8 @@ Namespace AST
                     AST.Constants.Add(Construct)
                 ElseIf TypeOf Construct Is IGenerateType Then
                     AST.TypeConstructs.Add(Construct)
+                ElseIf TypeOf Construct Is ProblemConstruct Then
+                    AST.Problems.Add(Construct)
                 Else
                     Throw New InternalError()
                 End If
@@ -722,7 +725,7 @@ Namespace AST
         '======================
         '===== STATEMENTS =====
         '======================
-        Private ReadOnly StatementFunctions As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetSourceStatementNode, AddressOf GetVariableDeclaration, AddressOf GetConstantDeclaration, AddressOf GetPanicStatement, AddressOf GetIfStatement, AddressOf GetForStatement, AddressOf GetReturnStatement, AddressOf GetWhileStatement, AddressOf GetBreakStatement, AddressOf GetContinueStatement, AddressOf GetProcedureCallStatement, AddressOf GetAssignStatement} 'Assign should be at the end
+        Private ReadOnly StatementFunctions As IEnumerable(Of Func(Of Integer, StatementNode)) = {AddressOf GetSourceStatementNode, AddressOf GetVariableDeclaration, AddressOf GetConstantDeclaration, AddressOf GetPanicStatement, AddressOf GetIfStatement, AddressOf GetForStatement, AddressOf GetReturnStatement, AddressOf GetWhileStatement, AddressOf GetBreakStatement, AddressOf GetContinueStatement, AddressOf GetRaiseStatement, AddressOf GetProcedureCallStatement, AddressOf GetAssignStatement} 'Assign should be at the end
 
         Private Function GetBody(StatementIndentation As Integer) As IEnumerable(Of StatementNode)
             Dim Body As New List(Of StatementNode)
@@ -1038,6 +1041,34 @@ Namespace AST
 
         End Function
 
+        Private Function GetRaiseStatement() As StatementNode
+
+            If Not CurrentToken.Type = TokenType.KEYWORD_RAISE Then
+                Throw New NotTheRightElementException()
+            End If
+            PushPosition()
+            Advance()
+
+            CheckTokenType(TokenType.TEXT, "A problem was expected here")
+            Dim ProblemName As String = CurrentToken.Value
+            Advance()
+
+            If CurrentToken.Type = TokenType.OP_MODULE_RESOLVER Then
+                Advance()
+                CheckTokenType(TokenType.TEXT, "A problem was expected here")
+                Dim ModuleName As String = ProblemName
+                ProblemName = CurrentToken.Value
+                Advance()
+
+                Return New RaiseStatement(ModuleName, ProblemName, RetrievePosition())
+            Else
+                Return New RaiseStatement(ProblemName, RetrievePosition())
+            End If
+
+
+
+        End Function
+
         '======================
         '===== CONSTRUCTS =====
         '======================
@@ -1310,6 +1341,7 @@ Namespace AST
             If Not CurrentToken.Type = TokenType.KEYWORD_RELATION Then
                 Throw New NotTheRightElementException()
             End If
+            PushPosition()
             Advance()
 
             ' Get relation type
@@ -1360,7 +1392,6 @@ Namespace AST
             Advance()
 
             'Get arguments
-            PushPosition()
             If CurrentToken.Type = TokenType.SYMBOL_LESSTHAN Then
                 Throw New SyntaxError("A relation does not have generic arguments.", CurrentToken.Location)
             End If
@@ -1468,6 +1499,34 @@ Namespace AST
 
             ' Create record
             Return New ClassConstruct(Name, GenericArguments, Fields, SourceFields, Methods, Constructors, Relations, RetrievePosition())
+
+        End Function
+
+        Private Function GetProblemConstructNode() As ProblemConstruct
+
+            ' Check if this is a problem construct
+            If Not CurrentToken.Type = TokenType.KEYWORD_PROBLEM Then
+                Throw New NotTheRightElementException()
+            End If
+            PushPosition()
+            Advance()
+
+            ' Get name
+            CheckTokenType(TokenType.TEXT, "A problem construct must have a name.")
+            Dim Name As String = CurrentToken.Value
+            Advance()
+
+            ' Get message
+            Dim Message As String = ""
+            If CurrentToken.Type = TokenType.VAL_STRING Then
+                Message = CurrentToken.Value
+                Advance()
+            ElseIf CurrentToken.Type = TokenType.VAL_FORMATED_STRING Then
+                Throw New SyntaxError("No formatted string can be used as a problem message, use double quoted string instead.", CurrentToken.Location)
+            End If
+
+            ' Create node
+            Return New ProblemConstruct(Name, Message, RetrievePosition())
 
         End Function
 

@@ -26,9 +26,9 @@ Namespace CodeGen
 
             ' Add context creation to body
             If INTEGRATE_DEBUG Then
-                DirectCast(MyBase.Body, List(Of String)).Add($"{RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME} = {{&_{RUNTIME_CONTEXT_VARIABLE_NAME}, {FunctionId}, _{RUNTIME_CONTEXT_VARIABLE_NAME}.gc}};")
+                DirectCast(MyBase.Body, List(Of String)).Add($"{RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME} = {{&_{RUNTIME_CONTEXT_VARIABLE_NAME}, {FunctionId}, _{RUNTIME_CONTEXT_VARIABLE_NAME}.gc, false, NULL}};")
             Else
-                DirectCast(MyBase.Body, List(Of String)).Add($"{RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME} = {{&_{RUNTIME_CONTEXT_VARIABLE_NAME}, _{RUNTIME_CONTEXT_VARIABLE_NAME}.gc}};")
+                DirectCast(MyBase.Body, List(Of String)).Add($"{RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME} = {{&_{RUNTIME_CONTEXT_VARIABLE_NAME}, _{RUNTIME_CONTEXT_VARIABLE_NAME}.gc, false, NULL}};")
             End If
 
         End Sub

@@ -314,6 +314,14 @@ Public Module Tokenizer
                         AddToken(TokenType.KEYWORD_NEW, Loc)
                     Case "relation"
                         AddToken(TokenType.KEYWORD_RELATION, Loc)
+                    Case "problem"
+                        AddToken(TokenType.KEYWORD_PROBLEM, Loc)
+                    Case "raise"
+                        AddToken(TokenType.KEYWORD_RAISE, Loc)
+                    Case "try"
+                        AddToken(TokenType.KEYWORD_TRY, Loc)
+                    Case "handle"
+                        AddToken(TokenType.KEYWORD_HANDLE, Loc)
                     Case Else
                         AddToken(TokenType.TEXT, Text, Loc)
                 End Select
