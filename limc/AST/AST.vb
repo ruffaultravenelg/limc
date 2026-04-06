@@ -625,6 +625,21 @@ Namespace AST
 
         End Function
 
+        ' \\\\\\ {call()} else {expression} //////
+        Private Function GetElseExpression() As ExpressionNode
+
+            Dim CallExpression As ExpressionNode = GetCallBracketChild()
+
+            If TypeOf CallExpression Is FunctionCallExpression AndAlso CurrentToken.Type = TokenType.KEYWORD_ELSE Then
+                Advance()
+                Dim FallbackExpression As ExpressionNode = GetCallBracketChild()
+                Return New ElseExpression(CallExpression, FallbackExpression, CallExpression.Location + FallbackExpression.Location)
+            Else
+                Return CallExpression
+            End If
+
+        End Function
+
         ' \\\\\\ {expression} */% {expression} //////
         Private Shared TokOpToRelOp_Divide As New Dictionary(Of TokenType, TypeSystem.RelationType) From {
             {TokenType.SYMBOL_MULTIPLICATE, TypeSystem.RelationType.RELATION_MULT},
@@ -633,13 +648,13 @@ Namespace AST
         }
         Private Function GetDivideOperation() As ExpressionNode
 
-            Dim Left As ExpressionNode = GetCallBracketChild()
+            Dim Left As ExpressionNode = GetElseExpression()
 
             While TokOpToRelOp_Divide.ContainsKey(CurrentToken.Type)
 
                 Dim Op As TypeSystem.RelationType = TokOpToRelOp_Divide(CurrentToken.Type)
                 Advance()
-                Dim Right As ExpressionNode = GetCallBracketChild()
+                Dim Right As ExpressionNode = GetElseExpression()
 
                 Left = New NumericalOperationExpression(Left, Op, Right, Left.Location + Right.Location)
 

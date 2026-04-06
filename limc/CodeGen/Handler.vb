@@ -162,10 +162,11 @@ Namespace CodeGen
             Writer.WriteLine(vbTab & "if (gc == NULL) {printf(""LIM RUNTIME ERROR: not enought memory\n""); return -1;}")
             Writer.WriteLine(vbTab & "tgc_start(gc, &argc);")
             If INTEGRATE_DEBUG Then
-                Writer.WriteLine(vbTab & $"{RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME} = {{NULL, 0, gc}};")
+                Writer.WriteLine(vbTab & $"{RUNTIME_CONTEXT_STRUCT_NAME} __{RUNTIME_CONTEXT_VARIABLE_NAME} = {{NULL, 0, gc}};")
             Else
-                Writer.WriteLine(vbTab & $"{RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME} = {{NULL, gc}};")
+                Writer.WriteLine(vbTab & $"{RUNTIME_CONTEXT_STRUCT_NAME} __{RUNTIME_CONTEXT_VARIABLE_NAME} = {{NULL, gc}};")
             End If
+            Writer.WriteLine(vbTab & $"{RUNTIME_CONTEXT_STRUCT_NAME}* {RUNTIME_CONTEXT_VARIABLE_NAME} = &__{RUNTIME_CONTEXT_VARIABLE_NAME};")
             Writer.WriteLine(vbTab & EntryPoint.WriteCall({}) & ";")
             Writer.WriteLine(vbTab & "tgc_stop(gc);")
             Writer.WriteLine(vbTab & "return 0;")
@@ -177,7 +178,7 @@ Namespace CodeGen
 
             If INTEGRATE_DEBUG Then
                 RegisterFunction(New BaseFunction(
-                    $"void {PANIC_FUNCTION_NAME}({RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME}, const char* message)",
+                    $"void {PANIC_FUNCTION_NAME}({RUNTIME_CONTEXT_STRUCT_NAME}* {RUNTIME_CONTEXT_VARIABLE_NAME}, const char* message)",
                     {
                         "fprintf(stderr, ""\n\033[31m=== FATAL RUNTIME ERROR ===\033[0m\n"");",
                         "fprintf(stderr, ""%s\n\n"", message);",
@@ -210,22 +211,22 @@ Namespace CodeGen
                 RegisterStruct(New Struct(RUNTIME_CONTEXT_STRUCT_NAME, {$"{RUNTIME_CONTEXT_STRUCT_NAME}* upper;", "int functionId;", "tgc_t* gc;", "bool accept_problem;", "const char* problem;"}, "Function stack context"))
                 RegisterGlobalVariable("static const struct{char* name; char* location;} functionInfos[] = {" & String.Join(", ", OwnContextFunction.FunctionInfos) & "};")
                 RegisterFunction(New BaseFunction(
-                    $"void {PRINT_STACK_TRACE_FUNCTION_NAME}({RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME})",
+                    $"void {PRINT_STACK_TRACE_FUNCTION_NAME}({RUNTIME_CONTEXT_STRUCT_NAME}* {RUNTIME_CONTEXT_VARIABLE_NAME})",
                     {
-                        $"{RUNTIME_CONTEXT_STRUCT_NAME} ctx = {RUNTIME_CONTEXT_VARIABLE_NAME};",
+                        $"{RUNTIME_CONTEXT_STRUCT_NAME}* current_ctx = {RUNTIME_CONTEXT_VARIABLE_NAME};",
                         "int depth = 0;",
-                        "while (ctx.upper != NULL){",
+                        "while (current_ctx->upper != NULL){",
                         vbTab & "if (depth > 0){",
                         vbTab & vbTab & "for (int i = 0; i < depth - 1; i++)",
                         vbTab & vbTab & vbTab & "fprintf(stderr, ""|   "");",
                         vbTab & vbTab & "fprintf(stderr, ""|-- "");",
                         vbTab & "}",
                         vbTab & "if (depth == 0){",
-                        vbTab & vbTab & "fprintf(stderr, ""\033[32m%s\033[0m <- here '%s'\n"", functionInfos[ctx.functionId].name, functionInfos[ctx.functionId].location);",
+                        vbTab & vbTab & "fprintf(stderr, ""\033[32m%s\033[0m <- here '%s'\n"", functionInfos[current_ctx->functionId].name, functionInfos[current_ctx->functionId].location);",
                         vbTab & "} else {",
-                        vbTab & vbTab & "fprintf(stderr, ""\033[32m%s\033[0m\n"", functionInfos[ctx.functionId].name);",
+                        vbTab & vbTab & "fprintf(stderr, ""\033[32m%s\033[0m\n"", functionInfos[current_ctx->functionId].name);",
                         vbTab & "}",
-                        vbTab & "ctx = *ctx.upper;",
+                        vbTab & "current_ctx = current_ctx->upper;",
                         vbTab & "depth++;",
                         "}"
                     },
@@ -242,11 +243,11 @@ Namespace CodeGen
             RegisterInclude("""" & Path.Combine(Compiler.COMPILER_DIRECTORY, "clibs", "tgc", "tgc.h") & """")
             Compiler.CFilesToInclude.Add(Path.Combine(Compiler.COMPILER_DIRECTORY, "clibs", "tgc", "tgc.c"))
 
-            RegisterMacro($"#define {LIM_ALLOC}(size) tgc_alloc({RUNTIME_CONTEXT_VARIABLE_NAME}.gc, size);")
-            RegisterMacro($"#define {LIM_ALLOC_LEAF}(size) tgc_alloc_opt({RUNTIME_CONTEXT_VARIABLE_NAME}.gc, size, TGC_LEAF, NULL);")
+            RegisterMacro($"#define {LIM_ALLOC}(size) tgc_alloc({RUNTIME_CONTEXT_VARIABLE_NAME}->gc, size);")
+            RegisterMacro($"#define {LIM_ALLOC_LEAF}(size) tgc_alloc_opt({RUNTIME_CONTEXT_VARIABLE_NAME}->gc, size, TGC_LEAF, NULL);")
             RegisterMacro("#define LIM_ALLOC_STANDALONE(gc, size) tgc_alloc(gc, size);")
-            RegisterMacro($"#define {LIM_FREE}(ptr) tgc_free({RUNTIME_CONTEXT_VARIABLE_NAME}.gc, ptr);")
-            RegisterMacro($"#define {LIM_REALLOC}(ptr, size) tgc_realloc({RUNTIME_CONTEXT_VARIABLE_NAME}.gc, ptr, size);")
+            RegisterMacro($"#define {LIM_FREE}(ptr) tgc_free({RUNTIME_CONTEXT_VARIABLE_NAME}->gc, ptr);")
+            RegisterMacro($"#define {LIM_REALLOC}(ptr, size) tgc_realloc({RUNTIME_CONTEXT_VARIABLE_NAME}->gc, ptr, size);")
 
         End Sub
 

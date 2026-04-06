@@ -39,8 +39,8 @@
             Dim Problem = GetProblem()
 
             ' Write problem
-            Writer.WriteLine($"if ({RUNTIME_CONTEXT_VARIABLE_NAME}.upper->accept_problem) {{")
-            Writer.WriteLine(vbTab & $"{RUNTIME_CONTEXT_VARIABLE_NAME}.upper->problem = {Problem.MessageConstCompiledName};")
+            Writer.WriteLine($"if ({RUNTIME_CONTEXT_VARIABLE_NAME}->upper->accept_problem) {{")
+            Writer.WriteLine(vbTab & $"{RUNTIME_CONTEXT_VARIABLE_NAME}->upper->problem = {Problem.MessageConstCompiledName};")
             Dim ReturnScope = Scope.GetParent(Of Context.MustReturnScope)()
             If ReturnScope Is Nothing Then
                 Writer.WriteLine(vbTab & $"return;")

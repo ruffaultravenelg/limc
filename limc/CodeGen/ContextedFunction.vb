@@ -23,7 +23,7 @@ Namespace CodeGen
             ' Compile arguments
             Dim Args As New StringBuilder
             Args.Append(RUNTIME_CONTEXT_STRUCT_NAME)
-            Args.Append(" "c)
+            Args.Append("* ")
             Args.Append(RUNTIME_CONTEXT_VARIABLE_NAME)
             For Each Arg In Arguments
                 Args.Append(", ")

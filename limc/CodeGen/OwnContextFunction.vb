@@ -16,8 +16,8 @@ Namespace CodeGen
             ' Compile arguments
             Dim Args As New StringBuilder
             Args.Append(RUNTIME_CONTEXT_STRUCT_NAME)
-            Args.Append(" _")
-            Args.Append(RUNTIME_CONTEXT_VARIABLE_NAME)
+            Args.Append("* ")
+            Args.Append(RUNTIME_PARENT_CONTEXT_VARIABLE_NAME)
             For Each Arg In Arguments
                 Args.Append(", ")
                 Args.Append(Arg) 'type arg
@@ -25,11 +25,13 @@ Namespace CodeGen
             Me.Args = Args.ToString()
 
             ' Add context creation to body
+            Dim StackContextVariableName As String = $"local_{RUNTIME_CONTEXT_VARIABLE_NAME}"
             If INTEGRATE_DEBUG Then
-                DirectCast(MyBase.Body, List(Of String)).Add($"{RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME} = {{&_{RUNTIME_CONTEXT_VARIABLE_NAME}, {FunctionId}, _{RUNTIME_CONTEXT_VARIABLE_NAME}.gc, false, NULL}};")
+                DirectCast(MyBase.Body, List(Of String)).Add($"{RUNTIME_CONTEXT_STRUCT_NAME} {StackContextVariableName} = {{{RUNTIME_PARENT_CONTEXT_VARIABLE_NAME}, {FunctionId}, {RUNTIME_PARENT_CONTEXT_VARIABLE_NAME}->gc, false, NULL}};")
             Else
-                DirectCast(MyBase.Body, List(Of String)).Add($"{RUNTIME_CONTEXT_STRUCT_NAME} {RUNTIME_CONTEXT_VARIABLE_NAME} = {{&_{RUNTIME_CONTEXT_VARIABLE_NAME}, _{RUNTIME_CONTEXT_VARIABLE_NAME}.gc, false, NULL}};")
+                DirectCast(MyBase.Body, List(Of String)).Add($"{RUNTIME_CONTEXT_STRUCT_NAME} {StackContextVariableName} = {{{RUNTIME_PARENT_CONTEXT_VARIABLE_NAME}, {RUNTIME_PARENT_CONTEXT_VARIABLE_NAME}->gc, false, NULL}};")
             End If
+            DirectCast(MyBase.Body, List(Of String)).Add($"{RUNTIME_CONTEXT_STRUCT_NAME}* {RUNTIME_CONTEXT_VARIABLE_NAME} = &local_{RUNTIME_CONTEXT_VARIABLE_NAME};")
 
         End Sub
 

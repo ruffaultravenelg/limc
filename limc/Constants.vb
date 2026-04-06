@@ -1,8 +1,9 @@
 ﻿Public Module Constants
 
     'WARNING: All the following constants are accessible via a source statement (@CONSTANT_NAME)
-    Public Const RUNTIME_CONTEXT_STRUCT_NAME As String = "CT_t"
+    Public Const RUNTIME_CONTEXT_STRUCT_NAME As String = "ctx_t"
     Public Const RUNTIME_CONTEXT_VARIABLE_NAME As String = "c"
+    Public Const RUNTIME_PARENT_CONTEXT_VARIABLE_NAME As String = "parent_ctx"
     Public Const PANIC_FUNCTION_NAME As String = "lim_panic"
     Public Const PRINT_STACK_TRACE_FUNCTION_NAME As String = "lim_printStackTrace"
     Public Const LIM_ALLOC As String = "LIM_ALLOC"
