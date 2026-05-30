@@ -21,21 +21,49 @@
             Return Elements
         End Function
 
+        ' Tries getting an enum reference, returns the enumtype or null.
+        Protected Overridable Function GetEnumMatchs(Context As Context.Context) As TypeSystem.EnumType
+            If TypeOf Parent Is IEnumReference Then
+                Return DirectCast(Parent, IEnumReference).TryGetEnumReference(Context)
+            End If
+            Return Nothing
+        End Function
+
         Public Overrides Function GetExpressionReturnType(Context As Context.Context) As TypeSystem.Type
+
+            Dim EnumMatch = GetEnumMatchs(Context)
+            If EnumMatch IsNot Nothing Then
+                Return EnumMatch
+            End If
 
             Dim Element As SearchMatch = GetMatchs(Context).First()
 
             If Element.Type = SearchMatch.MatchType.MATCH_METHOD Then
                 Return Element.MatchingMethod.AssociatedFunctionType
+
             ElseIf Element.Type = SearchMatch.MatchType.MATCH_GETTER Then
                 Return Element.MatchingGetter.Type
+
             Else
+
                 Throw New UnknownOrUnreachableElementError(ElementName, Location)
             End If
 
         End Function
 
         Public Overrides Function CompileExpression(Writer As CWriter, Scope As Context.Scope) As String
+
+            Dim EnumMatch = GetEnumMatchs(Scope)
+            If TypeOf EnumMatch Is TypeSystem.ClassicEnumType Then
+                Dim TargetedOption = DirectCast(EnumMatch, TypeSystem.ClassicEnumType).GetOptionValueByName(ElementName)
+                If TargetedOption Is Nothing Then
+                    Throw New SyntaxError($"The enum ""{EnumMatch.Name}"" doesn't contains the option ""{ElementName}"".", Location)
+                Else
+                    Return TargetedOption
+                End If
+            ElseIf TypeOf EnumMatch Is TypeSystem.EnumValueType Then
+                Throw New InternalError()
+            End If
 
             Dim Element As SearchMatch = GetMatchs(Scope).First()
 
@@ -46,6 +74,7 @@
                 Return Element.MatchingGetter.CallGetter(Parent.CompileExpression(Writer, Scope))
 
             Else
+
                 Throw New UnknownOrUnreachableElementError(ElementName, Location)
             End If
 

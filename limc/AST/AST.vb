@@ -83,7 +83,7 @@ Namespace AST
         '=======================
         '===== CONSTRUCTOR =====
         '=======================
-        Private ReadOnly FileConstructs As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetFunctionConstructNode, AddressOf GetConstantConstructNode, AddressOf GetRecordConstructNode, AddressOf GetStructConstructNode, AddressOf GetClassConstructNode, AddressOf GetProblemConstructNode}
+        Private ReadOnly FileConstructs As IEnumerable(Of Func(Of ConstructNode)) = {AddressOf GetFunctionConstructNode, AddressOf GetConstantConstructNode, AddressOf GetRecordConstructNode, AddressOf GetStructConstructNode, AddressOf GetClassConstructNode, AddressOf GetProblemConstructNode, AddressOf GetEnumConstructNode}
 
         Public Sub New(Tokens As IEnumerable(Of Token))
             Me.Tokens = Tokens
@@ -1351,6 +1351,7 @@ Namespace AST
 
 
         End Function
+
         Private Function GetRelationConstructNode() As RelationConstruct
 
             If Not CurrentToken.Type = TokenType.KEYWORD_RELATION Then
@@ -1542,6 +1543,63 @@ Namespace AST
 
             ' Create node
             Return New ProblemConstruct(Name, Message, RetrievePosition())
+
+        End Function
+
+        Private Function GetEnumConstructNode() As EnumConstruct
+
+            ' Check if this is a enum
+            If Not CurrentToken.Type = TokenType.KEYWORD_ENUM Then
+                Throw New NotTheRightElementException()
+            End If
+
+            ' Get name
+            PushPosition()
+            Advance()
+            CheckTokenType(TokenType.TEXT, "A enum must have a name")
+            Dim Name As String = CurrentToken.Value
+            Advance()
+
+            ' Get generic types
+            Dim GenericArguments As IEnumerable(Of String) = GetGenericTypeNames()
+
+            ' Get constructs
+            Dim Fields As New List(Of EnumConstruct.Field)
+            While True
+
+                ' Check linestart
+                CheckTokenType(TokenType.LINESTART)
+                If CurrentToken.Value < 1 Then
+                    Exit While
+                ElseIf CurrentToken.Value > 1 Then
+                    Throw New IndentationError(CurrentToken.Location, 1)
+                End If
+                Advance()
+
+                ' Get enum value name
+                PushPosition()
+                CheckTokenType(TokenType.TEXT, "A enum value name was expected there")
+                Dim FieldName As String = CurrentToken.Value
+                Advance()
+
+                ' Get type for a value
+                Dim ValueType As TypeNode = Nothing
+                If CurrentToken.Type = TokenType.SYMBOL_COLON Then
+                    Advance()
+                    ValueType = GetTypeNode()
+                End If
+
+                Fields.Add(New EnumConstruct.Field(FieldName, ValueType, RetrievePosition()))
+
+            End While
+
+            ' If there is a generic type but no value types raise an error
+            If GenericArguments.Any() AndAlso Not Fields.Any(Function(f) f.HasValue) Then
+                Throw New SyntaxError("There is no need for a generic type if no enum value has a value associated. Please remove the generic type declaration.", RetrievePosition())
+            End If
+
+            ' Create enum
+            Return New EnumConstruct(Name, GenericArguments, Fields, RetrievePosition())
 
         End Function
 

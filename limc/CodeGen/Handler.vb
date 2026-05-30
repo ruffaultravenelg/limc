@@ -1,4 +1,5 @@
 ﻿Imports System.IO
+Imports System.Security.Cryptography.X509Certificates
 
 Namespace CodeGen
     Module Handler
@@ -85,6 +86,13 @@ Namespace CodeGen
             WriteTitle(Writer, "Includes")
             For Each Include In Includes
                 Writer.WriteLine("#include " & Include)
+            Next
+            Writer.WriteLine()
+
+            'Write enum types
+            WriteTitle(Writer, "Enums")
+            For Each [Enum] In Enums
+                [Enum].Write(Writer)
             Next
             Writer.WriteLine()
 

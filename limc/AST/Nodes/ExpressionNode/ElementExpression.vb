@@ -1,7 +1,9 @@
-﻿Namespace AST
+﻿Imports limc.TypeSystem
+
+Namespace AST
     Public Class ElementExpression
         Inherits ExpressionNode
-        Implements IAssignable, IFunctionReference, IMethodReference
+        Implements IAssignable, IFunctionReference, IMethodReference, IEnumReference
 
         Protected ElementName As String
 
@@ -138,5 +140,17 @@
         Public Function GetCompiledInstance(Writer As CWriter, Scope As Context.Scope) As String Implements IMethodReference.GetCompiledInstance
             Return Constants.INSTANCE_ARGUMENT_NAME
         End Function
+
+        Protected Overridable Function TryGetEnumReference(Context As Context.Context) As EnumType Implements IEnumReference.TryGetEnumReference
+
+            Dim RetrievedType = Context.ParentFile.RetrieveTypeFromLocal(ElementName, {})
+            If TypeOf RetrievedType Is TypeSystem.EnumType Then
+                Return RetrievedType
+            Else
+                Return Nothing
+            End If
+
+        End Function
+
     End Class
 End Namespace

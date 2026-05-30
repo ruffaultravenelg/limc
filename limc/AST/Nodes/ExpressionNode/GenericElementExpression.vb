@@ -1,7 +1,7 @@
 ﻿Namespace AST
     Public Class GenericElementExpression
         Inherits ExpressionNode
-        Implements IFunctionReference
+        Implements IFunctionReference, IEnumReference
 
         Protected ElementName As String
         Protected PassedGenericTypes As IEnumerable(Of TypeNode)
@@ -46,6 +46,18 @@
             Dim Element As SearchMatch = GetMatch(Context)
             If Element.Type = SearchMatch.MatchType.MATCH_FUNCTION Then
                 Return Element.MatchingFunction
+            Else
+                Return Nothing
+            End If
+
+        End Function
+
+        Protected Overridable Function TryGetEnumReference(Context As Context.Context) As TypeSystem.EnumType Implements IEnumReference.TryGetEnumReference
+
+            Dim GenericTypes = PassedGenericTypes.Select(Function(g) g.GetAssociatedType(Context))
+            Dim RetrievedType = Context.ParentFile.RetrieveTypeFromLocal(ElementName, GenericTypes)
+            If TypeOf RetrievedType Is TypeSystem.EnumType Then
+                Return RetrievedType
             Else
                 Return Nothing
             End If

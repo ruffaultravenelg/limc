@@ -322,6 +322,8 @@ Public Module Tokenizer
                         AddToken(TokenType.KEYWORD_TRY, Loc)
                     Case "handle"
                         AddToken(TokenType.KEYWORD_HANDLE, Loc)
+                    Case "enum"
+                        AddToken(TokenType.KEYWORD_ENUM, Loc)
                     Case Else
                         AddToken(TokenType.TEXT, Text, Loc)
                 End Select

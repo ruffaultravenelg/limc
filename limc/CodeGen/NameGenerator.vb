@@ -34,6 +34,9 @@
         Public Function Problem(Info As String) As String
             Return GenerateName() & "_p"
         End Function
+        Public Function [Enum](Info As String) As String
+            Return GenerateName() & "_e"
+        End Function
 
         '============================
         '===== SIMPLE GENERATOR =====
