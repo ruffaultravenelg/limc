@@ -37,6 +37,9 @@
         Public Function [Enum](Info As String) As String
             Return GenerateName() & "_e"
         End Function
+        Public Function Union(Info As String) As String
+            Return GenerateName() & "_u"
+        End Function
 
         '============================
         '===== SIMPLE GENERATOR =====

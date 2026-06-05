@@ -105,6 +105,7 @@ Namespace TypeSystem
             Dim FieldType As String = Nothing
             Dim FieldName As String = Nothing
 
+            ' if the field definition uses a rack type -> replace it with the corresponding C definition [][] instead of the typedef
             If CheckAndExtract(Field, FieldType, FieldName) Then
                 Dim Dimensions As New List(Of Integer)
                 Dim CurrentType As TypeSystem.RackType = GetRackTypeFromCRepresentation(FieldType)
@@ -130,6 +131,8 @@ Namespace TypeSystem
             Next
             Throw New InternalError()
         End Function
+
+        ' Checks if the field definition matches the pattern of a rack field definition
         Private Shared Function CheckAndExtract(ByVal Field As String, ByRef Type As String, ByRef Name As String) As Boolean
             Dim pattern As String = "^(?<X>\w+)_r (?<Y>\w+);$"
 

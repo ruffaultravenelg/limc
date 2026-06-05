@@ -5,7 +5,6 @@ Namespace TypeSystem
         Inherits EnumType
 
         Private ReadOnly EnumConstruct As AST.EnumConstruct
-        Private ReadOnly Options As IEnumerable(Of EnumOption)
 
         Public Overrides ReadOnly Property IsPointer As Boolean = False
 
@@ -30,30 +29,6 @@ Namespace TypeSystem
         Public Overrides Function DefaultValue(Scope As Context.Scope) As String
             Return "(" & cRepresentation & "){" & "TODO" & "}"
         End Function
-
-        Public Class EnumOption
-
-            Public ReadOnly CompiledName As String
-            Public ReadOnly Name As String
-
-            Private Sub New(Name As String, CompiledName As String)
-                Me.CompiledName = CompiledName
-                Me.Name = Name
-            End Sub
-
-            Friend Shared Function FromFields(Fields As IEnumerable(Of EnumConstruct.Field), EnumCompiledName As String) As IEnumerable(Of EnumOption)
-                Dim EnumOptions As New List(Of EnumOption)
-                For i = 0 To Fields.Count() - 1
-                    Dim Field = Fields(i)
-                    If EnumOptions.Any(Function(o) o.Name = Field.Name) Then
-                        Throw New ElementAlreadyExistError(Field.Name, Field.Location)
-                    End If
-                    EnumOptions.Add(New EnumOption(Field.Name, $"{EnumCompiledName}_{i}"))
-                Next
-                Return EnumOptions
-            End Function
-
-        End Class
 
     End Class
 End Namespace

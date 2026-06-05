@@ -14,7 +14,5 @@ Namespace TypeSystem
 
         Protected Options As List(Of EnumOption)
 
-
-
     End Class
 End Namespace

@@ -13,6 +13,7 @@ Namespace CodeGen
         Private GlobalVariables As New HashSet(Of String)
         Private Enums As New HashSet(Of CodeGen.Enum)
         Private Structs As New HashSet(Of CodeGen.Struct)
+        Private Unions As New HashSet(Of CodeGen.Union)
         Private Functions As New HashSet(Of CodeGen.BaseFunction)
 
         Public Sub RegisterInclude(Include As String)
@@ -43,9 +44,14 @@ Namespace CodeGen
             Structs.Add(Struct)
         End Sub
 
+        Public Sub RegisterUnion(Union As CodeGen.Union)
+            Unions.Add(Union)
+        End Sub
+
         Public Sub RegisterFunction([Function] As CodeGen.BaseFunction)
             Functions.Add([Function])
         End Sub
+
         Public Sub RegisterTypedef(Typedef As String)
             Typedefs.Add(Typedef)
         End Sub
@@ -103,10 +109,24 @@ Namespace CodeGen
             Next
             Writer.WriteLine()
 
-            'Write functions bodies
+            'Write unions types
+            WriteTitle(Writer, "Union signature")
+            For Each Union In Unions
+                Union.WriteSignature(Writer)
+            Next
+            Writer.WriteLine()
+
+            'Write structure bodies
             WriteTitle(Writer, "Structure bodies")
             For Each Struct In Structs
                 Struct.Write(Writer)
+            Next
+            Writer.WriteLine()
+
+            'Write union bodies
+            WriteTitle(Writer, "Union bodies")
+            For Each Union In Unions
+                Union.Write(Writer)
             Next
             Writer.WriteLine()
 
