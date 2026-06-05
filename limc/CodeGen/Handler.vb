@@ -102,13 +102,6 @@ Namespace CodeGen
             Next
             Writer.WriteLine()
 
-            'Write structure types
-            WriteTitle(Writer, "Structure signature")
-            For Each Struct In Structs
-                Struct.WriteSignature(Writer)
-            Next
-            Writer.WriteLine()
-
             'Write unions types
             WriteTitle(Writer, "Union signature")
             For Each Union In Unions
@@ -116,10 +109,10 @@ Namespace CodeGen
             Next
             Writer.WriteLine()
 
-            'Write structure bodies
-            WriteTitle(Writer, "Structure bodies")
+            'Write structure types
+            WriteTitle(Writer, "Structure signature")
             For Each Struct In Structs
-                Struct.Write(Writer)
+                Struct.WriteSignature(Writer)
             Next
             Writer.WriteLine()
 
@@ -127,6 +120,13 @@ Namespace CodeGen
             WriteTitle(Writer, "Union bodies")
             For Each Union In Unions
                 Union.Write(Writer)
+            Next
+            Writer.WriteLine()
+
+            'Write structure bodies
+            WriteTitle(Writer, "Structure bodies")
+            For Each Struct In Structs
+                Struct.Write(Writer)
             Next
             Writer.WriteLine()
 

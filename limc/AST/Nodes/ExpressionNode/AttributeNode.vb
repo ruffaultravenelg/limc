@@ -156,7 +156,7 @@ Namespace AST
             If Not TargetedOption.HasValue Then
                 Throw New SyntaxError($"This enum state doesn't require a value, please remove parenthesis after the state name.", Location)
             Else
-                Return TargetedOption.CompileValue(Value, Writer, Context)
+                Return TargetedOption.CompileValue(Writer, Context, Value)
             End If
 
         End Function
