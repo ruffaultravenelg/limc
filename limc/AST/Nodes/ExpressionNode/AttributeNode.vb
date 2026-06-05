@@ -3,7 +3,7 @@
 Namespace AST
     Public Class AttributeExpression
         Inherits ExpressionNode
-        Implements IAssignable, IMethodReference, IMissingValueEnumReference
+        Implements IAssignable, IMethodReference
 
         Private Parent As ExpressionNode
         Private ElementName As String
@@ -23,23 +23,9 @@ Namespace AST
             Return Elements
         End Function
 
-        ' Tries getting an enum reference, returns the enumtype or null.
-        Protected Overridable Function GetEnumMatchs(Context As Context.Context) As TypeSystem.EnumType
-            If TypeOf Parent Is IEnumReference Then
-                Return DirectCast(Parent, IEnumReference).TryGetEnumReference(Context)
-            End If
-            Return Nothing
-        End Function
 
         Public Overrides Function GetExpressionReturnType(Context As Context.Context) As TypeSystem.Type
 
-            ' ==== CHECK IF IT'S AN ENUM OPTION ====
-            Dim EnumMatch = GetEnumMatchs(Context)
-            If EnumMatch IsNot Nothing Then
-                Return EnumMatch
-            End If
-
-            ' ==== OTHERWISE, IT'S A CLASSIC ATTRIBUTE ====
             Dim Element As SearchMatch = GetMatchs(Context).First()
 
             If Element.Type = SearchMatch.MatchType.MATCH_METHOD Then
@@ -57,22 +43,6 @@ Namespace AST
 
         Public Overrides Function CompileExpression(Writer As CWriter, Scope As Context.Scope) As String
 
-            ' ==== CHECK IF IT'S AN ENUM OPTION ====
-            Dim EnumMatch = GetEnumMatchs(Scope)
-            If EnumMatch IsNot Nothing Then
-                Dim TargetedOption = EnumMatch.GetOptionValueByName(ElementName)
-                If TargetedOption Is Nothing Then
-                    Throw New SyntaxError($"The enum ""{EnumMatch.Name}"" doesn't contains the option ""{ElementName}"".", Location)
-                End If
-
-                If TargetedOption.HasValue Then
-                    Throw New SyntaxError($"This enum state requires a value, please include it in parenthesis after the state name.", Location)
-                Else
-                    Return TargetedOption.CompileValue()
-                End If
-            End If
-
-            ' ==== OTHERWISE, IT'S A CLASSIC ATTRIBUTE ====
             Dim Element As SearchMatch = GetMatchs(Scope).First()
 
             If Element.Type = SearchMatch.MatchType.MATCH_METHOD Then
@@ -131,34 +101,6 @@ Namespace AST
 
         Function GetCompiledInstance(Writer As CWriter, Scope As Context.Scope) As String Implements IMethodReference.GetCompiledInstance
             Return Parent.CompileExpression(Writer, Scope)
-        End Function
-
-        Public Function TryGetEnumType(Context As Context.Context) As EnumType Implements IMissingValueEnumReference.TryGetEnumType
-            Return GetEnumMatchs(Context) 'Can return nothing
-        End Function
-
-        Public Function CompileEnumValue(Context As Context.Context, Writer As CWriter, Value As ExpressionNode) As String Implements IMissingValueEnumReference.CompileEnumValue
-
-            Dim EnumMatch = GetEnumMatchs(Context)
-
-            ' no enum found
-            If EnumMatch Is Nothing Then
-                Return String.Empty
-            End If
-
-            ' Get enum option
-            Dim TargetedOption = EnumMatch.GetOptionValueByName(ElementName)
-            If TargetedOption Is Nothing Then
-                Throw New SyntaxError($"The enum ""{EnumMatch.Name}"" doesn't contains the option ""{ElementName}"".", Location)
-            End If
-
-            ' Compile enum value
-            If Not TargetedOption.HasValue Then
-                Throw New SyntaxError($"This enum state doesn't require a value, please remove parenthesis after the state name.", Location)
-            Else
-                Return TargetedOption.CompileValue(Writer, Context, Value)
-            End If
-
         End Function
 
     End Class

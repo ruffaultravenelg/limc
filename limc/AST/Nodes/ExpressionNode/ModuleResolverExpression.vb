@@ -31,21 +31,8 @@
 
         End Function
 
-        Protected Overrides Function TryGetEnumReference(Context As Context.Context) As TypeSystem.EnumType
-
-            For Each UseStatement In Location.File.AST.Include_Uses
-                If UseStatement.ModuleName = ModuleName Then
-                    Dim RetrievedType = UseStatement.AssociatedFile.RetrieveTypeOnlyExported(ElementName, {})
-                    If TypeOf RetrievedType Is TypeSystem.EnumType Then
-                        Return RetrievedType
-                    Else
-                        Return Nothing
-                    End If
-                End If
-            Next
-
-            Return Nothing
-
+        Public Overrides Function ConvertIntoTypenode() As TypeNode
+            Return New ModuleTypeNode(ModuleName, ElementName, {}, Location)
         End Function
 
     End Class

@@ -1,7 +1,7 @@
 ﻿Namespace AST
     Public Class GenericElementExpression
         Inherits ExpressionNode
-        Implements IFunctionReference, IEnumReference
+        Implements IFunctionReference, ICouldBeTypeNode
 
         Protected ElementName As String
         Protected PassedGenericTypes As IEnumerable(Of TypeNode)
@@ -52,16 +52,8 @@
 
         End Function
 
-        Protected Overridable Function TryGetEnumReference(Context As Context.Context) As TypeSystem.EnumType Implements IEnumReference.TryGetEnumReference
-
-            Dim GenericTypes = PassedGenericTypes.Select(Function(g) g.GetAssociatedType(Context))
-            Dim RetrievedType = Context.ParentFile.RetrieveTypeFromLocal(ElementName, GenericTypes)
-            If TypeOf RetrievedType Is TypeSystem.EnumType Then
-                Return RetrievedType
-            Else
-                Return Nothing
-            End If
-
+        Public Overridable Function ConvertIntoTypenode() As TypeNode Implements ICouldBeTypeNode.ConvertIntoTypenode
+            Return New SimpleTypeNode(ElementName, PassedGenericTypes, Location)
         End Function
 
     End Class

@@ -1,4 +1,5 @@
-﻿Imports System.IO
+﻿Imports System.Configuration.Assemblies
+Imports System.IO
 Imports System.Text
 
 Public Module Compiler

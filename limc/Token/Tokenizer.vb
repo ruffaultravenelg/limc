@@ -442,6 +442,8 @@ Public Module Tokenizer
                     AddToken(TokenType.SYMBOL_EQUAL, LocationFromChar())
                 Case "@"c
                     AddToken(TokenType.SYMBOL_AT, LocationFromChar())
+                Case "!"c
+                    AddToken(TokenType.SYMBOL_DANGER, LocationFromChar())
                 Case Else
                     'Final error: unexpected character
                     Throw New LocatedError("Unexpected character", $"The following character was not expected : ""{CurrentChar}""", LocationFromChar())

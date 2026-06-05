@@ -35,9 +35,14 @@ Namespace TypeSystem
                 ToString()                                  ' comment (enum type as string)
             ))
 
+            ' a = b
+            RegisterRelation(New Lazy.HardRelation(Me, RelationType.RELATION_EQUAL, {Me}, {"b"}, Type.Bool, {
+                $"return {INSTANCE_ARGUMENT_NAME} == b;"
+            }))
+
         End Sub
 
-        Public Overrides Function GetOptionValueByName(Name As String) As EnumOption
+        Public Overrides Function GetOptionByName(Name As String) As EnumOption
             Return Options.FirstOrDefault(Function(o) o.Name = Name)
         End Function
 

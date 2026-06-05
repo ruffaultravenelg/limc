@@ -6,7 +6,7 @@
             MyBase.New(Name, GenericTypes, ConstructIsExported)
         End Sub
 
-        Public MustOverride Function GetOptionValueByName(Name As String) As EnumOption ' can return nothing if not found
+        Public MustOverride Function GetOptionByName(Name As String) As EnumOption ' can return nothing if not found
 
     End Class
 End Namespace

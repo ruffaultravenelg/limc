@@ -573,10 +573,45 @@ Namespace AST
 
         End Function
 
+        ' \\\\\ {typenode}!option / {typenode}!option(value) //////
+        Private Function GetEnumOptionValue() As ExpressionNode
+
+            Dim Left As ExpressionNode = GetFactor()
+
+            If CurrentToken.Type = TokenType.SYMBOL_DANGER AndAlso TypeOf Left Is ICouldBeTypeNode Then
+
+                Advance() 'skip '!'
+
+                ' Get option name
+                CheckTokenType(TokenType.TEXT, "An enum option name was expected here.")
+                Dim OptionName As String = CurrentToken.Value
+                Advance()
+
+                ' Get value (optional)
+                Dim OptionValue As ExpressionNode = Nothing
+                If CurrentToken.Type = TokenType.SYMBOL_LEFT_PARENTHESIS Then
+                    Advance()
+                    OptionValue = GetExpression()
+                    CheckTokenType(TokenType.SYMBOL_RIGHT_PARENTHESIS, "A ')' was expected here, enums can take only one value.")
+                    Advance()
+                End If
+
+                ' Convert typenode
+                Dim Typenode As TypeNode = DirectCast(Left, ICouldBeTypeNode).ConvertIntoTypenode()
+
+                ' Create node
+                Left = New EnumExpression(Typenode, OptionName, OptionValue, Left.Location + LastTokPos)
+
+            End If
+
+            Return Left
+
+        End Function
+
         ' \\\\\\ {expression}(args) / {expression}[args} / {expression}.{child} //////
         Private Function GetCallBracketChild() As ExpressionNode
 
-            Dim Expression As ExpressionNode = GetFactor()
+            Dim Expression As ExpressionNode = GetEnumOptionValue()
 
             While True
                 If CurrentToken.Type = TokenType.SYMBOL_LEFT_PARENTHESIS Then

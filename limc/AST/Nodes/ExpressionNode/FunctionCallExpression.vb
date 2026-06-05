@@ -13,14 +13,6 @@
 
         Public Overrides Function GetExpressionReturnType(Context As Context.Context) As TypeSystem.Type
 
-            ' Enum option
-            If TypeOf Target Is IMissingValueEnumReference AndAlso PassedArguments.Count = 1 Then
-                Dim EnumType = DirectCast(Target, IMissingValueEnumReference).TryGetEnumType(Context)
-                If EnumType IsNot Nothing Then
-                    Return EnumType
-                End If
-            End If
-
             ' Direct reference
             If TypeOf Target Is IFunctionReference Then
                 Dim Func As Lazy.Function = DirectCast(Target, IFunctionReference).TryGetReferencedFunction(Context)
@@ -58,14 +50,6 @@
         End Function
 
         Public Overrides Function CompileExpression(Writer As CWriter, Scope As Context.Scope) As String
-
-            ' Enum option
-            If TypeOf Target Is IMissingValueEnumReference AndAlso PassedArguments.Count = 1 Then
-                Dim Result = DirectCast(Target, IMissingValueEnumReference).CompileEnumValue(Scope, Writer, PassedArguments(0))
-                If Not String.IsNullOrEmpty(Result) Then
-                    Return Result
-                End If
-            End If
 
             ' Direct reference
             If TypeOf Target Is IFunctionReference Then

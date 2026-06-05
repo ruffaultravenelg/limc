@@ -3,7 +3,7 @@
 Namespace AST
     Public Class ElementExpression
         Inherits ExpressionNode
-        Implements IAssignable, IFunctionReference, IMethodReference, IEnumReference
+        Implements IAssignable, IFunctionReference, IMethodReference, ICouldBeTypeNode
 
         Protected ElementName As String
 
@@ -141,15 +141,8 @@ Namespace AST
             Return Constants.INSTANCE_ARGUMENT_NAME
         End Function
 
-        Protected Overridable Function TryGetEnumReference(Context As Context.Context) As EnumType Implements IEnumReference.TryGetEnumReference
-
-            Dim RetrievedType = Context.ParentFile.RetrieveTypeFromLocal(ElementName, {})
-            If TypeOf RetrievedType Is TypeSystem.EnumType Then
-                Return RetrievedType
-            Else
-                Return Nothing
-            End If
-
+        Public Overridable Function ConvertIntoTypenode() As TypeNode Implements ICouldBeTypeNode.ConvertIntoTypenode
+            Return New SimpleTypeNode(ElementName, {}, Location)
         End Function
 
     End Class
