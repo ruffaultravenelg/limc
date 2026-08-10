@@ -1,0 +1,130 @@
+/* FONT */
+@font-face {
+    font-family: 'consolas';
+    src: url('../fonts/consolas.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* GENERAL */
+*{
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+html{
+	scroll-behavior: smooth;
+}
+body{
+	width: 100%;
+	font-family: 'Montserrat', sans-serif;
+}
+a{
+	text-decoration: none;
+	color: white;
+}
+
+/* TEXT */
+.text-green-gradient{
+	background: -webkit-linear-gradient(left, #186B3A, #27AD5F);
+	background-clip: text;
+	-webkit-background-clip: text;
+  	-webkit-text-fill-color: transparent;
+}
+
+/* BUTTON */
+button{
+	outline: none;
+	border: none;
+}
+
+/* CODE */
+code{
+	font-family:'consolas';
+	tab-size: 4;
+}
+pre{
+	overflow-x: auto;
+}
+.code-blue{color: #6699CC;}
+.code-violet{color: #925e92;}
+.code-red{color: #DE6066;}
+.code-orange{color: #F97955;}
+.code-grey{color: #868c97;}
+.code-green{color: #8DC794;}
+.code-darkgreen{color: #186B3A;}
+
+::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+::-webkit-scrollbar-track {
+	background: #f1f1f1;
+	border-radius: 5px;
+}
+::-webkit-scrollbar-thumb {
+	background: #888;
+	border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+	background: #555;
+}
+
+/* HEADER */
+header{
+	padding: 15px;
+	width: 100%;
+	height: auto;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	background-color: #313132;
+}
+
+.header-logo{
+	width: 30px;
+	height: 30px;
+}
+
+.header-links{
+	list-style: none;
+	display: flex;
+	flex-direction: row;
+}
+.header-links li{
+	color: #E5E5E5;
+	margin: 0 15px 0 15px;
+	cursor: pointer;
+}
+.header-links li:hover{
+	color: white;
+}
+@media (max-width:720px) {
+	.header-links{
+		display: none;
+	}
+}
+
+/* FOOTER */
+footer{
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+	padding: 25px 20px;
+	box-sizing: border-box;
+	background-color: #208F4E;
+}
+footer p{
+	color: white;
+	font-size: 18px;
+}
+@media (max-width:720px) {
+	footer{
+		text-align: center;
+		flex-direction: column;
+		gap: 10px;
+	}
+}

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Lim Programming Language</title>
+	<link rel="icon" type="image/x-icon" href="images/logo.png">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inconsolata&family=Montserrat:wght@200;300;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="styles/style.css">
+	<link rel="stylesheet" type="text/css" href="styles/index.css">
+</head>
+<body>
+
+	<!-- HEADER -->
+	<header>
+		
+		<!-- LOGO -->
+		<img class="header-logo" src="images/logo_white.png" alt="Lim's logo">
+
+		<!-- HEADER -->
+		<ul class="header-links">
+			<li><a href="#">About</a></li>
+			<li><a href="#examples">Examples</a></li>
+			<li>Documentation</li>
+			<li><a href="#contact">Contact</a></li>
+		</ul>
+
+	</header>
+
+	<!-- LANDING PAGE -->
+	<section class="landing-page">
+		
+		<h1>Lim <span class="text-green-gradient">Programming</span> Language</h1>
+		<h2>The robustness of a strictly typed language, with the simplicity of a dynamic one</h2>
+		<div class="landing-page-buttons">
+			<button class="black-btn" id="open_github_repo_btn"><img src="images/github_logo.png">Github Repo</button>
+			<button class="black-btn" id="download_btn"><img src="images/download_logo.png">Free Download</button>
+		</div>
+
+	</section>
+
+	<!-- EXEMPLE -->
+	<section class="example">
+		
+		<!-- WINDOW -->
+		<div class="example-window">
+			
+			<div class="example-window-header">
+				<div class="example-window-header-control">
+					<div class="example-window-header-control-1"></div>
+					<div class="example-window-header-control-2"></div>
+					<div class="example-window-header-control-3"></div>
+				</div>
+				<p>main.lim</p>
+			</div>
+
+			<div class="example-windows-content">
+<pre><code class="example-windows-code"><span class="code-violet">class</span> <span class="code-red">user</span>
+	<span class="code-violet">let</span> username:<span class="code-grey">str</span>
+	<span class="code-violet">let</span> age:<span class="code-grey">int</span>
+
+	<span class="code-violet">func</span> <span class="code-red">new</span>(_username:<span class="code-grey">str</span>, _age:<span class="code-grey">int</span>)
+		username <span class="code-orange">=</span> _username
+		age <span class="code-orange">=</span> _age
+
+	<span class="code-violet">func</span> <span class="code-red">str</span>
+		<span class="code-violet">return</span> <span class="code-green">'{username} is {age}yo'</span>
+
+<span class="code-violet">func</span> <span class="code-red">main</span>
+	<span class="code-violet">let</span> people <span class="code-red">=</span> <span class="code-violet">new</span> <span class="code-grey">list&lt;user&gt;</span>
+	<span class="code-violet">for</span> i <span class="code-violet">from</span> <span class="code-orange">0</span> <span class="code-violet">to</span> <span class="code-orange">5</span>
+		people.<span class="code-blue">add</span>(<span class="code-violet">new</span> <span class="code-blue">user</span>(<span class="code-green">"Bob"</span>, <span class="code-blue">randint</span>(<span class="code-orange">1</span>, <span class="code-orange">99</span>)))
+		<span class="code-blue">puts</span>(people[<span class="code-orange">-1</span>].<span class="code-blue">str</span>())</code></pre>
+			</div>
+
+		</div>
+
+	</section>
+
+	<!-- OPEN SOURCE -->
+	<section class="free">
+		
+		<h1>Free & <span class="text-green-gradient">Open</span> sources</h1>
+		<p>
+			Lim is based on the principle of open source, meaning that its source code is accessible and modifiable by all. This logical choice encourages collaboration, innovation and transparency in language development. Open source also gives Lim users the opportunity to correct and improve it.
+		</p>
+
+	</section>
+
+	<!-- EXEMPLES -->
+	<section class="exemples" id="examples">
+		
+		<!-- TITLE -->
+		<h1>Examples</h1>
+
+		<!-- Hello World -->
+		<div class="exemple-cell">
+
+			<div class="exemple-cell-text">
+				<h3>Hello World</h3>
+				<p>Here is the famous Hello World program which displays this same message on the terminal.</p>
+			</div>
+
+			<div class="exemple-cell-code">
+				<code><pre><span class="code-violet">func</span> <span class="code-red">main</span>
+	<span class="code-blue">puts</span>(<span class="code-green">"Hello World"</span>)</pre></code>
+			</div>
+
+		</div>
+
+		<!-- TYPE SYSTEM -->
+		<div class="exemple-cell exemple-cell-reversed">
+
+			<div class="exemple-cell-text">
+				<h3>Strictly typed</h3>
+				<p>When the types are not indicated, the compiler takes care of finding them. All this without changing the syntax.</p>
+			</div>
+
+			<div class="exemple-cell-code">
+				<code><pre><span class="code-violet">let</span> fibonacci<span class="code-grey">:list&lt;int&gt;</span> <span class="code-red">=</span> [<span class="code-orange">0</span>, <span class="code-orange">1</span>, <span class="code-orange">1</span>, <span class="code-orange">2</span>]
+<span class="code-darkgreen">//Is the same as doing</span>
+<span class="code-violet">let</span> fibonacci <span class="code-red">=</span> [<span class="code-orange">0</span>, <span class="code-orange">1</span>, <span class="code-orange">1</span>, <span class="code-orange">2</span>]</pre></code>
+			</div>
+
+		</div>
+
+		<!-- CLASSES -->
+		<div class="exemple-cell">
+
+			<div class="exemple-cell-text">
+				<h3>Support for classes</h3>
+				<p>Lim is an object oriented language. It is therefore possible to define these own classes with more or less complexity.</p>
+			</div>
+
+			<div class="exemple-cell-code">
+				<code><pre><span class="code-violet">class</span> <span class="code-red">product</span>
+	<span class="code-violet">let</span> name<span class="code-grey">:str</span>
+	<span class="code-violet">let</span> id<span class="code-grey">:int</span>
+
+	<span class="code-violet">func</span> <span class="code-red">new</span>(_name<span class="code-grey">:str</span>, _id <span class="code-red">=</span> <span class="code-orange">0</span>)
+		name <span class="code-red">=</span> _name
+		id <span class="code-red">=</span> _id</pre></code>
+			</div>
+
+		</div>
+		
+	</section>
+	
+	<!-- COMPILE TO C & MINIMAL RUNTIME -->
+	<section class="compiler">
+		
+		<h1>Designed for <span class="text-green-gradient">minimal</span> runtime</h1>
+		<p>
+			Lim is a programming language designed to simplify the integration of high-level functionality. It uses classes that are equivalent to C structures, without adding complexity. It also features a lazy compiler that compiles only what is necessary.
+		</p>
+
+	</section>
+
+	<!-- EXEMPLES -->
+	<section class="exemples">
+		
+		<!-- TITLE -->
+		<h1>More examples</h1>
+
+		<!-- Imports / exports -->
+		<div class="exemple-cell">
+
+			<div class="exemple-cell-text">
+				<h3>Imports</h3>
+				<p>With lim it is easy to import elements from another source file.</p>
+			</div>
+
+			<div class="exemple-cell-code">
+				<code><pre><span class="code-darkgreen">//Imports all the public elements of the file "player.lim"</span>
+<span class="code-red">import</span> <span class="code-green">"player.lim"</span>
+
+<span class="code-darkgreen">//Imports the window library</span>
+<span class="code-red">import</span> window
+</pre></code>
+			</div>
+
+		</div>
+
+		<!-- Exports -->
+		<div class="exemple-cell exemple-cell-reversed">
+
+			<div class="exemple-cell-text">
+				<h3>Exports</h3>
+				<p>With lim it is easy to export variables, functions or classes from a source file. Once our file is imported by another source file, only the elements preceded by the keyword "export" will be accessible (public), the rest will remain inaccessible (private).</p>
+			</div>
+
+			<div class="exemple-cell-code">
+				<code><pre><span class="code-darkgreen">//This function is public</span>
+<span class="code-violet">export func</span> <span class="code-red">foo</span>
+
+<span class="code-darkgreen">//This function cannot be used by the file that imported it</span>
+<span class="code-violet">func</span> <span class="code-red">bar</span></pre></code>
+			</div>
+
+		</div>
+
+		<!-- Generic Type Parameters -->
+		<div class="exemple-cell">
+
+			<div class="exemple-cell-text">
+				<h3>Generic Type Parameters</h3>
+				<p>
+					Currently Lim only supports Generic Type Parameters for classes.
+					</br>
+					Here is an example of a class that would represent a stack.
+				</p>
+			</div>
+
+			<div class="exemple-cell-code">
+				<code><pre><span class="code-violet">class</span> <span class="code-red">stack</span>&lt;T&gt;
+	<span class="code-violet">let</span> elements <span class="code-red">=</span> <span class="code-violet">new</span> list&lt;T&gt;
+	
+	<span class="code-violet">func</span> <span class="code-red">push</span>(elm<span class="code-grey">:T</span>)
+		elements.<span class="code-blue">add</span>(elm)
+
+	<span class="code-violet">func</span> <span class="code-red">remove</span><span class="code-grey">:T</span>
+		<span class="code-red">return</span> elements.<span class="code-blue">remove</span>(<span class="code-orange">-1</span>)</pre></code>
+				</div>
+
+		</div>
+
+	</section>
+	
+	<!-- GARBAGE COLLECTOR -->
+	<section class="gc">
+		
+		<h1>No need to manage <span class="text-green-gradient">memory</span></h1>
+		<p>
+			Lim uses a garbage collector, an automatic memory management mechanism that frees memory occupied by unused or inaccessible objects in a computer program. The garbage collector allows developers to concentrate on program logic without worrying about memory allocation and deallocation.
+		</p>
+
+	</section>
+	
+	<!-- HOW IT WORKS -->
+	<section class="how-it-works">
+		
+		<h1>How does it <span class="text-green-gradient">work</span> ?</h1>
+		<p>
+			The Lim programming language has the unique feature of converting its source code into a C file, which can then be compiled into an independent executable file. This allows Lim to be compatible with any operating system and to take advantage of the functionalities of existing C libraries.
+		</p>
+		<div class="how-it-works-schema">
+			<img src="images/file.png" alt="Lim file icon">
+			<img src="images/right_arrow.png" alt="Right arrow">
+			<img src="images/c_logo.png" alt="C file icon">
+			<img src="images/right_arrow.png" alt="Right arrow">
+			<img src="images/executable.png" alt="Executable file icon">
+		</div>
+		<p>
+			For example, Lim can use the SDL2 library to create games or graphics applications. Lim can also optimize the C code it generates using the optimization mode of the chosen C compiler. In this way, Lim guarantees high-performance results.
+		</p>
+
+	</section>
+
+	<!-- C COMPATIBILITY -->
+	<div class="compatibility">
+		
+		<h1>Execute <span class="text-green-gradient">C code</span> in lim code</h1>
+		<p>
+			Lim is a programming language that lets you integrate C source code into your programs. The syntax allows C code to be inserted at a specific point in the source code and compiled with the rest of the program. This feature can be useful for using libraries written in C, for optimizing certain parts of the code or for taking advantage of features specific to the C language.
+		</p>
+		
+	</div>
+
+	<!-- FOOTER -->
+	<footer id="contact">
+		<p>@ Copyright 2023 - OnimStudio</p>
+		<p>contact.onimstudio@gmail.com</p>
+	</footer>
+
+	<!-- SCRIPT -->
+	<script type="text/javascript" src="scripts/index.js"></script>
+
+</body>
+</html>

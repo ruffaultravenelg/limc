@@ -1,111 +1,56 @@
-# limc - Lim Compiler
+# Lim
 
-## Introduction
-limc est un compilateur pour le langage [Lim](#lim). Il prend des fichiers source `.lim` et les convertit en exécutables.
+Lim is a custom programming language created by Gémino RUFFAULT--RAVENEL. It started as a passion project around 2022 and continues to be developed in my free time alongside my studies and work.
 
-## Utilisation
-```sh
-limc <source> <destination> [flags...]
-```
+> [!NOTE]
+> Lim is a non-professional project built primarily for fun, learning, and experimentation.
 
-- `<source>` : Chemin du fichier `.lim` à compiler. Ce fichier doit contenir une fonction `main`.
-- `<destination>` : Chemin de l'exécutable à créer. Le fichier sera écrasé s'il existe déjà.
+What began as a quest to build my "dream language" evolved as my skills grew. I realized that language design goes far beyond syntax only. Today, the goal is to build a complete and usable version of Lim.
 
-## Lim
-Lim est un langage compilé, orienté objet et fortement typé, inspiré de la syntaxe de Python.
+---
 
-### Intentions
-Lim a été avant tout conçu comme un projet ludique, sans la prétention de rivaliser avec quelque autre langage ou de réinventer la roue. J'ai pour but de créer un langage qui soit, pour moi, agréable à utiliser. Dans son intention, Lim veut prendre la simplicité et la lisibilité de Python, compilé en C.
+## Syntax & Philosophy
 
-### Caractéristiques techniques
-- Lim compile d'abord tout le code source en un fichier C, puis utilise `gcc` pour le transformer en exécutable. Cela permet d'accéder à l'ensemble des bibliothèques C. De plus, il est possible d'injecter directement du code C dans le code Lim.
-- Le type d'allocation mémoire est déterminé par le type : les `enum` ou les `struct` seront sur la pile (stack) tandis que les `class` seront instanciées dans le tas (heap).
-- Là où Java prône "Write once, run anywhere", Lim prône le "Write once, compile anywhere" (enfin c'est le but).
+Lim takes inspiration from the simplicity and minimal feel of **C**, but enhances it with convenient modern features:
 
-### TODO list
-- [X] Fonctions
-- [X] Records
-- [X] Structures
-- [X] Ajout direct de sources
-- [X] Classes
-- [X] Collecteur de déchets (Garbage Collector, pour l'instant assuré par [tgc](https://github.com/orangeduck/tgc) mais sera à terme remplacé par une implémentation propre)
-- [X] Système d'import/export
-- [~] Function as value
-- [X] Types génériques
-- [X] Relations
-- [X] Méthodes
-- [~] Accesseurs (getters & setters)
-- [ ] Error handling
-- [ ] Enums
-- [ ] Enumerateurs
-- [ ] Contrats
-- [ ] Multithreading
-- [ ] Better error messages
+- Includes a [lightweight garbage collector](https://github.com/orangeduck/tgc).
+- Generic Types
+- Simple classes
+- Tagged unions (enums holding associated data)
 
-### Exemples
+---
 
-#### Exemple : Hello World
-```go
-func main
-    puts("Hello World")
-```
+## How It Works
 
-#### Fonctions
-```go
-func main(args:array<str>)
-    for arg in args
-        if not isFlag(arg)
-            puts(arg)
+Lim uses a **transpilation** approach:
 
-func isFlag(arg:str):bool
-    return arg[0] = '-'
-```
+1. The Lim compiler converts Lim source code into standard C.
+2. An external C compiler (such as GCC) compiles the C code into a native executable.
 
-#### Types génériques et accesseurs
-```go
-class stack<T>
-    let content:list<T>
+---
 
-    new()
-        content = new list<T>
-    
-    func push(elm:T)
-        content.add(elm)
+## Repository Structure
 
-    func pop:T
-        let elm = content[-1] // -1 means last element
-        content.pop(-1)
-        return elm
-    
-    get len:int // Create a .len accessor on a stack<T> object
-        return content.len
-```
+| Folder | Description |
+| --- | --- |
+| `/limc` | The Lim compiler source code (written in VB.NET) |
+| `/lim-docs` | Language documentation built with [Docusaurus](https://docusaurus.io/) |
+| `/lim-core` | Houses both the standard library and the native runtime environment. |
+| `/lim-core/libs` | Standard libraries written in Lim (e.g., `std.lim`, `math.lim`) |
+| `/lim-core/clibs` | C implementations for low-level language support (e.g., garbage collector) |
+| `/lim-website` | The Lim project website source |
+| `/lim-syntax-highlighting` | Text editor extensions for Lim syntax highlighting |
 
-#### Contrats
-Or interfaces as we call them in other languages, but I don't really care, I like this name.
-```go
-import image
+---
 
-class rectangle signs drawable
-    let x:int
-    let y:int
-    let w:int
-    let h:int
+## Getting Started
 
-    func draw(canvas:image)
-        canvas.drawRect(x, y, w, h, "#00FF00".hex())
+> [!WARNING]
+> Lim is currently under active development. There is not yet a stable release branch.
 
-class circle signs drawable
-    let x:int
-    let y:int
-    let r:int
+If you would like to test the current build:
 
-    func draw(canvas:image)
-        canvas.drawEllipse(x, y, r, r, "#0000FF".hex())
-
-contract drawable
-    func draw(img:image)
-```
-
-## Liens
-- [TGC](https://github.com/orangeduck/tgc) est un ramasse-miettes (garbage collector) de type mark-and-sweep qui me sert temporairement pendant le développement pour réduire la complexité de la tâche...
+1. **Build the compiler:** Open the `/limc` solution in **Visual Studio** and build the release executable for your operating system.
+2. **Setup libraries:** Copy the content of `/lim-core` directory into the same folder as the compiled executable.
+3. **Prerequisites:** Ensure you have `gcc` (or another compatible C compiler) installed and available in your system path.
+4. **Run:** Open your terminal and run `lim --help` to view CLI options and usage.

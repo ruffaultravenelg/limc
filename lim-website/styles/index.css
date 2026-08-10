@@ -1,0 +1,391 @@
+/* TEXT */
+h1{
+	color: black;
+	font-size: 60px;
+	font-weight: bold;
+}
+
+h2{
+	color: black;
+	font-size: 30px;
+	max-width: 700px;
+	font-weight: bold;
+}
+
+h3{
+	color: black;
+	font-size: 20px;
+	max-width: 700px;
+	position: relative;
+	display: inline-block;
+}
+h3::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  width: 100%;
+  left: 0;
+  height: 3px;
+  border-radius: 5px;
+  background: linear-gradient(to right, #1A7540, #27AE60);
+}
+
+p{
+	font-size: 22px;
+	color: black;
+}
+
+@media (max-width:720px) {
+	h1{
+		font-size: 40px;
+	}
+	h2{
+		font-size: 25px;
+		font-weight: 400;
+	}
+}
+
+/* BUTTON */
+.black-btn img{
+	width: 30px;
+	height: 30px;
+	margin-right: 20px;
+}
+.black-btn{
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	margin: 10px;
+	color: white;
+	background-color: black;
+	padding: 20px 50px;
+	border-radius: 13px;
+	font-size: 18px;
+	font-weight: bold;
+	transition-duration: 0.2s;
+	cursor: pointer;
+}
+.black-btn:hover{
+	box-shadow: rgba(50, 50, 93, 0.25) 0px 13px 27px -5px, rgba(0, 0, 0, 0.3) 0px 8px 16px -8px;
+	transform: translateY(-2px);
+}
+.black-btn:active{
+	transform: translateY(2px);
+}
+
+/* LANDING PAGE */
+.landing-page{
+	width: 100%;
+	height: 70vh;
+	background-color: white;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	padding: 100px;
+}
+.landing-page h1{
+	margin-top: 30px;
+}
+.landing-page h2{
+	margin-top: 10px;
+}
+.landing-page-buttons{
+	display: flex;
+	flex-direction: row;
+	margin-top: 50px;
+}
+@media (max-width:720px) {
+	.landing-page-buttons{
+		flex-direction: column;
+	}
+	.landing-page{
+		padding: 10%;
+	}
+}
+
+/* EXAMPLE */
+.example{
+	background-color: white;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding-bottom: 100px;
+	z-index: 1;
+	position: relative;
+}
+.example::after{
+	content: '';
+	width: 100%;
+	height: 400px;
+	background-color: rgb(230, 230, 230);
+	z-index: 0;
+	position: absolute;
+	bottom: 0;
+}
+
+.example-window{
+	z-index: 10;
+	background-color: rgb(30, 30, 30);
+	box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px;
+	overflow: hidden;
+	border-radius: 15px;
+	width: 70%;
+	max-width: 950px;
+}
+.example-window-header{
+	width: 100%;
+	padding: 15px;
+	background-color: rgb(20, 20, 20);
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+.example-window-header p{
+	color: white;
+	width: 100%;
+	margin-right: 55px;
+	text-align: center;
+	font-size: 18px;
+}
+
+.example-window-header-control{
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	width: auto;
+	gap: 10px;
+}
+.example-window-header-control *{
+	width: 13px;
+	height: 13px;
+	border-radius: 50%;
+}
+
+.example-window-header-control-1{
+	background-color: red;
+}
+.example-window-header-control-2{
+	background-color: yellow;
+}
+.example-window-header-control-3{
+	background-color: green;
+}
+
+.example-windows-content{
+	width: 100%;
+	padding: 30px;
+}
+.example-windows-code{
+	width: 100%;
+	height: auto;
+	color: white;
+	font-size: 18px;
+}
+@media (max-width:720px) {
+	.example-window{
+		width: 90%;
+	}
+}
+
+/* FREE & OPEN SOURCE */
+.free{
+	width: 100%;
+
+	padding: 10% 20%;
+
+	background-color: rgb(20, 20, 20);
+}
+.free h1{
+	color: white;
+}
+.free p{
+	margin-top: 15px;
+	color: white;
+}
+@media (max-width:720px) {
+	.free{
+		text-align: center;
+		padding: 10%;
+	}
+}
+
+/* EXEMPLES */
+.exemples{
+	width: 100%;
+	padding: 10% 20%;
+	background-color: white;
+}
+.exemple-cell{
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	margin-top: 60px;
+	background-color: whitesmoke;
+	border-radius: 20px;
+	padding: 30px;
+	gap: 30px;
+	border: 2px solid rgb(230, 230, 230);
+}
+.exemple-cell-reversed{
+	flex-direction: row-reverse;
+}
+.exemple-cell-text{
+	width: 50%;
+}
+.exemple-cell-text h3{
+	margin-bottom: 15px;
+}
+.exemple-cell-code{
+	width: 50%;
+	height: 100%;
+	background-color: white;
+	border: 3px solid #1A7540;
+	border: 2px solid rgb(230, 230, 230);
+	border-radius: 10px;
+}
+.exemple-cell-code pre{
+	padding: 30px;
+	font-size: 19px;
+	font-weight: normal;
+}
+@media (max-width:720px) {
+	.exemple-cell-reversed{
+		flex-direction: column;
+	}
+	.exemple-cell{
+		flex-direction: column;
+		text-align: center;
+	}
+	.exemple-cell-text{
+		width: 100%;
+	}
+	.exemple-cell-code{
+		width: 100%;
+	}
+	.exemples h1{
+		text-align: center;
+	}
+	.exemples{
+		padding: 10%;
+	}
+}
+
+/* COMPILE TO C WITH MINIMAL RUNTIME */
+.compiler{
+	width: 100%;
+
+	padding: 10% 20%;
+
+	background-color: rgb(20, 20, 20);
+}
+.compiler h1{
+	color: white;
+}
+.compiler p{
+	margin-top: 15px;
+	color: white;
+}
+@media (max-width:720px) {
+	.compiler{
+		text-align: center;
+		padding: 10%;
+	}
+}
+
+/* GARBAGE COLLECTOR */
+.gc{
+	width: 100%;
+
+	padding: 10% 20%;
+
+	background-color: rgb(20, 20, 20);
+}
+.gc h1{
+	color: white;
+}
+.gc p{
+	margin-top: 15px;
+	color: white;
+}
+@media (max-width:720px) {
+	.gc{
+		text-align: center;
+		padding: 10%;
+	}
+}
+
+/* HOW IT WORKS */
+.how-it-works{
+	width: 100%;
+	padding: 10% 20%;
+	background-color: white;
+}
+.how-it-works h1{
+	color: black;
+}
+.how-it-works p{
+	margin-top: 15px;
+	color: black;
+}
+
+.how-it-works-schema{
+	width: 100%;
+	margin-top: 15px;
+	border-radius: 10px;
+	border: 2px solid rgb(230, 230, 230);
+	background-color: whitesmoke;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	gap: 40px;
+	padding: 40px;
+}
+.how-it-works-schema img{
+	width: 120px;
+	height: 120px;
+}
+
+@media (max-width:720px) {
+	.how-it-works{
+		text-align: center;
+		padding: 10%;
+	}
+	.how-it-works-schema{
+		flex-direction: column;
+	}
+	.how-it-works-schema img:nth-child(2), img:nth-child(4){
+		transform: rotate(90deg);
+	}
+	.how-it-works-schema img{
+		width: 90px;
+		height: 90px;
+	}
+}
+
+/* COMPATIBILITY */
+.compatibility{
+	width: 100%;
+
+	padding: 10% 20%;
+
+	background-color: rgb(20, 20, 20);
+}
+.compatibility h1{
+	color: white;
+}
+.compatibility p{
+	margin-top: 15px;
+	color: white;
+}
+@media (max-width:720px) {
+	.compatibility{
+		text-align: center;
+		padding: 10%;
+	}
+}

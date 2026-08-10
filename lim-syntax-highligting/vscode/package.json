@@ -1,0 +1,25 @@
+{
+  "name": "lim-lang",
+  "displayName": "lim-lang",
+  "description": "Support pour le langage Lim",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.125.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "lim",
+      "aliases": ["Lim", "lim"],
+      "extensions": [".lim"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "lim",
+      "scopeName": "source.lim",
+      "path": "./syntaxes/lim.tmLanguage.json"
+    }]
+  }
+}

@@ -1,0 +1,7 @@
+{
+    "label": "CAPI",
+    "link": {
+        "type": "generated-index",
+        "title": "CAPI (pour C Api) est la manière d'intéragir avec du code C depuis un fichier source Lim."
+    }
+}

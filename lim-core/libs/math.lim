@@ -1,0 +1,4 @@
+export const PI = 3.141592
+
+export func cos(n:int):int
+	$ return 5;

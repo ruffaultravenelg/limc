@@ -1,0 +1,76 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Lim",
+  "patterns": [
+    { "include": "#keywords" },
+    { "include": "#strings" },
+    { "include": "#types" },
+    { "include": "#functions" },
+    { "include": "#builtins" }
+  ],
+  "repository": {
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.lim",
+          "match": "\\b(import|use|class|struct|func|let|return|relation|enum|where|if|else|new)\\b"
+        },
+        {
+          "name": "keyword.operator.lim",
+          "match": "(=|\\+|->|!|::|:)"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.lim",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            { "name": "constant.character.escape.lim", "match": "\\\\." }
+          ]
+        },
+        {
+          "name": "string.quoted.single.lim",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "variable.interpolation.lim",
+              "match": "\\{[^}]+\\}"
+            }
+          ]
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "support.type.lim",
+          "match": "\\b(str|int)\\b"
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "match": "\\b(func|relation)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\b",
+          "captures": {
+            "1": { "name": "keyword.control.lim" },
+            "2": { "name": "entity.name.function.lim" }
+          }
+        }
+      ]
+    },
+    "builtins": {
+      "patterns": [
+        {
+          "name": "support.function.lim",
+          "match": "\\b(puts|puti|random)\\b"
+        }
+      ]
+    }
+  },
+  "scopeName": "source.lim"
+}

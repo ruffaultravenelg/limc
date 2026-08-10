@@ -1,0 +1,56 @@
+@win $include "<io.h>"
+@unix $include "<unistd.h>"
+
+// Read string
+export func read(filepath:str):str
+	$ FILE* file = NULL;
+	$ long file_size = 0;
+	$ char* buffer = NULL;
+	$ size_t result = 0;
+	$ file = fopen($filepath, "rb");
+	$ if (file == NULL) {
+	panic "Unable to read file"
+	$ }
+	$ if (fseek(file, 0, SEEK_END) != 0) {
+	$     fclose(file);
+	panic "Unable to read file"
+	$ }
+	$ file_size = ftell(file);
+	$ if (file_size == -1) {
+	$     fclose(file);
+	panic "Unable to read file"
+	$ }
+	$ if (fseek(file, 0, SEEK_SET) != 0) {
+	$     fclose(file);
+	panic "Unable to read file"
+	$ }
+	$ buffer = (char*)@LIM_ALLOC(file_size + 1);
+	$ if (buffer == NULL) {
+	$     fclose(file);
+	panic "Unable to read file"
+	$ }
+	$ result = fread(buffer, 1, file_size, file);
+	$ fclose(file); 
+	$ if (result != file_size) {
+	$     @LIM_FREE(buffer);
+	panic "Unable to read file"
+	$ }
+	$ buffer[file_size] = '\0';
+	$ return buffer;
+
+// Write string
+export func write(filepath:str, content:str)
+	$ FILE* file = NULL;
+	$ int status = 0;
+	$ file = fopen($filepath, "w");
+	$ if (file == NULL)
+	panic "Cannot open file"
+	$ if (fputs($content, file) == EOF) status = -1;
+	$ if (fclose(file) == EOF) status = -1;
+	$ if (status != 0)
+	panic "Cannot write to file"
+
+// File/Directory exist
+export func exists(path:str):bool
+	@unix $ return (access($path, F_OK) == 0);
+	@win  $ return (_access($path, 0) == 0);

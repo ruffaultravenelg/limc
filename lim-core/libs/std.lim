@@ -1,0 +1,101 @@
+export func puts(message:str)
+	$ printf("%s\n", $message);
+
+export func put(message:str)
+	$ printf("%s", $message);
+
+export func puti(number:int)
+	$ printf("%d\n", $number);
+
+export func putb(boolean:bool)
+	$ printf("%s\n", $boolean ? "true" : "false");
+
+export func gets:str
+	$ char* buffer = @LIM_ALLOC(sizeof(char) * @GETS_BUFFER_SIZE);
+	$ if (fgets(buffer, @GETS_BUFFER_SIZE, stdin) != NULL) {
+	$   buffer[strcspn(buffer, "\n")] = '\0';
+	$ } else {
+	$ 	@LIM_FREE(buffer);
+	$ 	return NULL;
+	$ }
+	$ return buffer;
+
+export class array<T>
+	$ $:T* array;
+	let size:int
+
+	new(_size:int)
+		size = _size
+		$ @SELF->array = @LIM_ALLOC(sizeof($:T) * $size);
+
+	func resize(newSize:int)
+		size = newSize
+		$ @SELF->array = @LIM_REALLOC(@SELF->array, sizeof($:T) * $size);
+
+	relation []= (index:int, value:T)
+		if index < 0
+			index = size + index
+		if index >= size or index < 0
+			panic "Index out of range"
+		$ @SELF->array[$index] = $value;
+
+	relation [] (index:int):T
+		if index < 0
+			index = size + index
+		if index >= size or index < 0
+			panic "Index out of range"
+		$ return @SELF->array[$index];
+
+	relation @[] (index:int):T
+		if index < 0
+			index = size + index
+		if index >= size or index < 0
+			panic "Index out of range"
+		$ return &@SELF->array[$index];
+
+const LIST_RESIZE_FACTOR = 1.7
+export class list<T>
+	let internal_array:array<T>
+	let size:int
+
+	new()
+		size = 0
+		internal_array = new array<T>(1)
+
+	func add(elm:T)
+		size = size + 1
+		if size > internal_array.size
+			internal_array.resize((internal_array.size * LIST_RESIZE_FACTOR).round())
+		internal_array[size - 1] = elm
+
+	func pop(index:int)
+		if size = 0
+			raise collectionIsEmpty
+		const idx = calculateRealIndex(index)
+		for i from idx to size - 1
+			internal_array[i] = internal_array[i + 1]
+		size = size - 1
+
+	relation [](index:int):T
+		return internal_array[calculateRealIndex(index)]
+
+	relation []= (index:int, value:T)
+		internal_array[calculateRealIndex(index)] = value
+
+	func calculateRealIndex(index:int):int
+		if index < 0
+			index = size + index
+		if index >= size or index < 0
+			raise indexOutOfRange
+		return index
+
+	func str:str
+		let result = "["
+		for i to size
+			result = result + internal_array[i].str()
+			if not i = size - 1
+				result = result + ", "
+		return result + "]"
+
+export problem indexOutOfRange "Index out of range"
+export problem collectionIsEmpty "Collection is empty"
