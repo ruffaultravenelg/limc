@@ -14,7 +14,7 @@
         End Function
 
         Public Overrides Function CompileExpression(Writer As CWriter, Scope As Context.Scope) As String
-            Return """" & CodeGen.Sanitize(Value) & """"
+            Return CodeGen.Write_C_to_LimStr("""" & CodeGen.Sanitize(Value) & """")
         End Function
 
     End Class

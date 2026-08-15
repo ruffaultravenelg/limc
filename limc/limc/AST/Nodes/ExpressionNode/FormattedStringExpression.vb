@@ -51,7 +51,7 @@ Namespace AST
 
                         Dim VariableName As String = CodeGen.Namer.Temp()
                         FormatArgsVariables.Add(VariableName)
-                        Writer.WriteLine($"char* {VariableName} = {Expression.CompileExpression(Writer, Scope)};")
+                        Writer.WriteLine($"char* {VariableName} = {CodeGen.Write_LimStr_to_C(Expression.CompileExpression(Writer, Scope))};")
 
                         Group = ""
 
@@ -78,10 +78,10 @@ Namespace AST
 
             Writer.WriteLine($"int {LengthVariable} = snprintf(NULL, 0, ""{FormatString}""{FormatArgs});")
             Dim ResultVariable As String = CodeGen.Namer.Temp()
-            Writer.WriteLine($"char* {ResultVariable} = {Constants.LIM_ALLOC_LEAF}(sizeof(char) * ({LengthVariable} + 1));")
+            Writer.WriteLine($"char* {ResultVariable} = {CodeGen.AllocateLeaf("char", $"{LengthVariable} + 1")};")
             Writer.WriteLine($"snprintf({ResultVariable}, {LengthVariable} + 1, ""{FormatString}""{FormatArgs});")
 
-            Return ResultVariable
+            Return CodeGen.Write_C_to_LimStr(ResultVariable)
 
         End Function
 

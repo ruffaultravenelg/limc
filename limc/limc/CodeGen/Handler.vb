@@ -1,5 +1,4 @@
 ﻿Imports System.IO
-Imports System.Security.Cryptography.X509Certificates
 
 Namespace CodeGen
     Module Handler
@@ -229,9 +228,6 @@ Namespace CodeGen
             End If
 
         End Sub
-        Public Function WritePanicCall(Value As String) As String
-            Return $"{PANIC_FUNCTION_NAME}({RUNTIME_CONTEXT_VARIABLE_NAME}, {Value})"
-        End Function
 
         Private Sub WriteContext()
 

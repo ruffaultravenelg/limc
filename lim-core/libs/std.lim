@@ -1,8 +1,8 @@
 export func puts(message:str)
-	$ printf("%s\n", $message);
+	$ printf("%s\n", @LIM_STR_TO_C_STR($message));
 
 export func put(message:str)
-	$ printf("%s", $message);
+	$ printf("%s", @LIM_STR_TO_C_STR($message));
 
 export func puti(number:int)
 	$ printf("%d\n", $number);
@@ -18,7 +18,7 @@ export func gets:str
 	$ 	@LIM_FREE(buffer);
 	$ 	return NULL;
 	$ }
-	$ return buffer;
+	$ return @C_STR_TO_LIM_STR(buffer);
 
 export class array<T>
 	$ $:T* array;
