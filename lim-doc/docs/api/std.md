@@ -5,141 +5,169 @@ description: std
 ---
 
 # Standard library
-La bibliothèque `std` contiens tous les types et fonctions de base du language Lim. Elle est inclue automatiquement dans tous les fichiers sources. Ainsi il n'est pas utile de l'importer manuellement.
-| Symbole | Type d'élément |
+The `std` library contains all the core types and functions of the Lim language. It is automatically included in all source files, so there is no need to import it manually.
+| Symbol | Item Type |
 |---|---|
-| 𝒇 | Fonction |
-| 𝒮 | Structure |
-| 𝒞 | Classe |
-| 𝓂 | Méthode |
-| 𝓟 | Propriété |
+| 𝒇 | Function |
+| 𝒮 | Struct |
+| 𝒞 | Class |
+| 𝓂 | Method |
+| 𝓟 | Property |
 
 
 ## 𝒇 : puts
-La fonction `puts`, pour "put string", permet d'écrire une nouvelle ligne dans le standard output. Elle est utile pour afficher du texte dans la console.
+The `puts` function, short for "put string", writes a string followed by a newline to standard output. It is useful for displaying text in the console.
 
-#### Syntaxe
+#### Syntax
 ```c
 puts(message:str)
 ```
 
 - `message`
-    - **Type** : [`str`](#str)
-    - Description : Le message à écrire dans le standard output.
+    - **Type**: [`str`](https://www.google.com/search?q=%23str)
+    - The message to write to the standard output.
 
-*Ne retourne pas de valeur.*
 
-#### Exemples
+
+*Does not return a value.*
+
+#### Examples
+
 ```c
-// Exemple simple
+// Simple example
 puts('Hello world')
 
-// Exemple avec une variable
+// Example with a variable
 let name = 'Alice'
-puts('Bonjour ' + name)
+puts('Hello ' + name)
 
-// Exemple avec une chaîne multi-lignes
-puts('Ligne 1\nLigne 2\nLigne 3')
+// Multi-line string example
+puts('Line 1\nLine 2\nLine 3')
+
 ```
 
 ---
 
 ## 𝒇 : puti
-La fonction `puti`, pour "put   eger", permet d'écrire un entier dans une nouvelle ligne dans le standard output. Elle est utile pour afficher un nombre dans la console.
 
-#### Syntaxe
+The `puti` function, short for "put integer", writes an integer on a new line to the standard output. It is useful for displaying a number in the console.
+
+#### Syntax
+
 ```c
 puti(value:int)
+
 ```
 
 - `value`
-    - **Type** : [`int`](#int)
-    - Description : Le nombre à écrire dans le standard output.
+    - **Type**: [`int`](https://www.google.com/search?q=%23int)
+    - The number to write to the standard output.
 
-*Ne retourne pas de valeur.*
 
-#### Exemples
+
+*Does not return a value.*
+
+#### Examples
+
 ```c
 puti(3)
 puti(6 + 53)
+
 ```
 
 :::note
-Lim ne convertie pas automatiquement les différents types de nombres entre eux. Ainsi cette fonction ne peut pas prendre de nomber a virgule.
+Lim does not automatically convert between different numeric types. Therefore, this function cannot accept floating-point numbers.
 :::
 
 ---
 
 ## 𝒇 : gets
-La fonction `gets`, pour "get string", permet de lire une ligne de texte depuis le standard input. Elle est utile pour récupérer une entrée utilisateur sous forme de chaîne de caractères.
 
-#### Syntaxe
+The `gets` function, short for "get string", reads a line of text from the standard input. It is useful for retrieving user input as a string.
+
+#### Syntax
+
 ```c
 gets():str
 gets(message:str):str
+
 ```
 
 - `message`
-    - **Type** : [`str`](#str)
-    - Description : Message a écrire dans la console avant de demander une valeur.
+    - **Type**: [`str`](https://www.google.com/search?q=%23str)
+    - The message to display in the console before prompting for a value.
 
-*Retourne une valeur de type [`str`](#str).*
 
-#### Exemples
+
+*Returns a value of type [`str`](https://www.google.com/search?q=%23str).*
+
+#### Examples
+
 ```c
-// Exemple simple avec un message
-let input = gets('Veuillez entrée un chiffre :')
-puts('Vous avez entré : ' + input)
+// Simple example with a prompt message
+let input = gets('Please enter a digit:')
+puts('You entered: ' + input)
 
-// Sans message
-puts('Vous avez entré : ' + gets())
+// Without a prompt message
+puts('You entered: ' + gets())
+
 ```
 
 ---
 
 ## 𝒇 : geti
-La fonction `geti`, pour "get integer", permet de lire un entier depuis le standard input. Elle est utile pour récupérer une entrée utilisateur sous forme de nombre entier.
 
-#### Syntaxe
+The `geti` function, short for "get integer", reads an integer from the standard input. It is useful for retrieving user input as an integer.
+
+#### Syntax
+
 ```c
 geti():int
 geti(message:str):int
+
 ```
 
 - `message`
-    - **Type** : [`str`](#str)
-    - Description : Message a écrire dans la console avant de demander une valeur.
+    - **Type**: [`str`](https://www.google.com/search?q=%23str)
+    - The message to display in the console before prompting for a value.
 
-*Retourne une valeur de type [`int`](#int).*
 
-#### Exemples
+
+*Returns a value of type [`int`](https://www.google.com/search?q=%23int).*
+
+#### Examples
+
 ```c
-// Exemple simple
+// Simple example
 let number = geti()
 puti(number * 2)
+
 ```
 
 :::caution
-Si l'entrée utilisateur n'est pas un entier valide, une erreur sera levée.
+If the user input is not a valid integer, an error will be raised.
 :::
 
 ---
 
 ## 𝒮 : int
-La structure `int` représente un entier non signé 32 bits en mémoire.
+
+The `int` struct represents a 32-bit signed integer in memory.
 
 :::caution
-Cette structure n'a pas de constructeur, chaque nombre dans le code est une instance de cette structure. Ainsi `5` est de type `int`.
+This struct does not have a constructor; every number in the code is an instance of this struct. Therefore, `5` is of type `int`.
 :::
 
 ### 𝓂 : str
-Renvoie la chaine de caractère correspondant au nombre.
+
+Returns the string representation of the number.
 
 ```js
 let age = 19
-let message = 'Tu a ' + age.str() + ' ans'
+let message = 'You are ' + age.str() + ' years old'
+
 ```
 
 ### 𝓂 : float
-Renvoie le nombre flottant correspondant a l'entier. `5` deviens `5.0`
 
+Returns the floating-point representation of the integer. `5` becomes `5.0`.

@@ -1,0 +1,31 @@
+// json.lim
+
+module json // When imported, you need to use json->[elementName], such as "json->parse()"
+
+// Enum with values (not mandatory)
+enum jObj
+	array:jArray
+	map:jMap
+	str:jString
+	int:int
+	float:float
+	bool:bool
+
+class jArray
+	let val:list<jObj>
+
+class jMap
+	let val:map<str, jObj>
+
+	relation [](key:str):jObj
+		if val.hasKey(key)
+			return val[key]
+		raise jMapUnknownKey
+
+exception jMapUnknownKey
+
+class jString
+	let val:str
+
+func parse(text:str):jObj
+	// TODO

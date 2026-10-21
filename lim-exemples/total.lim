@@ -1,0 +1,103 @@
+// main.lim
+
+import "json.lim"
+import file
+
+func main
+	const raw_text = file->read("data.json") // Module elements are accessed using -> operator
+	const raw_data = json->parse(raw_data)
+
+	const json_list = match raw_data // Match could be used as a statement or a expression
+		array(a:list<json->obj>) => a
+		_ => raise arrayExpected
+
+	const vlist = new array<Vector2>(json_list.len)
+	for i to json_list.len - 1
+		const it = json_list[it]
+
+		const map:jMap = match it
+			map(m) => m // Map can infer type
+			_ => raise "A json object was expected"
+
+		const x = jObj_getInt(map, "x").int() // Convert to int
+		const x = jObj_getInt(map, "y").int()
+
+		vlist.add(Vector2{x, y})
+
+	if vlist.empty
+		puts("nothing to do")
+		return
+
+	elseif false // not mandatory, could have multiple
+		puts("never")
+
+	else // not mandatory too
+		puts("ok")
+
+func sum():int
+
+
+func jObj_getInt(obj:jObj, key:str):int
+	return match map[key]
+		int(v) => v
+		_ => raise "A int was expect"
+
+exception arrayExpected "An array was expected"
+
+struct Vector2 // structname / classname in PascalCase
+	let x = 0 // No null, always a value
+	let y = 0
+
+	new(x_:int, y_:int)
+		x = x_
+		y = y_
+
+	new(v:Vector2) // Function overriding
+		new(v.x, v.y)
+
+	func str:str
+		return '({x}; {y})'
+
+	func relation +(b:Vector2):Vector2
+		return Vector2{x + b.x, y + b.y}
+
+	func relation -:Vector2
+		return Vector2{-x, -y}
+
+// json.lim
+
+module json // When imported, you need to use json->[elementName], such as "json->parse()"
+
+// Enum with values (not mandatory)
+enum jObj
+	array:jArray
+	map:jMap
+	str:jString
+	int:int
+	float:float
+	bool:bool
+
+class jArray
+	let val:list<jObj>
+
+class jMap
+	let val:map<str, jObj>
+
+	relation [](key:str):jObj
+		if val.hasKey(key)
+			return val[key]
+		raise jMapUnknownKey
+
+exception jMapUnknownKey
+
+class jString
+	let val:str
+
+func parse(text:str):jObj
+	// TODO
+
+// std.lim
+
+func puts(line:str)
+	// $ is an instruction that copy the entire line into the compiled file. $variable is replaced by the compiled name of the variable, $:type is remplaced by the compiled type, like "user_class*"
+	$ printf("%s\n", $line);

@@ -17,7 +17,7 @@
             RegisterMethod(New Lazy.HardMethod(Me, "str", {}, Type.Str, {
                 $"char* buffer = {LIM_ALLOC}({INT_TO_STR_BUFFERSIZE});",
                 $"sprintf(buffer, ""%d"", {Constants.INSTANCE_ARGUMENT_NAME});",
-                "return buffer;"
+                $"return {C_STR_TO_LIM_STR("buffer")};"
             }))
             RegisterMethod(New Lazy.HardMethod(Me, "float", {}, Type.Float, {
                 $"return (double){Constants.INSTANCE_ARGUMENT_NAME};"

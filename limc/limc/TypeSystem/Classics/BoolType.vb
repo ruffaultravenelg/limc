@@ -15,7 +15,7 @@
 
         Public Sub Compile()
             RegisterMethod(New Lazy.HardMethod(Me, "str", {}, Type.Str, {
-                $"return {Constants.INSTANCE_ARGUMENT_NAME} ? ""true"" : ""false"";"
+                $"return {CodeGen.Write_C_to_LimStr(Constants.INSTANCE_ARGUMENT_NAME & "? ""true"" : ""false""")};"
             }))
         End Sub
 

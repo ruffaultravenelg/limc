@@ -1,0 +1,5 @@
+// std.lim
+
+func puts(line:str)
+	// $ is an instruction that copy the entire line into the compiled file. $variable is replaced by the compiled name of the variable, $:type is remplaced by the compiled type, like "user_class*"
+	$ printf("%s\n", $line);
