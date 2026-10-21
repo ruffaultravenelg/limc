@@ -1,0 +1,5 @@
+func test
+func bob1:str
+func _bob2(a:int, b:list<str>)
+func ttnew(a:int):map<T, list<str>>
+func _(a:float, b:str):token

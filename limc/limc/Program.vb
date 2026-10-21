@@ -1,86 +1,71 @@
 Module Program
 
-    Private Const LIMC_VERSION As String = "1.0.0"
-
-    Public Property VERBOSE As Boolean = False
-    Public Property INTEGRATE_DEBUG As Boolean = True
-    Public Property ONLY_COMPILE_SOURCE As Boolean = False
-    Public Property C_COMPILER_PATH As String = "gcc"
     Sub Main(args As String())
-
-        Dim PositionalArgs As New List(Of String)()
-
-        For i As Integer = 0 To args.Length - 1
-            Dim arg As String = args(i)
-
-            Select Case arg.ToLower()
-                Case "-h", "--help"
-                    Help()
-                    Exit Sub
-                Case "-v", "--version"
-                    Version()
-                    Exit Sub
-                Case "-vb", "--verbose"
-                    VERBOSE = True
-                Case "-r", "--release"
-                    INTEGRATE_DEBUG = False
-                Case "-s", "--source"
-                    ONLY_COMPILE_SOURCE = True
-                Case "-cc"
-                    If i + 1 < args.Length Then
-                        C_COMPILER_PATH = args(i + 1)
-                        i += 1
-                    Else
-                        Console.WriteLine("Error: Missing path for -cc argument.")
-                        Exit Sub
-                    End If
-                Case Else
-                    PositionalArgs.Add(arg)
-            End Select
-        Next
-
-        Dim SourcePath As String = Nothing
-        Dim DestinationPath As String = Nothing
-        If PositionalArgs.Count = 2 Then
-            SourcePath = PositionalArgs(0)
-            DestinationPath = PositionalArgs(1)
-        Else
-            Console.WriteLine("Error: Both input and output must be specified.")
-            Console.WriteLine("Usage: limc [input] [output] [flags...]")
-            Exit Sub
-        End If
-
-        'Start compiling
         Try
-            Compile(SourcePath, DestinationPath)
+            Dim Settings = ProgramDirective.FromArgs(args)
+
+            ' Show help wizard
+            If Settings.HelpFlag Then
+                PrintHelp()
+                Exit Sub
+            End If
+
+            ' Show version
+            If Settings.VersionFlag Then
+                PrintVersion()
+                Exit Sub
+            End If
+
+            ' Compile
+            Select Case Settings.Target
+
+                Case ProgramDirective.CompilationTarget.Executable
+                    Compiler.CompileToExe(Settings.InputFilename, Settings.OutputFilename)
+
+                Case ProgramDirective.CompilationTarget.C
+                    Compiler.CompileToC(Settings.InputFilename, Settings.OutputFilename)
+
+                Case ProgramDirective.CompilationTarget.HIR
+                    Compiler.CompileToHIR(Settings.InputFilename, Settings.OutputFilename)
+
+                Case ProgramDirective.CompilationTarget.AST
+                    Compiler.CompileToAST(Settings.InputFilename, Settings.OutputFilename)
+
+                Case ProgramDirective.CompilationTarget.Token
+                    Compiler.CompileToToken(Settings.InputFilename, Settings.OutputFilename)
+
+            End Select
+
         Catch ex As RenderableException
-            ex.Render()
-#If Not DEBUG Then
-        Catch ex As Exception
-            Dim InternalExcepetion As New BasicException("Internal error", "A unexpected error was thrown by the compiler.")
-            InternalExcepetion.Render()
-#End If
+            Dim ConsoleOut As New OutputStream.ConsoleOutputStream()
+            ex.Render(ConsoleOut)
         End Try
-
     End Sub
 
-    Private Sub Version()
-        Console.WriteLine("Lim compiler (limc)")
-        Console.WriteLine($"version {LIMC_VERSION}")
+    Sub PrintUsage()
+        Console.WriteLine("Usage: {input} [output] [flags...]")
+        Console.WriteLine("Use --help to show help wizard.")
     End Sub
 
-    Private Sub Help()
+    Sub PrintHelp()
+        Console.WriteLine("Usage: {input} [output] [flags...]")
+        Console.WriteLine()
+        Console.WriteLine("    Input: File input path")
+        Console.WriteLine()
+        Console.WriteLine("    Output: File output path, optional.")
+        Console.WriteLine()
+        Console.WriteLine("    Flags: ")
+        Console.WriteLine(vbTab & vbTab & "-e" & vbTab & "--executable" & vbTab & "Set the target result to an exectuable file")
+        Console.WriteLine(vbTab & vbTab & "-c" & vbTab & "--c" & vbTab & "Set the target result to a c source file")
+        Console.WriteLine(vbTab & vbTab & "-t" & vbTab & "--token" & vbTab & "Set the target result to a token file")
+        Console.WriteLine(vbTab & vbTab & "-A" & vbTab & "--ast" & vbTab & "Set the target result to a AST file")
+        Console.WriteLine(vbTab & vbTab & "-i" & vbTab & "--hir" & vbTab & "Set the target result to a HIR file")
+        Console.WriteLine()
+        Console.WriteLine(vbTab & vbTab & "-h" & vbTab & "--help" & vbTab & "Set the target result to a HIR file")
+    End Sub
 
-        Console.WriteLine("Lim compiler (limc)")
-        Console.WriteLine("Usage: limc [input] [output] [flags...]")
-        Console.WriteLine("Flags:")
-        Console.WriteLine("  -h" & vbTab & "--help" & vbTab & vbTab & "Show help menu")
-        Console.WriteLine("  -v" & vbTab & "--version" & vbTab & "Show the current compiler version")
-        Console.WriteLine("  -vb" & vbTab & "--verbose" & vbTab & "Add comments to the generated C file")
-        Console.WriteLine("  -r" & vbTab & "--release" & vbTab & "Remove error handling runtime (like stacktrace)")
-        Console.WriteLine("  -s" & vbTab & "--source" & vbTab & "Compile to C source file instead of an executable")
-        Console.WriteLine("  -cc" & vbTab & "[path]" & vbTab & vbTab & "Specify the path to the C compiler (default: gcc)")
-
+    Sub PrintVersion()
+        Console.WriteLine("Lim compiler (limc) version 4.0.0")
     End Sub
 
 End Module

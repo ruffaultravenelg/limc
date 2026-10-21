@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="limc.tests/limc.tests.vbproj" Id="0c3dfad4-d41b-48af-992f-08f1f0957d2e" />
+  <Project Path="limc/limc.vbproj" />
+</Solution>

@@ -2,8 +2,8 @@
   "profiles": {
     "limc": {
       "commandName": "Project",
-      "commandLineArgs": "test.lim source.c -vb --source",
-      "workingDirectory": "../debug"
+      "commandLineArgs": "main.lim -c",
+      "workingDirectory": "C:\\Users\\gemin\\Documents\\Projects\\NLim\\debug"
     }
   }
 }
