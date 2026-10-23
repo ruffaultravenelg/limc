@@ -3,7 +3,7 @@
 Namespace Environment
     Friend MustInherit Class Env
 
-        Private EnclosingEnvironment As Env
+        Public ReadOnly Property EnclosingEnvironment As Env
 
         Public Sub New(_EnclosingEnvironment As Env)
             Me.EnclosingEnvironment = _EnclosingEnvironment
@@ -18,14 +18,15 @@ Namespace Environment
         End Function
 
         ' Symbol search API
-        Public Iterator Function FindSymbol(Of S As Symbol.Symbol)(ElementName As String, PassedGenericTypes As IReadOnlyList(Of Symbol.TypeSymbol)) As IEnumerable(Of S)
+        Public Iterator Function FindSymbol(Of S As Symbol.Symbol)(ElementName As String, PassedGenericTypes As IEnumerable(Of Symbol.TypeSymbol)) As IEnumerable(Of S)
             For Each Match In FindSymbol(ElementName, PassedGenericTypes)
                 If Match.IsType(Of S) Then
                     Yield Match.CastAs(Of S)
                 End If
             Next
         End Function
-        Public Iterator Function FindSymbol(ElementName As String, PassedGenericTypes As IReadOnlyList(Of Symbol.TypeSymbol)) As IEnumerable(Of SymbolMatch)
+        Public Iterator Function FindSymbol(ElementName As String, PassedGenericTypes As IEnumerable(Of Symbol.TypeSymbol)) As IEnumerable(Of SymbolMatch)
+            PassedGenericTypes = PassedGenericTypes.ToList()
             For Each Parent In AllParents()
                 For Each Match In Parent.ResolveSymbol(ElementName, PassedGenericTypes)
                     Yield Match
@@ -35,7 +36,8 @@ Namespace Environment
         Protected MustOverride Iterator Function ResolveSymbol(ElementName As String, PassedGenericTypes As IReadOnlyList(Of Symbol.TypeSymbol)) As IEnumerable(Of SymbolMatch)
 
         ' Type search API
-        Public Function FindType(Typename As String, PassedGenericTypes As IReadOnlyList(Of TypeSymbol)) As TypeSymbol
+        Public Function FindType(Typename As String, PassedGenericTypes As IEnumerable(Of TypeSymbol)) As TypeSymbol
+            PassedGenericTypes = PassedGenericTypes.ToList()
             For Each Parent In AllParents()
                 Dim Res = Parent.ResolveType(Typename, PassedGenericTypes)
                 If Res IsNot Nothing Then

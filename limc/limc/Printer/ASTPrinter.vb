@@ -124,5 +124,23 @@ Namespace Printer
             End If
         End Function
 
+        Public Function VisitProcedureCallExpression(Node As ProcedureCallExpression, Data As ValueTuple) As ValueTuple Implements IExpressionVisitor(Of ValueTuple, ValueTuple).VisitProcedureCallExpression
+            Print(Node.Procedure)
+            Writer.Write("(")
+            PrintWithComma(Node.PassedArguments)
+            Writer.Write(")")
+        End Function
+
+        Public Function VisitElementExpression(Node As ElementExpression, Data As ValueTuple) As ValueTuple Implements IExpressionVisitor(Of ValueTuple, ValueTuple).VisitElementExpression
+            Writer.Write(Node.ElementName)
+        End Function
+
+        Public Function VisitGenericElementExpression(Node As GenericElementExpression, Data As ValueTuple) As ValueTuple Implements IExpressionVisitor(Of ValueTuple, ValueTuple).VisitGenericElementExpression
+            Writer.Write(Node.ElementName)
+            Writer.Write("<")
+            PrintWithComma(Node.PassedGenerics)
+            Writer.Write(">")
+        End Function
+
     End Class
 End Namespace

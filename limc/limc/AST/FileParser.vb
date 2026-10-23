@@ -252,7 +252,49 @@ Namespace AST
 
         ' ==== EXPRESSIONS ====
         Private Function GetExpression() As ExpressionNode
-            Return GetLiteral()
+            Return GetIndexPropertieCall()
+        End Function
+
+        ' Get elm[elm] OR elm.elm OR elm(elm, elm, ...)
+        Private Function GetIndexPropertieCall() As ExpressionNode
+            Dim Left As ExpressionNode = GetLiteral()
+
+            While True
+                Select Case CurrentToken.Type
+                    Case TokenType.OPENING_BRACKET
+                        'elm[elm]
+                        Throw New NotImplementedException()
+
+                    Case TokenType.POINT
+                        'elm.elm
+                        Throw New NotImplementedException()
+
+                    Case TokenType.OPENING_PARENTHESIS
+                        'elm(elm, elm, ...)
+                        Advance()
+
+                        Dim PassedArguments As New List(Of ExpressionNode)
+                        While True
+                            PassedArguments.Add(GetExpression())
+                            If CurrentToken.Type = TokenType.COMMA Then
+                                Advance()
+                            ElseIf CurrentToken.Type = TokenType.CLOSING_PARENTHESIS Then
+                                Advance()
+                                Exit While
+                            Else
+                                Throw New UnexpectedTokenException("P13", CurrentToken, "comma or a closing parenthesis", CurrentToken.Location)
+                            End If
+                        End While
+
+                        Left = New ProcedureCallExpression(Left.Location + LastTok.Location, Left, PassedArguments)
+
+                    Case Else
+                        Exit While
+                End Select
+
+            End While
+
+            Return Left
         End Function
 
         ' Literal = last expression of the chain, smaller unit possible
@@ -284,6 +326,34 @@ Namespace AST
                     CheckToken("P14", TokenType.CLOSING_PARENTHESIS)
                     Advance()
                     Return Expr
+
+                Case TokenType.IDENTIFIER
+                    Advance()
+                    If CurrentToken.Type = TokenType.LT Then
+                        PushLocation()
+                        Dim ElementName As String = LastTok.Value
+                        Dim PassedGenerics As New List(Of TypeNode)
+                        If Not CurrentToken.Type = TokenType.GT Then
+                            While True
+                                PassedGenerics.Add(GetTypeNode())
+                                If CurrentToken.Type = TokenType.COMMA Then
+                                    Advance()
+                                ElseIf CurrentToken.Type = TokenType.GT Then
+                                    Exit While
+                                Else
+                                    Throw New SyntaxException("P15", "A comma or a > was expected here.", CurrentToken.Location)
+                                End If
+                            End While
+                        End If
+                        Advance()
+                        If PassedGenerics.Any Then
+                            Return New GenericElementExpression(ElementName, PassedGenerics, PopResolveLocation())
+                        Else
+                            Return New ElementExpression(ElementName, PopResolveLocation())
+                        End If
+                    Else
+                        Return New ElementExpression(LastTok.Value, LastTok.Location)
+                    End If
 
                 Case Else
                     Throw New UnexpectedTokenException("P13", CurrentToken)

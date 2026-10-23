@@ -14,8 +14,8 @@ Namespace Symbol
         Public Property Compiled As Boolean = False Implements ICompilableSymbol.Compiled
         Public MustOverride Sub Compile(Lowerer As IHIRLowerer, ProgramBuilder As ProgramNode.Builder) Implements ICompilableSymbol.Compile
 
-        ' ==== SHARED MAIN TYPES ====
-        Public Shared ReadOnly INT As New IntTypeSymbol()
+        ' To string
+        Public MustOverride Overrides Function ToString() As String
 
     End Class
 End Namespace

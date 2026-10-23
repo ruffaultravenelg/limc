@@ -7,13 +7,17 @@ Namespace Symbol
 
         Public ReadOnly Property Node As AST.FunctionConstruct
         Public ReadOnly Property PassedGeneric As IReadOnlyList(Of TypeSymbol)
-        Public ReadOnly Property DeclaringEnvironment As Environment.Env
+        Public ReadOnly Property Arguments As IReadOnlyList(Of VariableSymbol)
+        Public ReadOnly Property ReturnType As TypeSymbol
+        Public ReadOnly Property FunctionEnvironment As Environment.Env
 
-        Public Sub New(Node As AST.FunctionConstruct, PassedGeneric As IEnumerable(Of TypeSymbol), DeclaringEnvironment As Environment.Env)
+        Public Sub New(Node As AST.FunctionConstruct, PassedGeneric As IEnumerable(Of TypeSymbol), Arguments As IEnumerable(Of VariableSymbol), ReturnType As TypeSymbol, FuncEnv As Environment.Env)
             MyBase.New(Node.Name)
             Me.Node = Node
-            Me.PassedGeneric = PassedGeneric
-            Me.DeclaringEnvironment = DeclaringEnvironment
+            Me.PassedGeneric = PassedGeneric.ToList()
+            Me.Arguments = Arguments.ToList()
+            Me.ReturnType = ReturnType
+            Me.FunctionEnvironment = FuncEnv
         End Sub
 
         Public Property Compiled As Boolean = False Implements ICompilableSymbol.Compiled

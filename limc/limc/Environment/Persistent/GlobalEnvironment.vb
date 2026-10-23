@@ -17,7 +17,13 @@ Namespace Environment
                 Select Case Typename
 
                     Case "int"
-                        Return TypeSymbol.INT
+                        Return Primitives.INT
+                    Case "float"
+                        Return Primitives.FLOAT
+                    Case "bool"
+                        Return Primitives.BOOL
+                    Case "str"
+                        Return Primitives.STR
 
                 End Select
             End If

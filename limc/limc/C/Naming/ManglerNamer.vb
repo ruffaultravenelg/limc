@@ -1,4 +1,6 @@
-﻿Namespace C.Naming
+﻿Imports limc.Environment
+
+Namespace C.Naming
     Friend Class ManglerNamer
         Implements ISymbolNamer
 
@@ -12,7 +14,10 @@
 
         ' Define knowns type (such as primitive int, float, etc)
         Private Sub PopulateKnownCompiledNames()
-            Map(Symbol.TypeSymbol.INT) = "int"
+            Map(Primitives.INT) = "int"
+            Map(Primitives.FLOAT) = "double"
+            Map(Primitives.BOOL) = "bool"
+            Map(Primitives.STR) = "lim_str"
         End Sub
 
         ' Create a custom name from a symbol

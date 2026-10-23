@@ -1,18 +1,18 @@
-﻿Imports limc.Symbol
+﻿Imports limc.Environment
 
 Namespace HIR
-    Friend Class IntNode
+    Friend Class IntExpression
         Inherits ExpressionNode
 
         Public ReadOnly Property Value As Integer
 
         Public Sub New(Location As Location, Value As Integer)
-            MyBase.New(Location, TypeSymbol.INT)
+            MyBase.New(Location, Primitives.INT)
             Me.Value = Value
         End Sub
 
         Public Overrides Sub Accept(Visitor As IHIRVisitor)
-            Visitor.VisitIntNode(Me)
+            Visitor.VisitIntExpression(Me)
         End Sub
 
     End Class

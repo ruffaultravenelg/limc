@@ -1,4 +1,5 @@
 ﻿Imports limc.HIR
+Imports limc.Symbol
 
 Namespace C
     Friend Class HIRCompiler
@@ -19,6 +20,18 @@ Namespace C
         Private Function N(S As Symbol.Symbol) As String
             Return Namer.GetCompiledName(S)
         End Function
+
+        ' Macro to help writing ", " separated elements
+        Private Sub WriteListWithComa(Elements As IEnumerable(Of HIR.Node))
+            Dim First As Boolean = True
+            For Each Elm In Elements
+                If Not First Then
+                    fs.Write(", ")
+                End If
+                Elm.Accept(Me)
+                First = False
+            Next
+        End Sub
 
         ' ==== CONSTUCTS =====
         Public Sub VisitProgramNode(Program As ProgramNode) Implements IHIRVisitor.VisitProgramNode
@@ -53,13 +66,18 @@ Namespace C
 
         ' return_type function_name(arg_type arg_name);
         Private Sub WriteFunctionSignature(Func As FunctionConstruct)
-            If Func.ReturnType Is Nothing Then
+            If Func.Symbol.ReturnType Is Nothing Then
                 fs.Startline($"void {N(Func.Symbol)}(")
             Else
-                fs.Startline($"{N(Func.ReturnType)} {N(Func.Symbol)}(")
+                fs.Startline($"{N(Func.Symbol.ReturnType)} {N(Func.Symbol)}(")
             End If
-            For Each arg In Func.Arguments
-                arg.Accept(Me)
+            Dim First As Boolean = True
+            For Each arg In Func.Symbol.Arguments
+                If Not First Then
+                    fs.Write(", ")
+                End If
+                fs.Write($"{N(arg.VariableType)} {N(arg)}")
+                First = False
             Next
             fs.Write(");")
         End Sub
@@ -67,13 +85,18 @@ Namespace C
         Public Sub VisitFunctionConstruct(Func As FunctionConstruct) Implements IHIRVisitor.VisitFunctionConstruct
 
             ' Signature
-            If Func.ReturnType Is Nothing Then
+            If Func.Symbol.ReturnType Is Nothing Then
                 fs.Startline($"void {N(Func.Symbol)}(")
             Else
-                fs.Startline($"{N(Func.ReturnType)} {N(Func.Symbol)}(")
+                fs.Startline($"{N(Func.Symbol.ReturnType)} {N(Func.Symbol)}(")
             End If
-            For Each arg In Func.Arguments
-                arg.Accept(Me)
+            Dim First As Boolean = True
+            For Each arg In Func.Symbol.Arguments
+                If Not First Then
+                    fs.Write(", ")
+                End If
+                fs.Write($"{N(arg.VariableType)} {N(arg)}")
+                First = False
             Next
             fs.Write("){")
 
@@ -105,10 +128,50 @@ Namespace C
         End Sub
 
         ' ==== EXPRESSIONS ====
-        Public Sub VisitIntNode(Node As IntNode) Implements IHIRVisitor.VisitIntNode
+        Public Sub VisitIntExpression(Node As IntExpression) Implements IHIRVisitor.VisitIntExpression
             fs.Write("((int)" & Node.Value.ToString() & ")")
         End Sub
 
+        Public Sub VisitFloatExpression(Node As FloatExpression) Implements IHIRVisitor.VisitFloatExpression
+            fs.Write("((double)" & Node.Value.ToString() & ")")
+        End Sub
+
+        Public Sub VisitBoolExpression(Node As BoolExpression) Implements IHIRVisitor.VisitBoolExpression
+            fs.Write(If(Node.Value, "true", "false"))
+        End Sub
+
+        Public Sub VisitRawStrExpression(Node As RawStrExpression) Implements IHIRVisitor.VisitRawStrExpression
+            Throw New NotImplementedException()
+        End Sub
+
+        Public Sub VisitFormattedStrExpression(Node As FormattedStrExpression) Implements IHIRVisitor.VisitFormattedStrExpression
+            Throw New NotImplementedException()
+        End Sub
+
+        Public Sub VisitProcedureCallExpression(Node As ProcedureCallExpression) Implements IHIRVisitor.VisitProcedureCallExpression
+
+            ' Write function reference
+            If TypeOf Node.Procedure Is FunctionReferenceExpression Then
+                'short-circut => name of the function instead of compiling the function reference pointer
+                fs.Write(N(DirectCast(Node.Procedure, FunctionReferenceExpression).FuncSymbol))
+            Else
+                Node.Procedure.Accept(Me)
+            End If
+
+            ' Compile arguments
+            fs.Write("(")
+            WriteListWithComa(Node.PassedArguments)
+            fs.Write(")")
+
+        End Sub
+
+        Public Sub VisitVariableExpression(Node As VariableExpression) Implements IHIRVisitor.VisitVariableExpression
+            fs.Write(N(Node.VarSymbol))
+        End Sub
+
+        Public Sub VisitFunctionReferenceExpression(Node As FunctionReferenceExpression) Implements IHIRVisitor.VisitFunctionReferenceExpression
+            Throw New NotImplementedException()
+        End Sub
 
     End Class
 End Namespace

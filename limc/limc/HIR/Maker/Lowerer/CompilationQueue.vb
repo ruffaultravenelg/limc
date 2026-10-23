@@ -10,6 +10,12 @@ Namespace HIR.Lowerer
             End If
         End Sub
 
+        Public Sub EnqueueRange(symbols As IEnumerable(Of ICompilableSymbol))
+            For Each s In symbols
+                Enqueue(s)
+            Next
+        End Sub
+
         Public Function HasWork() As Boolean
             Return _queue.Count > 0
         End Function

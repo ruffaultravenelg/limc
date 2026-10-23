@@ -5,5 +5,8 @@
         Function VisitRawStringExpression(Node As RawStringExpression, Data As D) As R
         Function VisitFormattedStringExpression(Node As FormattedStringExpression, Data As D) As R
         Function VisitBooleanExpression(Node As BooleanExpression, Data As D) As R
+        Function VisitProcedureCallExpression(Node As ProcedureCallExpression, Data As D) As R
+        Function VisitElementExpression(Node As ElementExpression, Data As D) As R
+        Function VisitGenericElementExpression(Node As GenericElementExpression, Data As D) As R
     End Interface
 End Namespace

@@ -18,6 +18,10 @@ Namespace Environment
             VariableStore(VariableName) = var
             Return var
         End Function
+        Public Function DefineVariable(VarSymbol As VariableSymbol) As VariableSymbol
+            VariableStore(VarSymbol.LimName) = VarSymbol
+            Return VarSymbol
+        End Function
 
         Protected Overrides Iterator Function ResolveSymbol(ElementName As String, PassedGenericTypes As IReadOnlyList(Of Symbol.TypeSymbol)) As IEnumerable(Of SymbolMatch)
             If PassedGenericTypes.Count = 0 AndAlso VariableStore.ContainsKey(ElementName) Then

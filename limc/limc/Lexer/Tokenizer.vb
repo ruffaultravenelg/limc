@@ -1,4 +1,5 @@
-﻿Imports System.IO
+﻿Imports System.Globalization
+Imports System.IO
 
 Namespace Lexer
     Friend Class Tokenizer
@@ -103,7 +104,7 @@ Namespace Lexer
 
                     Try
                         If ContainsDot Then
-                            CreateToken(TokenType.FLOAT, Convert.ToDouble(Number), Number.Length)
+                            CreateToken(TokenType.FLOAT, Convert.ToDouble(Number, CultureInfo.InvariantCulture), Number.Length)
                         Else
                             CreateToken(TokenType.INT, Convert.ToInt32(Number), Number.Length)
                         End If

@@ -17,33 +17,19 @@ Namespace HIR.Lowerer
         ' ==== COMPILE FUNCTION ====
         Public Function CompileFunction(FuncSymbol As FunctionSymbol) As FunctionConstruct Implements IHIRLowerer.CompileFunction
 
-            ' Add generic types
-            Dim GenericScope As New Environment.GenericEnv(FuncSymbol.DeclaringEnvironment)
-            For i = 0 To FuncSymbol.PassedGeneric.Count - 1
-                GenericScope.DefineGenericType(FuncSymbol.Node.GenericTypes(i).Typename, FuncSymbol.PassedGeneric(i))
-                WorkQueue.Enqueue(FuncSymbol.PassedGeneric(i)) ' Compile generic types
-            Next
+            ' Enqueue generics
+            WorkQueue.EnqueueRange(FuncSymbol.PassedGeneric)
 
-            ' Add parameters types
-            Dim ParameterScope As New Environment.BlockEnv(GenericScope)
-            Dim CompiledArgs As New List(Of ArgumentNode)
-            For Each arg In FuncSymbol.Node.Arguments
-                Dim ArgType = TypenodeResolver.Resolve(arg.ArgumentType, GenericScope)
-                Dim VarSymbol = ParameterScope.DefineVariable(arg.ArgumentName, ArgType)
-                CompiledArgs.Add(New ArgumentNode(arg.Location, VarSymbol))
+            ' Enqueue parameter types
+            For Each arg In FuncSymbol.Arguments
+                WorkQueue.Enqueue(arg.VariableType)
             Next
-
-            ' Get return type
-            Dim ReturnType As TypeSymbol = Nothing
-            If FuncSymbol.Node.ReturnType IsNot Nothing Then
-                ReturnType = TypenodeResolver.Resolve(FuncSymbol.Node.ReturnType, GenericScope)
-            End If
 
             ' Compile body
-            Dim Body = FuncSymbol.Node.Body.Accept(StatementCompiler, ParameterScope)
+            Dim Body = FuncSymbol.Node.Body.Accept(StatementCompiler, FuncSymbol.FunctionEnvironment)
 
             ' Create the function
-            Return New FunctionConstruct(FuncSymbol.Node.Location, FuncSymbol, CompiledArgs, ReturnType, Body)
+            Return New FunctionConstruct(FuncSymbol.Node.Location, FuncSymbol, Body)
 
         End Function
 
