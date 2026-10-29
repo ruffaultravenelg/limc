@@ -124,6 +124,8 @@ Namespace HIR.Lowerer
                     Return New VariableExpression(Node.Location, BestMatch.VARIABLE_SYMBOL)
 
                 Case BestMatch.IsType(Of FunctionSymbol)
+                    WorkQueue.Enqueue(BestMatch.FUNCTION_SYMBOL) 'compile called function
+                    WorkQueue.Enqueue(Primitives.Func(BestMatch.FUNCTION_SYMBOL.Arguments.Select(Function(arg) arg.VariableType), BestMatch.FUNCTION_SYMBOL.ReturnType)) 'get the func type of the function symbol and compile it
                     Return New FunctionReferenceExpression(Node.Location, BestMatch.FUNCTION_SYMBOL)
 
                 Case Else

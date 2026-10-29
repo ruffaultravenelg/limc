@@ -143,6 +143,9 @@ Namespace AST
             Dim Name As String = CurrentToken.Value
             Advance()
 
+            ' Get generics
+            Dim GenericTypes As IEnumerable(Of GenericTypeParameterNode) = GetOptionnaListOf(AddressOf GetGenericTypeParameterNode, TokenType.LT, TokenType.GT)
+
             ' Get arguemnts
             Dim Arguments As IEnumerable(Of ArgumentNode) = GetOptionnaListOf(AddressOf GetArgument, TokenType.OPENING_PARENTHESIS, TokenType.CLOSING_PARENTHESIS)
 
@@ -157,8 +160,14 @@ Namespace AST
             Dim Body = GetBody(1)
 
             ' Create & return function
-            Return New FunctionConstruct(Name, {}, Arguments, ReturnType, Body, PopResolveLocation())
+            Return New FunctionConstruct(Name, GenericTypes, Arguments, ReturnType, Body, PopResolveLocation())
 
+        End Function
+
+        Private Function GetGenericTypeParameterNode() As GenericTypeParameterNode
+            CheckToken("P07", TokenType.IDENTIFIER)
+            Advance()
+            Return New GenericTypeParameterNode(LastTok.Value, LastTok.Location)
         End Function
 
         Private Function GetArgument() As ArgumentNode
@@ -298,21 +307,7 @@ Namespace AST
 
                     Case TokenType.OPENING_PARENTHESIS
                         'elm(elm, elm, ...)
-                        Advance()
-
-                        Dim PassedArguments As New List(Of ExpressionNode)
-                        While True
-                            PassedArguments.Add(GetExpression())
-                            If CurrentToken.Type = TokenType.COMMA Then
-                                Advance()
-                            ElseIf CurrentToken.Type = TokenType.CLOSING_PARENTHESIS Then
-                                Advance()
-                                Exit While
-                            Else
-                                Throw New UnexpectedTokenException("P13", CurrentToken, "comma or a closing parenthesis", CurrentToken.Location)
-                            End If
-                        End While
-
+                        Dim PassedArguments As IEnumerable(Of ExpressionNode) = GetOptionnaListOf(AddressOf GetExpression, TokenType.OPENING_PARENTHESIS, TokenType.CLOSING_PARENTHESIS)
                         Left = New ProcedureCallExpression(Left.Location + LastTok.Location, Left, PassedArguments)
 
                     Case Else
@@ -355,31 +350,15 @@ Namespace AST
                     Return Expr
 
                 Case TokenType.IDENTIFIER
+                    Dim ElementName As String = CurrentToken.Value
+                    PushLocation()
                     Advance()
-                    If CurrentToken.Type = TokenType.LT Then
-                        PushLocation()
-                        Dim ElementName As String = LastTok.Value
-                        Dim PassedGenerics As New List(Of TypeNode)
-                        If Not CurrentToken.Type = TokenType.GT Then
-                            While True
-                                PassedGenerics.Add(GetTypeNode())
-                                If CurrentToken.Type = TokenType.COMMA Then
-                                    Advance()
-                                ElseIf CurrentToken.Type = TokenType.GT Then
-                                    Exit While
-                                Else
-                                    Throw New SyntaxException("P15", "A comma or a > was expected here.", CurrentToken.Location)
-                                End If
-                            End While
-                        End If
-                        Advance()
-                        If PassedGenerics.Any Then
-                            Return New GenericElementExpression(ElementName, PassedGenerics, PopResolveLocation())
-                        Else
-                            Return New ElementExpression(ElementName, PopResolveLocation())
-                        End If
+
+                    Dim PassedGenerics As IEnumerable(Of GenericTypeNode) = GetOptionnaListOf(AddressOf GetTypeNode, TokenType.LT, TokenType.GT)
+                    If PassedGenerics.Any() Then
+                        Return New GenericElementExpression(ElementName, PassedGenerics, PopResolveLocation())
                     Else
-                        Return New ElementExpression(LastTok.Value, LastTok.Location)
+                        Return New ElementExpression(ElementName, PopResolveLocation())
                     End If
 
                 Case Else
@@ -398,24 +377,7 @@ Namespace AST
             PushLocation()
             Advance()
 
-            Dim PassedGenerics As New List(Of GenericTypeNode)
-            If CurrentToken.Type = TokenType.LT Then
-                Advance()
-                If Not CurrentToken.Type = TokenType.GT Then
-                    Do
-                        PassedGenerics.Add(GetTypeNode()) ' Get new typenode
-
-                        If CurrentToken.Type = TokenType.COMMA Then
-                            Advance()
-                        ElseIf CurrentToken.Type = TokenType.GT Then
-                            Exit Do
-                        Else
-                            Throw New SyntaxException("P07", "A comma or a > was expected here.", CurrentToken.Location)
-                        End If
-                    Loop
-                End If
-                Advance()
-            End If
+            Dim PassedGenerics As IEnumerable(Of GenericTypeNode) = GetOptionnaListOf(AddressOf GetTypeNode, TokenType.LT, TokenType.GT)
 
             Return New GenericTypeNode(Name, PassedGenerics, PopResolveLocation())
 
@@ -439,13 +401,14 @@ Namespace AST
 
             ' No starting token -> empty list
             If Not CurrentToken.Type = StartingToken Then
-                Return {}
+                Return Array.Empty(Of T)
             End If
             Advance()
 
             ' Starting token followed by ending token -> empty list
             If CurrentToken.Type = EndingToken Then
-                Return {}
+                Advance()
+                Return Array.Empty(Of T)
             End If
 
             ' Get list

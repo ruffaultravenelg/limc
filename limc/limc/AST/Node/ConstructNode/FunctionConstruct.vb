@@ -7,6 +7,7 @@
         Public ReadOnly Property GenericTypes As IReadOnlyList(Of GenericTypeParameterNode)
         Public ReadOnly Property ReturnType As GenericTypeNode ' Nullable
         Public ReadOnly Property Body As BlockStatement
+
         Public Sub New(Name As String, GenericTypes As IEnumerable(Of GenericTypeParameterNode), Arguments As IEnumerable(Of ArgumentNode), ReturnType As GenericTypeNode, Body As BlockStatement, Location As Location)
             MyBase.New(Location)
             Me.Name = Name
