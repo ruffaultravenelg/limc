@@ -180,7 +180,8 @@ Namespace AST
         ' ==== STATEMENTS ====
         ' List of all functions that parse a statement
         Private ReadOnly STATEMENT_PARSING_FUNCTIONS As IEnumerable(Of Func(Of Integer, StatementNode)) = {
-            AddressOf GetDeclareVariableInferType
+            AddressOf GetDeclareVariableInferType,
+            AddressOf GetProcedureCallOrAssign
         }
 
         ' Get a list of statement (level = the level of the futur statements)
@@ -247,6 +248,32 @@ Namespace AST
                 ' TODO: Add declarevariablewithtypestatement
                 Throw New NotImplementedException()
             End If
+
+        End Function
+
+        Private Function GetProcedureCallOrAssign(Level As Integer) As StatementNode
+
+            Dim Left As ExpressionNode = GetExpression()
+
+            ' Procedure call
+            If TypeOf Left Is ProcedureCallExpression Then
+                Dim InnerCall = DirectCast(Left, ProcedureCallExpression)
+                Return New ProcedureCallStatement(InnerCall.Location, InnerCall.Procedure, InnerCall.PassedArguments)
+            End If
+
+            ' Assignation
+            If CurrentToken.Type = TokenType.EQUAL Then
+                Advance()
+                Dim NewValue = GetExpression()
+                If TypeOf Left Is ElementExpression Then
+                    Return New VariableAssignStatement(Left, NewValue, Left.Location + NewValue.Location)
+                Else
+                    Throw New SyntaxException("P17", "This expression is not assignable", Left.Location)
+                End If
+            End If
+
+            ' Error
+            Throw New UnexpectedTokenException("P16", CurrentToken)
 
         End Function
 

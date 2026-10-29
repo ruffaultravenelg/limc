@@ -1,9 +1,9 @@
-﻿Imports limc.HIR
-Imports limc.Symbol
+﻿Imports System.Globalization
+Imports limc.HIR
 
 Namespace C
     Friend Class HIRCompiler
-        Implements HIR.IHIRVisitor
+        Implements IHIRVisitor
 
         ' Useful tools
         Private fs As WriterWrapper
@@ -133,7 +133,7 @@ Namespace C
         End Sub
 
         Public Sub VisitFloatExpression(Node As FloatExpression) Implements IHIRVisitor.VisitFloatExpression
-            fs.Write("((double)" & Node.Value.ToString() & ")")
+            fs.Write("((double)" & Node.Value.ToString("F", CultureInfo.InvariantCulture) & ")")
         End Sub
 
         Public Sub VisitBoolExpression(Node As BoolExpression) Implements IHIRVisitor.VisitBoolExpression
@@ -165,12 +165,37 @@ Namespace C
 
         End Sub
 
+        Public Sub VisitProcedureCallStatement(Node As ProcedureCallStatement) Implements IHIRVisitor.VisitProcedureCallStatement
+
+            ' Write function reference
+            fs.Startline()
+            If TypeOf Node.Procedure Is FunctionReferenceExpression Then
+                'short-circut => name of the function instead of compiling the function reference pointer
+                fs.Write(N(DirectCast(Node.Procedure, FunctionReferenceExpression).FuncSymbol))
+            Else
+                Node.Procedure.Accept(Me)
+            End If
+
+            ' Compile arguments
+            fs.Write("(")
+            WriteListWithComa(Node.PassedArguments)
+            fs.Write(");")
+
+        End Sub
+
         Public Sub VisitVariableExpression(Node As VariableExpression) Implements IHIRVisitor.VisitVariableExpression
             fs.Write(N(Node.VarSymbol))
         End Sub
 
         Public Sub VisitFunctionReferenceExpression(Node As FunctionReferenceExpression) Implements IHIRVisitor.VisitFunctionReferenceExpression
             Throw New NotImplementedException()
+        End Sub
+
+        Public Sub VisitVariableAssignStatement(Node As VariableAssignStatement) Implements IHIRVisitor.VisitVariableAssignStatement
+            fs.Startline(N(Node.Variable))
+            fs.Write(" = ")
+            Node.NewValue.Accept(Me)
+            fs.Write(";")
         End Sub
 
     End Class

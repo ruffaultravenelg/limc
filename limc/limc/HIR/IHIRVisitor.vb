@@ -7,6 +7,8 @@
 
         Sub VisitBlockStatmement(Node As BlockStatement)
         Sub VisitDeclareVariableStatement(Node As DeclareVariableStatement)
+        Sub VisitProcedureCallStatement(Node As ProcedureCallStatement)
+        Sub VisitVariableAssignStatement(Node As VariableAssignStatement)
 
         Sub VisitIntExpression(Node As IntExpression)
         Sub VisitFloatExpression(Node As FloatExpression)

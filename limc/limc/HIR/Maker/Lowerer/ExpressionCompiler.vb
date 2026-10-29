@@ -1,5 +1,4 @@
-﻿Imports System.Text.RegularExpressions
-Imports limc.Environment
+﻿Imports limc.Environment
 Imports limc.Symbol
 
 Namespace HIR.Lowerer
@@ -33,6 +32,7 @@ Namespace HIR.Lowerer
         End Function
 
         Public Function VisitProcedureCallExpression(Node As AST.ProcedureCallExpression, Ctx As Env) As ExpressionNode Implements AST.IExpressionVisitor(Of Env, ExpressionNode).VisitProcedureCallExpression
+            'IMPORTANT: If edit => edit also StatementCompiler.VisitProcedureCallStatement
 
             ' Compiled arguments
             Dim CompiledArguments As New List(Of ExpressionNode)
@@ -48,6 +48,9 @@ Namespace HIR.Lowerer
             Dim CompiledProcedure As ExpressionNode = Node.Procedure.Accept(Me, HintEnv)
             If TypeOf CompiledProcedure.ExpressionReturnType IsNot FuncTypeSymbol Then
                 Throw New TypeMismatchException("HC01", CompiledProcedure.ExpressionReturnType, "whereas a ""func"" type was expected.", CompiledProcedure.Location)
+            End If
+            If DirectCast(CompiledProcedure.ExpressionReturnType, FuncTypeSymbol).ProcReturnType Is Nothing Then
+                Throw New SyntaxException("HC04", "This function doesn't return any value, therefore a call to it can't be used as an expression", Node.Procedure.Location)
             End If
 
             ' Create call
@@ -107,7 +110,7 @@ Namespace HIR.Lowerer
                 Dim matches = Ctx.FindSymbol(Node.ElementName, PassedGenericTypes)
                 BestMatch = ProcedureOverloadingResolver.SelectBestMatch(matches, CallHintEnv.GetHintedTypes(Ctx))
                 If BestMatch Is Nothing Then
-                    Throw New SyntaxException("HC02", "No matching function", Node.Location)
+                    Throw New SyntaxException("HC03", "No matching function", Node.Location)
                 End If
             Else
                 'just get the first symbol

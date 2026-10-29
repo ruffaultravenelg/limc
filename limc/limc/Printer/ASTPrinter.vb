@@ -142,5 +142,20 @@ Namespace Printer
             Writer.Write(">")
         End Function
 
+        Public Function VisitProcedureCallStatement(Node As ProcedureCallStatement, Data As ValueTuple) As ValueTuple Implements IStatementVisitor(Of ValueTuple, ValueTuple).VisitProcedureCallStatement
+            Print(Node.Procedure)
+            Writer.Write("(")
+            PrintWithComma(Node.PassedArguments)
+            Writer.Write(")")
+            Writer.Writeline()
+        End Function
+
+        Public Function VisitVariableAssignStatement(Node As VariableAssignStatement, Data As ValueTuple) As ValueTuple Implements IStatementVisitor(Of ValueTuple, ValueTuple).VisitVariableAssignStatement
+            Print(Node.Variable)
+            Writer.Write(" = ")
+            Print(Node.NewValue)
+            Writer.Writeline()
+        End Function
+
     End Class
 End Namespace

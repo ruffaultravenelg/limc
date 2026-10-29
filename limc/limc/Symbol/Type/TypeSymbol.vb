@@ -17,5 +17,13 @@ Namespace Symbol
         ' To string
         Public MustOverride Overrides Function ToString() As String
 
+        ' Comparison
+        Public Shared Operator =(a As TypeSymbol, b As TypeSymbol) As Boolean
+            Return Object.ReferenceEquals(a, b)
+        End Operator
+        Public Shared Operator <>(a As TypeSymbol, b As TypeSymbol) As Boolean
+            Return Not Object.ReferenceEquals(a, b)
+        End Operator
+
     End Class
 End Namespace

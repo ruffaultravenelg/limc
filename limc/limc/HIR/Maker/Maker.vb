@@ -23,6 +23,7 @@
             ' Main compilation loop
             While WorkQueue.HasWork()
                 Dim CurrentSymbolWork = WorkQueue.Dequeue()
+                'Console.WriteLine($"[LOG][WORKQUEUE] Now compiling {DirectCast(CurrentSymbolWork, Symbol.Symbol).LimName}")
                 CurrentSymbolWork.Compiled = True
                 CurrentSymbolWork.Compile(Lowerer, ProgramBuilder)
             End While
