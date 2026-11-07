@@ -4,8 +4,11 @@ Namespace Environment
     Friend Class GlobalEnvironment
         Inherits Env
 
-        Public Sub New()
+        Private Primitives As IPrimitives
+
+        Public Sub New(Primitives As IPrimitives)
             MyBase.New(Nothing)
+            Me.Primitives = Primitives
         End Sub
 
         Protected Overrides Iterator Function ResolveSymbol(ElementName As String, PassedGenericTypes As IReadOnlyList(Of TypeSymbol)) As IEnumerable(Of SymbolMatch)

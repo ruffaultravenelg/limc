@@ -1,6 +1,6 @@
 ﻿Namespace Environment
     Friend Class PrimitiveTypeEnv
-        Inherits Env
+        Inherits TypeEnvironment
 
         Private Sub New(Parent As Env)
             MyBase.New(Parent)
@@ -15,11 +15,11 @@
         End Function
 
         ' ==== CONSTRUCTOR ====
-        Public Class Maker
+        Public Class Builder
 
             Private Parent As Env = Nothing
 
-            Public Function SetParentCtx(Parent As Env) As Maker
+            Public Function SetParentCtx(Parent As Env) As Builder
                 Me.Parent = Parent
                 Return Me
             End Function

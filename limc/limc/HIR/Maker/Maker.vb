@@ -2,10 +2,10 @@
     Friend Class Maker
 
         ' Genereate the HIR from a AST -> resolve symbols
-        Public Shared Function GenerateHIR(Program As AST.ProgramNode) As HIR.ProgramNode
+        Public Shared Function GenerateHIR(Program As AST.ProgramNode, Options As CompilationOptions) As HIR.ProgramNode
 
             Dim WorkQueue As New Lowerer.CompilationQueue 'will contain all symbols to compile
-            Dim GlobalEnv As New Environment.GlobalEnvironment()
+            Dim GlobalEnv As New Environment.GlobalEnvironment(Options.Primitives)
             Dim FileEnvs As Dictionary(Of AST.FileNode, Environment.FileEnvironment) = GenerateAllFileEnvs(Program, GlobalEnv)
 
             ' Get first symbol to compile (main function)
@@ -16,7 +16,7 @@
             WorkQueue.Enqueue(EntryPointSymbol) ' Add "main" to the compilation queue
 
             ' Create lowerer -> "visitor" for ICompilableSymbols ~ constructs (ex: functions, class, etc)
-            Dim Lowerer As New Lowerer.HIRLowerer(WorkQueue, FileEnvs)
+            Dim Lowerer As New Lowerer.HIRLowerer(WorkQueue, Options.Primitives, FileEnvs)
             Dim ProgramBuilder As New ProgramNode.Builder(Program.Location) 'Help symbols to push themselves into the program node
             ProgramBuilder.SetEntryPoint(EntryPointSymbol)
 

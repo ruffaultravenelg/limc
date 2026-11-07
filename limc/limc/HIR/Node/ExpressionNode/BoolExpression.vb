@@ -1,13 +1,11 @@
-﻿Imports limc.Environment
-
-Namespace HIR
+﻿Namespace HIR
     Friend Class BoolExpression
         Inherits ExpressionNode
 
         Public ReadOnly Property Value As Boolean
 
-        Public Sub New(Location As Location, Value As Boolean)
-            MyBase.New(Location, Primitives.BOOL)
+        Public Sub New(Location As Location, Value As Boolean, BoolSymbType As Symbol.BoolTypeSymbol)
+            MyBase.New(Location, BoolSymbType)
             Me.Value = Value
         End Sub
 

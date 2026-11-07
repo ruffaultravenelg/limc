@@ -1,13 +1,11 @@
-﻿Imports limc.Environment
-
-Namespace HIR
+﻿Namespace HIR
     Friend Class FloatExpression
         Inherits ExpressionNode
 
         Public ReadOnly Property Value As Double
 
-        Public Sub New(Location As Location, Value As Double)
-            MyBase.New(Location, Primitives.FLOAT)
+        Public Sub New(Location As Location, Value As Double, FloatTypeSymb As Symbol.FloatTypeSymbol)
+            MyBase.New(Location, FloatTypeSymb)
             Me.Value = Value
         End Sub
 

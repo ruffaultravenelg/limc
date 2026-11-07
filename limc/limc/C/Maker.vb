@@ -1,20 +1,18 @@
 ﻿Namespace C
     Friend Class Maker
 
-        Public Shared Function GenerateC(Program As HIR.ProgramNode, OutputFilepath As String, ExecutableFilepath As String) As ProcessStartInfo
+        Public Shared Function GenerateC(Program As HIR.ProgramNode, OutputFilepath As String, ExecutableFilepath As String, Options As CompilationOptions) As ProcessStartInfo
             OutputFilepath = IO.Path.GetFullPath(OutputFilepath)
 
             ' Create process start info
-            Dim ArgumentGenerator = New ClangArgumentGenerator()
-            Dim StartInfo As ProcessStartInfo = ArgumentGenerator.GenerateStartInfo(Program, OutputFilepath, ExecutableFilepath)
+            Dim StartInfo As ProcessStartInfo = Options.CCEngine.GenerateStartInfo(Program, OutputFilepath, ExecutableFilepath)
 
             ' Compile file content
             Using fs As New IO.StreamWriter(OutputFilepath)
 
                 ' Create compilation utils
-                Dim Namer As Naming.ISymbolNamer = New Naming.ManglerNamer()
-                PrimitiveCompiledNamePopulator.PopulateNamer(Namer) ' Define fixed already known compiled name
-                Dim Compiler As New HIRCompiler(fs, Namer)
+                Options.NamerPopulator.Populate(Options.Namer) ' Define fixed already known compiled name
+                Dim Compiler As New HIRCompiler(fs, Options.Namer)
 
                 ' Write header comments (with compilation command)
                 fs.WriteLine("/*")

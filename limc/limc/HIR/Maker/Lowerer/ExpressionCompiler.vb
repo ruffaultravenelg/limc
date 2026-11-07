@@ -6,29 +6,31 @@ Namespace HIR.Lowerer
         Implements AST.IExpressionVisitor(Of Env, ExpressionNode)
 
         Private WorkQueue As CompilationQueue
+        Private Primitives As IPrimitives
 
-        Public Sub New(WorkQueue As CompilationQueue)
+        Public Sub New(WorkQueue As CompilationQueue, Primitives As IPrimitives)
             Me.WorkQueue = WorkQueue
+            Me.Primitives = Primitives
         End Sub
 
         Public Function VisitIntegerExpression(Node As AST.IntegerExpression, Ctx As Env) As ExpressionNode Implements AST.IExpressionVisitor(Of Env, ExpressionNode).VisitIntegerExpression
-            Return New IntExpression(Node.Location, Node.Value)
+            Return New IntExpression(Node.Location, Node.Value, Primitives.INT)
         End Function
 
         Public Function VisitFloatExpression(Node As AST.FloatExpression, Ctx As Env) As ExpressionNode Implements AST.IExpressionVisitor(Of Env, ExpressionNode).VisitFloatExpression
-            Return New FloatExpression(Node.Location, Node.Value)
+            Return New FloatExpression(Node.Location, Node.Value, Primitives.FLOAT)
         End Function
 
         Public Function VisitBooleanExpression(Node As AST.BooleanExpression, Ctx As Env) As ExpressionNode Implements AST.IExpressionVisitor(Of Env, ExpressionNode).VisitBooleanExpression
-            Return New BoolExpression(Node.Location, Node.Value)
+            Return New BoolExpression(Node.Location, Node.Value, Primitives.BOOL)
         End Function
 
         Public Function VisitRawStringExpression(Node As AST.RawStringExpression, Ctx As Env) As ExpressionNode Implements AST.IExpressionVisitor(Of Env, ExpressionNode).VisitRawStringExpression
-            Return New RawStrExpression(Node.Location, Node.Value)
+            Return New RawStrExpression(Node.Location, Node.Value, Primitives.STR)
         End Function
 
         Public Function VisitFormattedStringExpression(Node As AST.FormattedStringExpression, Ctx As Env) As ExpressionNode Implements AST.IExpressionVisitor(Of Env, ExpressionNode).VisitFormattedStringExpression
-            Return New FormattedStrExpression(Node.Location, Node.Value)
+            Return New FormattedStrExpression(Node.Location, Node.Value, Primitives.STR)
         End Function
 
         Public Function VisitProcedureCallExpression(Node As AST.ProcedureCallExpression, Ctx As Env) As ExpressionNode Implements AST.IExpressionVisitor(Of Env, ExpressionNode).VisitProcedureCallExpression
@@ -82,9 +84,14 @@ Namespace HIR.Lowerer
                     Return New VariableExpression(Node.Location, BestMatch.VARIABLE_SYMBOL)
 
                 Case BestMatch.IsType(Of FunctionSymbol)
-                    WorkQueue.Enqueue(BestMatch.FUNCTION_SYMBOL) 'compile called function
-                    WorkQueue.Enqueue(Primitives.Func(BestMatch.FUNCTION_SYMBOL.Arguments.Select(Function(arg) arg.VariableType), BestMatch.FUNCTION_SYMBOL.ReturnType)) 'get the func type of the function symbol and compile it
-                    Return New FunctionReferenceExpression(Node.Location, BestMatch.FUNCTION_SYMBOL)
+                    Dim FuncSymb = BestMatch.FUNCTION_SYMBOL
+                    WorkQueue.Enqueue(FuncSymb) 'compile called function
+
+                    'get the func type of the function symbol and compile it
+                    Dim FuncType = Primitives.Func(FuncSymb.Arguments.Select(Function(arg) arg.VariableType), FuncSymb.ReturnType)
+                    WorkQueue.Enqueue(FuncType)
+
+                    Return New FunctionReferenceExpression(Node.Location, FuncSymb, FuncType)
 
                 Case Else
                     Throw New NotImplementedException()
@@ -124,9 +131,14 @@ Namespace HIR.Lowerer
                     Return New VariableExpression(Node.Location, BestMatch.VARIABLE_SYMBOL)
 
                 Case BestMatch.IsType(Of FunctionSymbol)
-                    WorkQueue.Enqueue(BestMatch.FUNCTION_SYMBOL) 'compile called function
-                    WorkQueue.Enqueue(Primitives.Func(BestMatch.FUNCTION_SYMBOL.Arguments.Select(Function(arg) arg.VariableType), BestMatch.FUNCTION_SYMBOL.ReturnType)) 'get the func type of the function symbol and compile it
-                    Return New FunctionReferenceExpression(Node.Location, BestMatch.FUNCTION_SYMBOL)
+                    Dim FuncSymbol = BestMatch.FUNCTION_SYMBOL
+                    WorkQueue.Enqueue(FuncSymbol) 'compile called function
+
+                    'get the func type of the function symbol and compile it
+                    Dim FuncType = Primitives.Func(FuncSymbol.Arguments.Select(Function(arg) arg.VariableType), FuncSymbol.ReturnType)
+                    WorkQueue.Enqueue(FuncType)
+
+                    Return New FunctionReferenceExpression(Node.Location, FuncSymbol, FuncType)
 
                 Case Else
                     Throw New NotImplementedException()

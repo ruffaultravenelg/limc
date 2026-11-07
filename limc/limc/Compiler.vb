@@ -1,13 +1,14 @@
 ﻿Public Class Compiler
 
     Public Shared Sub CompileToExe(Input As String, Destination As String)
+        Dim Options = CompilationOptions.DefaultOptions()
 
         Dim ASTProgram = AST.Maker.GenerateAST(Input)
-        Dim HIRProgram = HIR.Maker.GenerateHIR(ASTProgram)
+        Dim HIRProgram = HIR.Maker.GenerateHIR(ASTProgram, Options)
 
         ' Create temp C File
         Dim TempFilePath = IO.Path.GetTempFileName() & ".c"
-        Dim StartInfo = C.Maker.GenerateC(HIRProgram, TempFilePath, IO.Path.GetFullPath(Destination))
+        Dim StartInfo = C.Maker.GenerateC(HIRProgram, TempFilePath, IO.Path.GetFullPath(Destination), Options)
 
         ' Compile
         Using proc As Process = Process.Start(StartInfo)
@@ -27,10 +28,11 @@
     End Sub
 
     Public Shared Sub CompileToC(Input As String, Destination As String)
+        Dim Options = CompilationOptions.DefaultOptions()
 
         Dim ASTProgram = AST.Maker.GenerateAST(Input)
-        Dim HIRProgram = HIR.Maker.GenerateHIR(ASTProgram)
-        C.Maker.GenerateC(HIRProgram, Destination, "prog")
+        Dim HIRProgram = HIR.Maker.GenerateHIR(ASTProgram, Options)
+        C.Maker.GenerateC(HIRProgram, Destination, "prog", Options)
 
     End Sub
 

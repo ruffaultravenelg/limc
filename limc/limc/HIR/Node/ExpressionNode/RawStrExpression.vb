@@ -1,13 +1,11 @@
-﻿Imports limc.Environment
-
-Namespace HIR
+﻿Namespace HIR
     Friend Class RawStrExpression
         Inherits ExpressionNode
 
         Public ReadOnly Property Value As String
 
-        Public Sub New(Location As Location, Value As String)
-            MyBase.New(Location, Primitives.STR)
+        Public Sub New(Location As Location, Value As String, StrTypeSymb As Symbol.StrTypeSymbol)
+            MyBase.New(Location, StrTypeSymb)
             Me.Value = Value
         End Sub
 

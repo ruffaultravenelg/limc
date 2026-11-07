@@ -5,12 +5,14 @@ Namespace HIR.Lowerer
         Implements IHIRLowerer
 
         Private WorkQueue As CompilationQueue
+        Private Primitives As IPrimitives
         Private StatementCompiler As StatementCompiler
         Private ExpressionCompiler As ExpressionCompiler
 
-        Public Sub New(WorkQueue As CompilationQueue, FileEnvs As Dictionary(Of AST.FileNode, Environment.FileEnvironment))
+        Public Sub New(WorkQueue As CompilationQueue, Primitives As IPrimitives, FileEnvs As Dictionary(Of AST.FileNode, Environment.FileEnvironment))
             Me.WorkQueue = WorkQueue
-            Me.ExpressionCompiler = New ExpressionCompiler(WorkQueue)
+            Me.Primitives = Primitives
+            Me.ExpressionCompiler = New ExpressionCompiler(WorkQueue, Primitives)
             Me.StatementCompiler = New StatementCompiler(WorkQueue, ExpressionCompiler)
         End Sub
 

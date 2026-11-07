@@ -1,5 +1,4 @@
-﻿Imports limc.Environment
-Imports limc.Symbol
+﻿Imports limc.Symbol
 
 Namespace HIR
     Friend Class FunctionReferenceExpression
@@ -10,9 +9,6 @@ Namespace HIR
         Public Sub New(Location As Location, FuncSymbol As FunctionSymbol, FuncType As FuncTypeSymbol)
             MyBase.New(Location, FuncType)
             Me.FuncSymbol = FuncSymbol
-        End Sub
-        Public Sub New(Location As Location, FuncSymbol As FunctionSymbol)
-            Me.New(Location, FuncSymbol, Primitives.Func(FuncSymbol.Arguments.Select(Function(arg) arg.VariableType), FuncSymbol.ReturnType))
         End Sub
 
         Public Overrides Sub Accept(Visitor As IHIRVisitor)
