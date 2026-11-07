@@ -3,7 +3,7 @@
         Inherits TypeSymbol
 
         Public Sub New()
-            MyBase.New("int")
+            MyBase.New("int", Nothing)
         End Sub
 
         Public Overrides Sub Compile(Lowerer As HIR.Lowerer.IHIRLowerer, ProgramBuilder As HIR.ProgramNode.Builder)

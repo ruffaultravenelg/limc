@@ -6,5 +6,8 @@
         Function VisitArgumentNode(Node As ArgumentNode, Data As D) As R
         Function VisitImportFileConstruct(Node As ImportFileConstruct, Data As D) As R
         Function VisitGenericTypeParameterNode(Node As GenericTypeParameterNode, Data As D) As R
+        Function VisitClassConstruct(Node As ClassConstruct, Data As D) As R
+        Function VisitPropertieNode(Node As PropertieNode, Data As D) As R
+        Function VisitConstructorConstruct(Node As ConstructorConstruct, Data As D) As R
     End Interface
 End Namespace

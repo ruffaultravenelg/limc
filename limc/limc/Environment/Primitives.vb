@@ -10,6 +10,13 @@ Namespace Environment
         Public Shared ReadOnly BOOL As New BoolTypeSymbol()
         Public Shared ReadOnly STR As New StrTypeSymbol()
 
+        Shared Sub New()
+
+            ' INT
+            INT = New IntTypeSymbol()
+
+        End Sub
+
         ' func<a, b><r>
         Private Shared ReadOnly FuncTypes As New Dictionary(Of (Arguments As IEnumerable(Of TypeSymbol), Ret As TypeSymbol), FuncTypeSymbol)(New FuncTypeComparer)
         Public Shared Function Func(ArgumentTypes As IEnumerable(Of TypeSymbol), ReturnType As TypeSymbol) As FuncTypeSymbol

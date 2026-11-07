@@ -3,7 +3,7 @@
         Inherits TypeSymbol
 
         Public Sub New()
-            MyBase.New("bool")
+            MyBase.New("bool", Nothing)
         End Sub
 
         Public Overrides Sub Compile(Lowerer As HIR.Lowerer.IHIRLowerer, ProgramBuilder As HIR.ProgramNode.Builder)

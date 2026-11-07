@@ -157,5 +157,47 @@ Namespace Printer
             Writer.Writeline()
         End Function
 
+        Public Function VisitClassConstruct(Node As ClassConstruct, Data As ValueTuple) As ValueTuple Implements IConstructVisitor(Of ValueTuple, ValueTuple).VisitClassConstruct
+
+            Writer.Write("class ")
+            Writer.Write(Node.ClassName)
+            If Node.GenericTypes.Any Then
+                Writer.Write("<")
+                PrintWithComma(Node.GenericTypes)
+                Writer.Write(">")
+            End If
+            Writer.Writeline()
+
+            For Each prop In Node.Properties
+                Writer.Write(vbTab)
+                Print(prop)
+            Next
+
+            For Each cons In Node.Constructors
+                Writer.Write(vbTab)
+                Print(cons)
+            Next
+
+        End Function
+
+        Public Function VisitPropertieNode(Node As PropertieNode, Data As ValueTuple) As ValueTuple Implements IConstructVisitor(Of ValueTuple, ValueTuple).VisitPropertieNode
+            Writer.Write("let ")
+            Writer.Write(Node.PropertieName)
+            Writer.Write(" = ")
+            Print(Node.PropertieDefaultValue)
+            Writer.Writeline(";")
+        End Function
+
+        Public Function VisitConstructorConstruct(Node As ConstructorConstruct, Data As ValueTuple) As ValueTuple Implements IConstructVisitor(Of ValueTuple, ValueTuple).VisitConstructorConstruct
+            Writer.Write("new")
+            If Node.Arguments.Any Then
+                Writer.Write("(")
+                PrintWithComma(Node.Arguments)
+                Writer.Write(")")
+            End If
+            Writer.Writeline()
+            Print(Node.Body)
+        End Function
+
     End Class
 End Namespace

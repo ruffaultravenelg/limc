@@ -31,6 +31,8 @@
         KEYWORD_FUNC
         KEYWORD_LET
         KEYWORD_IMPORT
+        KEYWORD_CLASS
+        KEYWORD_NEW
 
         LINESTART
 
@@ -91,6 +93,8 @@
                     Return "func keyword"
                 Case TokenType.LINESTART
                     Return "new line"
+                Case TokenType.EQUAL
+                    Return "equal sign"
                 Case Else
                     Return Type.ToString().ToLower()
             End Select

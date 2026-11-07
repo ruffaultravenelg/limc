@@ -15,7 +15,6 @@ Namespace C
             Me.Namer = Namer
         End Sub
 
-
         ' Fast access to CompiledName
         Private Function N(S As Symbol.Symbol) As String
             Return Namer.GetCompiledName(S)
@@ -42,9 +41,9 @@ Namespace C
             Next
             fs.Startline()
 
-            ' Write function definitions
-            For Each fun In Program.Functions
-                WriteFunctionSignature(fun)
+            ' Write all functions definitions
+            For Each FunSignInfo In ConstructResolver.FindAllFunctionSignatures(Program)
+                WriteFunctionSignature(FunSignInfo)
             Next
             fs.Startline()
 
@@ -65,14 +64,14 @@ Namespace C
         End Sub
 
         ' return_type function_name(arg_type arg_name);
-        Private Sub WriteFunctionSignature(Func As FunctionConstruct)
-            If Func.Symbol.ReturnType Is Nothing Then
-                fs.Startline($"void {N(Func.Symbol)}(")
+        Private Sub WriteFunctionSignature(SigInfo As FunctionSignatureInfo)
+            If SigInfo.ReturnType Is Nothing Then
+                fs.Startline($"void {N(SigInfo.Symbol)}(")
             Else
-                fs.Startline($"{N(Func.Symbol.ReturnType)} {N(Func.Symbol)}(")
+                fs.Startline($"{N(SigInfo.ReturnType)} {N(SigInfo.Symbol)}(")
             End If
             Dim First As Boolean = True
-            For Each arg In Func.Symbol.Arguments
+            For Each arg In SigInfo.Arguments
                 If Not First Then
                     fs.Write(", ")
                 End If

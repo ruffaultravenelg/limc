@@ -6,8 +6,16 @@ Namespace Symbol
         Inherits Symbol
         Implements ICompilableSymbol
 
-        Public Sub New(LimName As String)
+        Public ReadOnly Property Env As Environment.TypeEnvironment
+
+        Public Sub New(LimName As String, Env As Environment.Env)
             MyBase.New(LimName)
+            Me.Env = Env
+        End Sub
+
+        ' Only used by Primitive (BoolTypeSymbol, FloatTypeSymbol, etc...) because they cannot generate their at thair constructor
+        Public Sub SetEnv(_Env As Environment.Env)
+            Me._Env = _Env
         End Sub
 
         ' ICompilable stuff

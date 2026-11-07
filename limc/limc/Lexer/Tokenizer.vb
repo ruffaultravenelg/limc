@@ -170,6 +170,10 @@ Namespace Lexer
                             CreateToken(TokenType.KEYWORD_LET, Word.Length)
                         Case "import"
                             CreateToken(TokenType.KEYWORD_IMPORT, Word.Length)
+                        Case "class"
+                            CreateToken(TokenType.KEYWORD_CLASS, Word.Length)
+                        Case "new"
+                            CreateToken(TokenType.KEYWORD_NEW, Word.Length)
 
                         Case Else
                             CreateToken(TokenType.IDENTIFIER, Word, Word.Length) 'Identifier (variable name, function name, etc.)

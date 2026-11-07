@@ -25,6 +25,7 @@ Namespace AST
 
             Dim ImportNodes As New List(Of ImportFileConstruct)
             Dim Functions As New List(Of FunctionConstruct)
+            Dim Classes As New List(Of ClassConstruct)
 
             ' Trying to parse constructs
             While TokenIndex < Tokens.Count - 1
@@ -45,11 +46,18 @@ Namespace AST
                     Continue While
                 End If
 
+                ' Class
+                Dim Clas = TryClass()
+                If Clas IsNot Nothing Then
+                    Classes.Add(Clas)
+                    Continue While
+                End If
+
                 Throw New UnexpectedTokenException("P09", CurrentToken.Type, CurrentToken.Location)
 
             End While
 
-            Return New FileNode(AbsoluteFilepath, ImportNodes, Functions)
+            Return New FileNode(AbsoluteFilepath, ImportNodes, Functions, Classes)
 
         End Function
 
@@ -91,7 +99,7 @@ Namespace AST
 
         Private Sub CheckNewline(MaximumIndentationLevel As Integer)
             If Not CurrentToken.Type = TokenType.LINESTART Then
-                Throw New UnexpectedTokenException("P02", CurrentToken, TokenType.LINESTART, CurrentToken.Location)
+                Throw New UnexpectedTokenException("P02", CurrentToken, TokenType.LINESTART)
             End If
             If DirectCast(CurrentToken.Value, Integer) > MaximumIndentationLevel Then
                 Throw New WrongIndentationExcepetion("P03", CurrentToken.Value, MaximumIndentationLevel, CurrentToken.Location)
@@ -100,12 +108,12 @@ Namespace AST
 
         Private Sub CheckToken(Code As String, ExpectedToken As TokenType)
             If Not CurrentToken.Type = ExpectedToken Then
-                Throw New UnexpectedTokenException(Code, CurrentToken, ExpectedToken, CurrentToken.Location)
+                Throw New UnexpectedTokenException(Code, CurrentToken, ExpectedToken)
             End If
         End Sub
         Private Sub CheckToken(Code As String, ExpectedToken As TokenType, ExpectedThing As String)
             If Not CurrentToken.Type = ExpectedToken Then
-                Throw New UnexpectedTokenException(Code, CurrentToken, ExpectedThing, CurrentToken.Location)
+                Throw New UnexpectedTokenException(Code, CurrentToken, ExpectedThing)
             End If
         End Sub
 
@@ -186,8 +194,118 @@ Namespace AST
 
         End Function
 
+        Private Function TryClass() As ClassConstruct
+
+            ' Check for the "class" keyword
+            If CurrentToken.Type <> TokenType.KEYWORD_CLASS Then
+                Return Nothing
+            End If
+            PushLocation()
+            Advance()
+
+            ' Name
+            CheckToken("P17", TokenType.IDENTIFIER, "class name")
+            Dim ClassName As String = CurrentToken.Value
+            Advance()
+
+            ' Generics
+            Dim Generics As IEnumerable(Of GenericTypeParameterNode) = GetOptionnaListOf(AddressOf GetGenericTypeParameterNode, TokenType.LT, TokenType.GT)
+
+            ' Body
+            ' [properties...]
+            ' [constructors...]
+            ' [methods...]
+            Dim Properties As New List(Of PropertieNode)
+            Dim Constructors As New List(Of ConstructorConstruct)
+
+            While TokenIndex < Tokens.Count - 1
+                CheckNewline(1)
+                If CurrentToken.Value < 1 Then
+                    Exit While
+                End If
+                Advance()
+
+                Dim Propertie = TryPropertie()
+                If Propertie IsNot Nothing Then
+                    Properties.Add(Propertie)
+                    Continue While
+                End If
+
+                Dim Constructor = TryConstructor()
+                If Constructor IsNot Nothing Then
+                    Constructors.Add(Constructor)
+                    Continue While
+                End If
+
+            End While
+
+            ' Create node
+            Return New ClassConstruct(ClassName, Generics, Properties, Constructors, PopLocation())
+
+        End Function
+
+        Private Function TryPropertie() As PropertieNode
+
+            ' check 'let'
+            If CurrentToken.Type <> TokenType.KEYWORD_LET Then
+                Return Nothing
+            End If
+            PushLocation()
+            Advance()
+
+            ' Get name
+            CheckToken("P18", TokenType.IDENTIFIER, "propertie name")
+            Dim Name As String = CurrentToken.Value
+            Advance()
+
+            ' Get value
+            If CurrentToken.Type = TokenType.COLON Then
+                Throw New NotImplementedException()
+            End If
+            If CurrentToken.Type <> TokenType.EQUAL Then
+                Throw New UnexpectedTokenException("P19", CurrentToken, TokenType.EQUAL)
+            End If
+            Advance()
+            Dim DefaultValue As ExpressionNode = GetExpression()
+
+            ' Create node
+            Return New PropertieNode(Name, DefaultValue, PopLocation())
+
+        End Function
+
+        Private Function TryConstructor() As ConstructorConstruct
+
+            ' Check 'new'
+            If CurrentToken.Type <> TokenType.KEYWORD_NEW Then
+                Return Nothing
+            End If
+            PushLocation()
+            Advance()
+
+            ' ERROR: naming a constructor
+            If CurrentToken.Type = TokenType.IDENTIFIER Then
+                Throw New SyntaxException("P20", "A constructor doesn't take any name", CurrentToken.Location)
+            End If
+
+            ' Get arguemnts
+            Dim Arguments As IEnumerable(Of ArgumentNode) = GetOptionnaListOf(AddressOf GetArgument, TokenType.OPENING_PARENTHESIS, TokenType.CLOSING_PARENTHESIS)
+
+            'ERROR: return type
+            If CurrentToken.Type = TokenType.COLON Then
+                Throw New SyntaxException("P21", "A constructor doesn't return any value", CurrentToken.Location)
+            End If
+
+            ' Get body
+            Dim Body = GetBody(2)
+
+            ' Return node
+            Return New ConstructorConstruct(Arguments, Body, PopLocation())
+
+        End Function
+
         ' ==== STATEMENTS ====
         ' List of all functions that parse a statement
+
         Private ReadOnly STATEMENT_PARSING_FUNCTIONS As IEnumerable(Of Func(Of Integer, StatementNode)) = {
             AddressOf GetDeclareVariableInferType,
             AddressOf GetProcedureCallOrAssign
