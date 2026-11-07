@@ -7,17 +7,9 @@ Namespace C.Naming
         Private Map As New Dictionary(Of Symbol.Symbol, String)
         Private AtomicCounter As Integer = 0
 
-        ' Constuctor
-        Public Sub New()
-            PopulateKnownCompiledNames()
-        End Sub
-
-        ' Define knowns type (such as primitive int, float, etc)
-        Private Sub PopulateKnownCompiledNames()
-            Map(Primitives.INT) = "int"
-            Map(Primitives.FLOAT) = "double"
-            Map(Primitives.BOOL) = "bool"
-            Map(Primitives.STR) = "lim_str"
+        ' Bind known symbol compiled name
+        Private Sub BindSymbol(s As Symbol.Symbol, CompiledName As String) Implements ISymbolNamer.BindKnownSymbol
+            Map(s) = CompiledName
         End Sub
 
         ' Create a custom name from a symbol

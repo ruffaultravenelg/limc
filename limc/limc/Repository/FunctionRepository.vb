@@ -79,7 +79,7 @@ Namespace Repository
             End If
 
             ' Create symbol
-            Return New FunctionSymbol(Node, PassedGenerics, ArgSymbols, ReturnTypeSymbol, ArgEnv)
+            Return New UserFunctionSymbol(Node, PassedGenerics, ArgSymbols, ReturnTypeSymbol, ArgEnv)
 
         End Function
 

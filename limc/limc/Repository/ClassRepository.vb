@@ -14,7 +14,7 @@ Namespace Repository
         Public Sub New(FunctionNodes As IReadOnlyList(Of AST.FunctionConstruct), ParentEnv As Environment.Env)
             Me.FunctionNodes = FunctionNodes
             Me.ParentEnv = ParentEnv
-            SymbolTable = New Dictionary(Of (Name As String, PassedGenerics As IEnumerable(Of TypeSymbol)), IReadOnlyList(Of FunctionSymbol))(New Comparer.NameWithGenericComparer())
+            'SymbolTable = New Dictionary(Of (Name As String, PassedGenerics As IEnumerable(Of TypeSymbol)), IReadOnlyList(Of FunctionSymbol))(New Comparer.NameWithGenericComparer())
         End Sub
 
         '
@@ -79,7 +79,7 @@ Namespace Repository
             End If
 
             ' Create symbol
-            Return New FunctionSymbol(Node, PassedGenerics, ArgSymbols, ReturnTypeSymbol, ArgEnv)
+            Return New UserFunctionSymbol(Node, PassedGenerics, ArgSymbols, ReturnTypeSymbol, ArgEnv)
 
         End Function
 

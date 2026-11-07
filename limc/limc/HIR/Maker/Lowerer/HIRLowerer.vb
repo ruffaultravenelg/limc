@@ -15,7 +15,7 @@ Namespace HIR.Lowerer
         End Sub
 
         ' ==== COMPILE FUNCTION ====
-        Public Function CompileFunction(FuncSymbol As FunctionSymbol) As FunctionConstruct Implements IHIRLowerer.CompileFunction
+        Public Function CompileUserFunction(FuncSymbol As UserFunctionSymbol) As FunctionConstruct Implements IHIRLowerer.CompileUserFunction
 
             ' Enqueue generics
             WorkQueue.EnqueueRange(FuncSymbol.PassedGeneric)

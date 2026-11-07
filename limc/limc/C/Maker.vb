@@ -13,6 +13,7 @@
 
                 ' Create compilation utils
                 Dim Namer As Naming.ISymbolNamer = New Naming.ManglerNamer()
+                PrimitiveCompiledNamePopulator.PopulateNamer(Namer) ' Define fixed already known compiled name
                 Dim Compiler As New HIRCompiler(fs, Namer)
 
                 ' Write header comments (with compilation command)

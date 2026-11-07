@@ -11,7 +11,7 @@
         Public ReadOnly Property ProcReturnType As TypeSymbol
 
         Public Sub New(ProcArgumentTypes As IEnumerable(Of TypeSymbol), ProcReturnType As TypeSymbol)
-            MyBase.New("func")
+            MyBase.New("func", Nothing)
             Me.ProcArgumentTypes = ProcArgumentTypes.ToList()
             Me.ProcReturnType = ProcReturnType
         End Sub

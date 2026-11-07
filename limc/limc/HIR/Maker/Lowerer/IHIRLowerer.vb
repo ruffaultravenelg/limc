@@ -1,7 +1,7 @@
 ﻿Namespace HIR.Lowerer
     Friend Interface IHIRLowerer
 
-        Function CompileFunction(Symbol As Symbol.FunctionSymbol) As HIR.FunctionConstruct
+        Function CompileUserFunction(Symbol As Symbol.UserFunctionSymbol) As HIR.FunctionConstruct
 
     End Interface
 End Namespace
