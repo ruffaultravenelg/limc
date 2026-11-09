@@ -18,6 +18,7 @@
         Sub VisitProcedureCallExpression(Node As ProcedureCallExpression)
         Sub VisitVariableExpression(Node As VariableExpression)
         Sub VisitFunctionReferenceExpression(Node As FunctionReferenceExpression)
+        Sub VisitMethodReferenceExpression(Node As ObjMethodReferenceExpression)
 
     End Interface
 End Namespace

@@ -35,6 +35,9 @@ Namespace Repository
 
             ' Get matching node
             Dim MatchingNodes As IReadOnlyList(Of AST.FunctionConstruct) = FindMatchingNodes(Name, PassedGenerics)
+            If Not MatchingNodes.Any Then
+                Return Array.Empty(Of FunctionSymbol)
+            End If
             Dim NewSymbols As IReadOnlyList(Of FunctionSymbol) = MatchingNodes.Select(Function(node) GenerateFunctionSymbol(node, PassedGenerics)).ToList() ' For each node generate its symbol (env, args, etc)
 
             ' Add it to the hashmap

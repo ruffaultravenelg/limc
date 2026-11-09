@@ -149,18 +149,38 @@ Namespace C
 
         Public Sub VisitProcedureCallExpression(Node As ProcedureCallExpression) Implements IHIRVisitor.VisitProcedureCallExpression
 
-            ' Write function reference
-            If TypeOf Node.Procedure Is FunctionReferenceExpression Then
-                'short-circut => name of the function instead of compiling the function reference pointer
-                fs.Write(N(DirectCast(Node.Procedure, FunctionReferenceExpression).FuncSymbol))
-            Else
-                Node.Procedure.Accept(Me)
-            End If
+            Select Case True 'short-circut => name of the function instead of compiling the function reference pointer
 
-            ' Compile arguments
-            fs.Write("(")
-            WriteListWithComa(Node.PassedArguments)
-            fs.Write(")")
+                Case TypeOf Node.Procedure Is FunctionReferenceExpression
+                    fs.Write(N(DirectCast(Node.Procedure, FunctionReferenceExpression).FuncSymbol))
+
+                    ' Compile arguments
+                    fs.Write("(")
+                    WriteListWithComa(Node.PassedArguments)
+                    fs.Write(")")
+
+                Case TypeOf Node.Procedure Is ObjMethodReferenceExpression
+                    Dim Callable As ObjMethodReferenceExpression = Node.Procedure
+                    fs.Write(N(Callable.Method))
+
+                    ' Compile arguments
+                    fs.Write("(")
+                    Callable.Element.Accept(Me)
+                    If Node.PassedArguments.Any Then
+                        fs.Write(", ")
+                    End If
+                    WriteListWithComa(Node.PassedArguments)
+                    fs.Write(")")
+
+                Case Else
+                    Node.Procedure.Accept(Me)
+
+                    ' Compile arguments
+                    fs.Write("(")
+                    WriteListWithComa(Node.PassedArguments)
+                    fs.Write(")")
+
+            End Select
 
         End Sub
 
@@ -168,17 +188,38 @@ Namespace C
 
             ' Write function reference
             fs.Startline()
-            If TypeOf Node.Procedure Is FunctionReferenceExpression Then
-                'short-circut => name of the function instead of compiling the function reference pointer
-                fs.Write(N(DirectCast(Node.Procedure, FunctionReferenceExpression).FuncSymbol))
-            Else
-                Node.Procedure.Accept(Me)
-            End If
+            Select Case True 'short-circut => name of the function instead of compiling the function reference pointer
 
-            ' Compile arguments
-            fs.Write("(")
-            WriteListWithComa(Node.PassedArguments)
-            fs.Write(");")
+                Case TypeOf Node.Procedure Is FunctionReferenceExpression
+                    fs.Write(N(DirectCast(Node.Procedure, FunctionReferenceExpression).FuncSymbol))
+
+                    ' Compile arguments
+                    fs.Write("(")
+                    WriteListWithComa(Node.PassedArguments)
+                    fs.Write(");")
+
+                Case TypeOf Node.Procedure Is ObjMethodReferenceExpression
+                    Dim Callable As ObjMethodReferenceExpression = Node.Procedure
+                    fs.Write(N(Callable.Method))
+
+                    ' Compile arguments
+                    fs.Write("(")
+                    Callable.Element.Accept(Me)
+                    If Node.PassedArguments.Any Then
+                        fs.Write(", ")
+                    End If
+                    WriteListWithComa(Node.PassedArguments)
+                    fs.Write(");")
+
+                Case Else
+                    Node.Procedure.Accept(Me)
+
+                    ' Compile arguments
+                    fs.Write("(")
+                    WriteListWithComa(Node.PassedArguments)
+                    fs.Write(");")
+
+            End Select
 
         End Sub
 
@@ -187,6 +228,10 @@ Namespace C
         End Sub
 
         Public Sub VisitFunctionReferenceExpression(Node As FunctionReferenceExpression) Implements IHIRVisitor.VisitFunctionReferenceExpression
+            Throw New NotImplementedException()
+        End Sub
+
+        Public Sub VisitMethodReferenceExpression(Node As ObjMethodReferenceExpression) Implements IHIRVisitor.VisitMethodReferenceExpression
             Throw New NotImplementedException()
         End Sub
 

@@ -11,7 +11,6 @@
             Using fs As New IO.StreamWriter(OutputFilepath)
 
                 ' Create compilation utils
-                Options.NamerPopulator.Populate(Options.Namer) ' Define fixed already known compiled name
                 Dim Compiler As New HIRCompiler(fs, Options.Namer)
 
                 ' Write header comments (with compilation command)

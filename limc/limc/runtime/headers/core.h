@@ -7,7 +7,20 @@
 #include <math.h>
 #include <stdbool.h>
 
-// LIM str
+/////////////
+//// INT ////
+/////////////
+#define lim_INT2FLOAT(x) ((float)x)
+
+//////////////
+//// FOAT ////
+//////////////
+#define lim_FLOAT2INT(x) ((int)round(x))
+
+/////////////////
+//// LIM STR ////
+/////////////////
+
 typedef struct {
 	char* c_str;
 	size_t len;

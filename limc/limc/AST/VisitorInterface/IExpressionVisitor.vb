@@ -8,5 +8,6 @@
         Function VisitProcedureCallExpression(Node As ProcedureCallExpression, Data As D) As R
         Function VisitElementExpression(Node As ElementExpression, Data As D) As R
         Function VisitGenericElementExpression(Node As GenericElementExpression, Data As D) As R
+        Function VisitMemberExpression(Node As MemberExpression, Data As D) As R
     End Interface
 End Namespace

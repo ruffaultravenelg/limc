@@ -35,7 +35,7 @@ Namespace HIR.Lowerer
 
             ' Child may need passed arguments types to resolve which function to choose (due to function overloading)
             ' this env help to pass them this data
-            Dim HintEnv As New CallHintEnv(Ctx, CompiledArguments.Select(Function(arg) arg.ExpressionReturnType))
+            Dim HintEnv As New CallHintEnv(Ctx, Node.Procedure, CompiledArguments.Select(Function(arg) arg.ExpressionReturnType))
 
             ' Compile procedure with hint
             Dim CompiledProcedure As ExpressionNode = Node.Procedure.Accept(ExpressionCompiler, HintEnv)

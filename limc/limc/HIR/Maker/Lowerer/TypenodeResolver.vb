@@ -16,6 +16,13 @@ Namespace HIR.Lowerer
             End If
         End Function
 
+        Public Shared Function ResolveList(Nodes As IReadOnlyList(Of AST.TypeNode), Env As Environment.Env) As IReadOnlyList(Of TypeSymbol)
+            Dim Result As New List(Of TypeSymbol)
+            For Each Node In Nodes
+                Result.Add(Resolve(Node, Env))
+            Next
+            Return Result
+        End Function
 
         ' ==== VISITOR ====
 

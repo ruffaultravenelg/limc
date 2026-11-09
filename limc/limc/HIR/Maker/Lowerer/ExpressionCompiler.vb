@@ -44,7 +44,7 @@ Namespace HIR.Lowerer
 
             ' Child may need passed arguments types to resolve which function to choose (due to function overloading)
             ' this env help to pass them this data
-            Dim HintEnv As New CallHintEnv(Ctx, CompiledArguments.Select(Function(arg) arg.ExpressionReturnType))
+            Dim HintEnv As New CallHintEnv(Ctx, Node.Procedure, CompiledArguments.Select(Function(arg) arg.ExpressionReturnType))
 
             ' Compile procedure with hint
             Dim CompiledProcedure As ExpressionNode = Node.Procedure.Accept(Me, HintEnv)
@@ -64,11 +64,11 @@ Namespace HIR.Lowerer
 
             Dim BestMatch As SymbolMatch
 
-            If CallHintEnv.IsHint(Ctx) Then
+            If CallHintEnv.IsHintFor(Ctx, Node) Then
                 'we need to find a specific function -> use procedure overloading resolver
 
                 Dim matches = Ctx.FindSymbol(Node.ElementName, {})
-                BestMatch = ProcedureOverloadingResolver.SelectBestMatch(matches, CallHintEnv.GetHintedTypes(Ctx))
+                BestMatch = ProcedureOverloadingResolver.SelectBestMatch(matches, CallHintEnv.GetHintedTypes(Ctx, Node))
                 If BestMatch Is Nothing Then
                     Throw New SyntaxException("HC02", "No matching function", Node.Location)
                 End If
@@ -102,26 +102,26 @@ Namespace HIR.Lowerer
 
         Public Function VisitGenericElementExpression(Node As AST.GenericElementExpression, Ctx As Env) As ExpressionNode Implements AST.IExpressionVisitor(Of Env, ExpressionNode).VisitGenericElementExpression
 
-            Dim PassedGenericTypes As New List(Of TypeSymbol)
-            For Each G In Node.PassedGenerics
-                Dim T = TypenodeResolver.Resolve(G, Ctx)
-                WorkQueue.Enqueue(T)
-                PassedGenericTypes.Add(T)
-            Next
+            ' Transform all passed generics to typesymbols
+            Dim PassedGenericTypes = TypenodeResolver.ResolveList(Node.PassedGenerics, Ctx)
+            WorkQueue.EnqueueRange(PassedGenericTypes)
 
             Dim BestMatch As SymbolMatch
 
-            If CallHintEnv.IsHint(Ctx) Then
+            If CallHintEnv.IsHintFor(Ctx, Node) Then
                 'we need to find a specific function -> use procedure overloading resolver
 
                 Dim matches = Ctx.FindSymbol(Node.ElementName, PassedGenericTypes)
-                BestMatch = ProcedureOverloadingResolver.SelectBestMatch(matches, CallHintEnv.GetHintedTypes(Ctx))
+                BestMatch = ProcedureOverloadingResolver.SelectBestMatch(matches, CallHintEnv.GetHintedTypes(Ctx, Node))
                 If BestMatch Is Nothing Then
                     Throw New SyntaxException("HC03", "No matching function", Node.Location)
                 End If
             Else
                 'just get the first symbol
                 BestMatch = Ctx.FindSymbol(Node.ElementName, PassedGenericTypes).First()
+                If BestMatch Is Nothing Then
+                    Throw New UnreachableElementException("HC04", Node.ElementName, Node.Location)
+                End If
             End If
 
             ' Compile match to node
@@ -141,7 +141,57 @@ Namespace HIR.Lowerer
                     Return New FunctionReferenceExpression(Node.Location, FuncSymbol, FuncType)
 
                 Case Else
-                    Throw New NotImplementedException()
+                    Throw New InternalException("missing case ?")
+
+            End Select
+
+        End Function
+
+        Public Function VisitMemberExpression(Node As AST.MemberExpression, Ctx As Env) As ExpressionNode Implements AST.IExpressionVisitor(Of Env, ExpressionNode).VisitMemberExpression
+
+            ' Transform all passed generics to typesymbols
+            Dim PassedGenericTypes = TypenodeResolver.ResolveList(Node.PassedGenerics, Ctx)
+            WorkQueue.EnqueueRange(PassedGenericTypes)
+
+            ' STEP 1 : Compile parent
+            Dim Parent As ExpressionNode = Node.Element.Accept(Me, Ctx)
+
+            ' STEP 2 : Get best matching symbol in the parent
+            Dim BestMatch As SymbolMatch
+
+            If CallHintEnv.IsHintFor(Ctx, Node) Then
+                ' we specificly search for a method
+
+                Dim matches = Parent.ExpressionReturnType.Env.FindSymbol(Node.MemberName, PassedGenericTypes)
+                BestMatch = ProcedureOverloadingResolver.SelectBestMatch(matches, CallHintEnv.GetHintedTypes(Ctx, Node))
+                If BestMatch Is Nothing Then
+                    Throw New UnreachableElementException("HC06", Node.MemberName & " method", Node.Location)
+                End If
+
+            Else
+                ' we pick the first matching symbol
+
+                BestMatch = Parent.ExpressionReturnType.Env.FindSymbol(Node.MemberName, PassedGenericTypes).FirstOrDefault()
+                If BestMatch Is Nothing Then
+                    Throw New UnreachableElementException("HC05", Node.MemberName, Node.Location)
+                End If
+            End If
+
+            ' STEP 3 : Compile the expression that match the symbol type
+            Select Case True
+
+                Case BestMatch.IsType(Of MethodSymbol)
+                    Dim MethodSymb = BestMatch.METHOD_SYMBOL
+                    WorkQueue.Enqueue(MethodSymb)
+
+                    ' compile the method's func type
+                    Dim FuncType = Primitives.Func(MethodSymb.Arguments.Select(Function(arg) arg.VariableType), MethodSymb.ReturnType)
+                    WorkQueue.Enqueue(FuncType)
+
+                    Return New ObjMethodReferenceExpression(Node.Location, Parent, MethodSymb, FuncType)
+
+                Case Else
+                    Throw New InternalException("missing case ?")
 
             End Select
 

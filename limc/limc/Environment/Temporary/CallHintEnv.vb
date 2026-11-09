@@ -9,18 +9,24 @@ Namespace Environment
     Friend Class CallHintEnv
         Inherits Env
 
+        Private TargetedNode As AST.Node
         Private ArgumentTypes As IReadOnlyList(Of TypeSymbol)
 
-        Public Sub New(Parent As Env, ArgumentTypes As IEnumerable(Of TypeSymbol))
+        Public Sub New(Parent As Env, TargetedNode As AST.Node, ArgumentTypes As IEnumerable(Of TypeSymbol))
             MyBase.New(Parent)
+            Me.TargetedNode = TargetedNode
             Me.ArgumentTypes = ArgumentTypes.ToList()
         End Sub
 
-        Public Shared Function IsHint(Ctx As Env) As Boolean
-            Return TypeOf Ctx Is CallHintEnv
+        ' is hint if
+        '   ctx is CallHintEnv
+        '   checking node is the one targeted by who created the hint
+        ' helps to stop hint propagation after the targeted node
+        Public Shared Function IsHintFor(Ctx As Env, CurrentNode As AST.Node) As Boolean
+            Return TypeOf Ctx Is CallHintEnv AndAlso Object.ReferenceEquals(DirectCast(Ctx, CallHintEnv).TargetedNode, CurrentNode)
         End Function
-        Public Shared Function GetHintedTypes(Ctx As Env) As IReadOnlyList(Of TypeSymbol)
-            If IsHint(Ctx) Then
+        Public Shared Function GetHintedTypes(Ctx As Env, CurrentNode As AST.Node) As IReadOnlyList(Of TypeSymbol)
+            If IsHintFor(Ctx, CurrentNode) Then
                 Return DirectCast(Ctx, CallHintEnv).ArgumentTypes
             Else
                 Throw New InternalException("Cannot get hinted types of a non hint env")

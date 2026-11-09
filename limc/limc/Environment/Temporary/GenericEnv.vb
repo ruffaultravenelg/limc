@@ -1,5 +1,4 @@
-﻿Imports System.Reflection.Metadata.Ecma335
-Imports limc.Symbol
+﻿Imports limc.Symbol
 
 Namespace Environment
     Friend Class GenericEnv

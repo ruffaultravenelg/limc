@@ -36,4 +36,14 @@ Friend Class SymbolMatch
         End Get
     End Property
 
+    ' ==== METHOD SYMBOL ====
+    Public Sub New(Val As MethodSymbol)
+        _Value = Val
+    End Sub
+    Public ReadOnly Property METHOD_SYMBOL As MethodSymbol
+        Get
+            Return _Value
+        End Get
+    End Property
+
 End Class

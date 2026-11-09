@@ -3,7 +3,6 @@
     Public Property Primitives As IPrimitives
 
     Public Property Namer As C.Naming.ISymbolNamer
-    Public Property NamerPopulator As C.Naming.INamerPopulator
     Public Property CCEngine As C.IArgumentGenerator
 
     Private Sub New()
@@ -14,9 +13,8 @@
 
     Public Shared Function DefaultOptions() As CompilationOptions
         Return New CompilationOptions() With {
-            .Primitives = New Primitives(),
             .Namer = New C.Naming.ManglerNamer(),
-            .NamerPopulator = New C.Naming.ClassicNamerPopulator(.Primitives),
+            .Primitives = ClassicLimPrimitives.Generate(.Namer),
             .CCEngine = New C.ClangArgumentGenerator()
         }
     End Function

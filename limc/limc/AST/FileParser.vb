@@ -421,7 +421,14 @@ Namespace AST
 
                     Case TokenType.POINT
                         'elm.elm
-                        Throw New NotImplementedException()
+                        Advance()
+                        CheckToken("P22", TokenType.IDENTIFIER, "member name")
+                        Dim MemberName As String = CurrentToken.Value
+                        Advance()
+
+                        Dim PassedTypes = GetOptionnaListOf(AddressOf GetTypeNode, TokenType.LT, TokenType.GT)
+
+                        Left = New MemberExpression(Left, MemberName, PassedTypes, Left.Location + LastTok.Location)
 
                     Case TokenType.OPENING_PARENTHESIS
                         'elm(elm, elm, ...)

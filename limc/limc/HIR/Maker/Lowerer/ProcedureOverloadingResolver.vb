@@ -20,19 +20,27 @@ Namespace HIR.Lowerer
                             Return Match
                         End If
 
+                    Case Match.IsType(Of MethodSymbol)
+                        If IsMethodSymbolMatching(Match.METHOD_SYMBOL, HintedTypes) Then
+                            Return Match
+                        End If
+
                 End Select
             Next
             Return Nothing 'No match found
         End Function
 
-        Public Shared Function IsFunctionSymbolMatching(Func As FunctionSymbol, HintedTypes As IReadOnlyList(Of TypeSymbol)) As Boolean
+        Private Shared Function IsFunctionSymbolMatching(Func As FunctionSymbol, HintedTypes As IReadOnlyList(Of TypeSymbol)) As Boolean
             Return Func.Arguments.Select(Function(arg) arg.VariableType).SequenceEqual(HintedTypes) ' Compare list of func.args.type to hintedtypes
         End Function
-        Public Shared Function IsVariableSymbolMatching(Var As VariableSymbol, HintedTypes As IReadOnlyList(Of TypeSymbol)) As Boolean
+        Private Shared Function IsVariableSymbolMatching(Var As VariableSymbol, HintedTypes As IReadOnlyList(Of TypeSymbol)) As Boolean
             If TypeOf Var.VariableType IsNot FuncTypeSymbol Then
                 Return False
             End If
             Return DirectCast(Var.VariableType, FuncTypeSymbol).ProcArgumentTypes.SequenceEqual(HintedTypes) ' Compare list of vartype(functype).argtypes to hintedtypes
+        End Function
+        Private Shared Function IsMethodSymbolMatching(Meth As MethodSymbol, HintedTypes As IReadOnlyList(Of TypeSymbol)) As Boolean
+            Return Meth.Arguments.Select(Function(arg) arg.VariableType).SequenceEqual(HintedTypes)
         End Function
 
     End Class

@@ -199,5 +199,16 @@ Namespace Printer
             Print(Node.Body)
         End Function
 
+        Public Function VisitMemberExpression(Node As MemberExpression, Data As ValueTuple) As ValueTuple Implements IExpressionVisitor(Of ValueTuple, ValueTuple).VisitMemberExpression
+            Print(Node.Element)
+            Writer.Write(".")
+            Writer.Write(Node.MemberName)
+            If Node.PassedGenerics.Any Then
+                Writer.Write("<")
+                PrintWithComma(Node.PassedGenerics)
+                Writer.Write(">")
+            End If
+        End Function
+
     End Class
 End Namespace
