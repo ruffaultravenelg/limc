@@ -12,7 +12,12 @@ Namespace Environment
         End Sub
 
         Protected Overrides Iterator Function ResolveSymbol(ElementName As String, PassedGenericTypes As IReadOnlyList(Of TypeSymbol)) As IEnumerable(Of SymbolMatch)
-            ' No global symbols
+            If PassedGenericTypes.Count = 0 Then
+                Select Case ElementName
+                    Case "puts"
+                        Yield New SymbolMatch(Primitives.PUTS)
+                End Select
+            End If
         End Function
 
         Protected Overrides Function ResolveType(Typename As String, PassedGenericTypes As IReadOnlyList(Of TypeSymbol)) As TypeSymbol

@@ -11,6 +11,8 @@ Friend Class ClassicLimPrimitives
     Public ReadOnly Property BOOL As New BoolTypeSymbol() Implements IPrimitives.BOOL
     Public ReadOnly Property STR As New StrTypeSymbol() Implements IPrimitives.STR
 
+    Public ReadOnly Property PUTS As PrimitiveFunctionSymbol Implements IPrimitives.PUTS
+
     ' func<a, b><r>
     Private FuncRepo As New Repository.FuncTypeRepository()
     Public Function Func(ArgumentTypes As IEnumerable(Of TypeSymbol), ReturnType As TypeSymbol) As FuncTypeSymbol Implements IPrimitives.Func
@@ -30,6 +32,14 @@ Friend Class ClassicLimPrimitives
 
         Namer.BindKnownSymbol(BOOL, "bool")
         Namer.BindKnownSymbol(STR, "lim_str")
+
+        ' puts(value:str)
+        PUTS = New PrimitiveFunctionSymbol.Builder() _
+            .SetName("puts") _
+            .AddArgument("value", STR) _
+            .NoReturn() _
+            .Build()
+        Namer.BindKnownSymbol(PUTS, "lim_puts")
 
     End Sub
 

@@ -36,9 +36,10 @@ Namespace C
         Public Sub VisitProgramNode(Program As ProgramNode) Implements IHIRVisitor.VisitProgramNode
 
             ' Write includes
-            For Each core_header In RuntimeFiles.GetHeaders()
-                fs.Startline($"#include ""{core_header}""")
-            Next
+            'For Each core_header In RuntimeFiles.GetHeaders()
+            '    fs.Startline($"#include ""{core_header}""")
+            'Next
+            fs.Startline($"#include ""{RuntimeFiles.LIM_CORE_H}""")
             fs.Startline()
 
             ' Write all functions definitions
@@ -56,7 +57,9 @@ Namespace C
             ' Write main function
             fs.Startline("int main(int argc, char* argv[]) {")
             fs.IncreaseIndentation()
+            fs.Startline("lim_gc_start(&argc);")
             fs.Startline($"{N(Program.EntryFunction)}();") ' TODO: better this, currently assuming entry point has no args lol
+            fs.Startline("lim_gc_stop();")
             fs.DecreaseIndentation()
             fs.Startline("}")
             fs.Startline()
@@ -140,7 +143,7 @@ Namespace C
         End Sub
 
         Public Sub VisitRawStrExpression(Node As RawStrExpression) Implements IHIRVisitor.VisitRawStrExpression
-            Throw New NotImplementedException()
+            fs.Write($"lim_literal2str(""{Node.Value}"")")
         End Sub
 
         Public Sub VisitFormattedStrExpression(Node As FormattedStrExpression) Implements IHIRVisitor.VisitFormattedStrExpression

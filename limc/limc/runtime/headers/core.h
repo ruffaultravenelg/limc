@@ -3,9 +3,22 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <math.h>
 #include <stdbool.h>
+
+#include "tgc.h"
+#include "utf8.h"
+
+///////////////////
+//// MEM ALLOC ////
+///////////////////
+static tgc_t gc;
+
+void lim_gc_start(void* stk);
+void lim_gc_stop();
+
+void* lim_alloc(size_t size);
+void* lim_alloc_leaf(size_t size);
 
 /////////////
 //// INT ////
@@ -17,15 +30,20 @@
 //////////////
 #define lim_FLOAT2INT(x) ((int)round(x))
 
-/////////////////
-//// LIM STR ////
-/////////////////
+/////////////
+//// STR ////
+/////////////
 
-typedef struct {
-	char* c_str;
-	size_t len;
-} lim_str;
+// immutable
+struct lim_str_struct{
+	size_t byte_len;
+	size_t char_len;
+	char data[];
+};
+typedef struct lim_str_struct* lim_str;
 
-void lim_core_puts(char* str);
+lim_str lim_literal2str(const char *literal);
+
+void lim_puts(lim_str value);
 
 #endif //LIM_CORE_H

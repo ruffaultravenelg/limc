@@ -7,9 +7,12 @@ Namespace C
         Private Shared ReadOnly RUNTIME_HEADERS As String = Path.Combine(EXEDIR, "runtime", "headers")
         Private Shared ReadOnly RUNTIME_SRC As String = Path.Combine(EXEDIR, "runtime", "src")
 
+        Public Shared ReadOnly Property LIM_CORE_H As String = "core.h"
+
         Public Shared Function GetHeaderDirectory() As String
             Return RUNTIME_HEADERS
         End Function
+
         Public Shared Function GetHeaders() As IReadOnlyList(Of String)
             Return Directory.EnumerateFiles(RUNTIME_HEADERS, "*.h", SearchOption.AllDirectories) _ ' List all .h files
                             .Select(Function(f) Path.GetRelativePath(RUNTIME_HEADERS, f)).ToList() ' Set relative to header dir
