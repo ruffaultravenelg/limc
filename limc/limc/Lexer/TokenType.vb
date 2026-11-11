@@ -33,6 +33,7 @@
         KEYWORD_IMPORT
         KEYWORD_CLASS
         KEYWORD_NEW
+        KEYWORD_RETURN
 
         LINESTART
 

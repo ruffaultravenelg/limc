@@ -11,6 +11,7 @@
         Sub VisitDeclareVariableStatement(Node As DeclareVariableStatement)
         Sub VisitProcedureCallStatement(Node As ProcedureCallStatement)
         Sub VisitVariableAssignStatement(Node As VariableAssignStatement)
+        Sub VisitReturnStatement(Node As ReturnStatement)
 
     End Interface
 End Namespace

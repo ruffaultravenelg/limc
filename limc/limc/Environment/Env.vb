@@ -9,7 +9,7 @@ Namespace Environment
             Me.EnclosingEnvironment = _EnclosingEnvironment
         End Sub
 
-        Private Iterator Function AllParents() As IEnumerable(Of Env)
+        Public Iterator Function AllParents() As IEnumerable(Of Env)
             Dim Current As Env = Me
             While Current IsNot Nothing
                 Yield Current

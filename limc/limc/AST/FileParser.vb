@@ -308,7 +308,8 @@ Namespace AST
 
         Private ReadOnly STATEMENT_PARSING_FUNCTIONS As IEnumerable(Of Func(Of Integer, StatementNode)) = {
             AddressOf GetDeclareVariableInferType,
-            AddressOf GetProcedureCallOrAssign
+            AddressOf GetReturn,
+            AddressOf GetProcedureCallOrAssign ' must be at the end (cause it uses getExpression())
         }
 
         ' Get a list of statement (level = the level of the futur statements)
@@ -375,6 +376,23 @@ Namespace AST
                 ' TODO: Add declarevariablewithtypestatement
                 Throw New NotImplementedException()
             End If
+
+        End Function
+
+        Private Function GetReturn(Level As Integer) As StatementNode
+
+            ' check 'return' keyword
+            If Not CurrentToken.Type = TokenType.KEYWORD_RETURN Then
+                Return Nothing
+            End If
+            PushLocation()
+            Advance()
+
+            ' Get return value
+            Dim ReturnValue As ExpressionNode = GetExpression()
+
+            ' Create node
+            Return New ReturnStatement(ReturnValue, PopResolveLocation())
 
         End Function
 

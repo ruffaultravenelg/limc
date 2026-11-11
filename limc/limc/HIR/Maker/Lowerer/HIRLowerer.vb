@@ -1,4 +1,5 @@
-﻿Imports limc.Symbol
+﻿Imports limc.Environment
+Imports limc.Symbol
 
 Namespace HIR.Lowerer
     Friend Class HIRLowerer
@@ -27,8 +28,14 @@ Namespace HIR.Lowerer
                 WorkQueue.Enqueue(arg.VariableType)
             Next
 
+            ' Create return context to allow "return" statement
+            Dim FuncCompilationEnv As Env = FuncSymbol.FunctionEnvironment
+            If FuncSymbol.ReturnType IsNot Nothing Then
+                FuncCompilationEnv = New ReturnableEnv(FuncCompilationEnv, FuncSymbol.ReturnType)
+            End If
+
             ' Compile body
-            Dim Body = FuncSymbol.Node.Body.Accept(StatementCompiler, FuncSymbol.FunctionEnvironment)
+            Dim Body = FuncSymbol.Node.Body.Accept(StatementCompiler, FuncCompilationEnv)
 
             ' Create the function
             Return New FunctionConstruct(FuncSymbol.Node.Location, FuncSymbol, Body)

@@ -1,4 +1,5 @@
-﻿Imports limc.HIR
+﻿Imports System.Security.AccessControl
+Imports limc.HIR
 
 Namespace C
     '
@@ -143,6 +144,11 @@ Namespace C
             ' Compile
             fs.Startline($"{CallableExpr}({String.Join(", ", Arguments)});")
 
+        End Sub
+
+        Public Sub VisitReturnStatement(Node As ReturnStatement) Implements IHIRVisitor.VisitReturnStatement
+            Dim Value As String = ExprCom.CompileVal(Node.Value)
+            fs.Startline($"return {Value};")
         End Sub
 
     End Class

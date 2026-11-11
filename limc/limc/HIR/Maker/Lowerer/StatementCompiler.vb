@@ -70,5 +70,20 @@ Namespace HIR.Lowerer
 
         End Function
 
+        Public Function VisitReturnStatement(Node As AST.ReturnStatement, Ctx As BlockEnv) As StatementNode Implements AST.IStatementVisitor(Of BlockEnv, StatementNode).VisitReturnStatement
+
+            ' no enqueue cause return type already compiled by function compilation
+            Dim Value = Node.Value.Accept(ExpressionCompiler, Ctx)
+
+            ' TODO: check if there is a return at each control route
+
+            ' Validate the return location & value type
+            ReturnableEnv.ValidateReturn(Ctx, Value, Node.Location)
+
+            ' Create node
+            Return New ReturnStatement(Node.Location, Value)
+
+        End Function
+
     End Class
 End Namespace

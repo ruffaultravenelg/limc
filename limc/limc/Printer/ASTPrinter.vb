@@ -219,5 +219,11 @@ Namespace Printer
             WriteOptList("<", Node.PassedGenerics, ">")
         End Function
 
+        Public Function VisitReturnStatement(Node As ReturnStatement, Data As ValueTuple) As ValueTuple Implements IStatementVisitor(Of ValueTuple, ValueTuple).VisitReturnStatement
+            StartLine("return ")
+            Write(Node.Value)
+            Write(";")
+        End Function
+
     End Class
 End Namespace
