@@ -23,12 +23,12 @@ void* lim_alloc_leaf(size_t size);
 /////////////
 //// INT ////
 /////////////
-#define lim_INT2FLOAT(x) ((float)x)
+double lim_int2float(void* x);
 
 //////////////
 //// FOAT ////
 //////////////
-#define lim_FLOAT2INT(x) ((int)round(x))
+int lim_float2int(void* x);
 
 /////////////
 //// STR ////

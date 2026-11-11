@@ -4,6 +4,8 @@
 
         Public ReadOnly Property Node As AST.ClassConstruct
 
+        Public Overrides ReadOnly Property IS_POINTER As Boolean = True
+
         Public Sub New(Node As AST.ClassConstruct, Env As Environment.Env)
             MyBase.New(Node.ClassName, Env)
             Me.Node = Node

@@ -2,6 +2,8 @@
     Friend Class StrTypeSymbol
         Inherits TypeSymbol
 
+        Public Overrides ReadOnly Property IS_POINTER As Boolean = True
+
         Public Sub New()
             MyBase.New("str", Nothing)
         End Sub

@@ -52,3 +52,17 @@ void lim_puts(lim_str value) {
     fwrite(value->data, sizeof(char), value->byte_len, stdout);
 	putchar('\n');
 }
+
+/////////////
+//// INT ////
+/////////////
+double lim_int2float(void* x) {
+	return (float)(*((int*)x));
+}
+
+//////////////
+//// FOAT ////
+//////////////
+int lim_float2int(void* x) {
+	return (int)round(*((double*)x));
+}

@@ -7,6 +7,7 @@ Namespace Symbol
         Implements ICompilableSymbol
 
         Public ReadOnly Property Env As Environment.TypeEnvironment
+        Public Overridable ReadOnly Property IS_POINTER As Boolean = False
 
         Public Sub New(LimName As String, Env As Environment.Env)
             MyBase.New(LimName)

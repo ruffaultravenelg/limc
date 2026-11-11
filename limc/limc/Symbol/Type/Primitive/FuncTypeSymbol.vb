@@ -10,6 +10,8 @@
         Public ReadOnly Property ProcArgumentTypes As IReadOnlyList(Of TypeSymbol)
         Public ReadOnly Property ProcReturnType As TypeSymbol
 
+        Public Overrides ReadOnly Property IS_POINTER As Boolean = True
+
         Public Sub New(ProcArgumentTypes As IEnumerable(Of TypeSymbol), ProcReturnType As TypeSymbol)
             MyBase.New("func", Nothing)
             Me.ProcArgumentTypes = ProcArgumentTypes.ToList()

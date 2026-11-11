@@ -53,7 +53,7 @@ Friend Class ClassicLimPrimitives
             .SetName("float") _
             .SetReturnType(FLOAT) _
             .Build()
-        Namer.BindKnownSymbol(int2float, "lim_INT2FLOAT")
+        Namer.BindKnownSymbol(int2float, "lim_int2float")
 
         ' create INT env
         INT.SetEnv(New PrimitiveTypeEnv.Builder() _
@@ -73,7 +73,7 @@ Friend Class ClassicLimPrimitives
             .SetName("int") _
             .SetReturnType(INT) _
             .Build()
-        Namer.BindKnownSymbol(float2int, "lim_FLOAT2INT")
+        Namer.BindKnownSymbol(float2int, "lim_float2int")
 
         ' create INT env
         FLOAT.SetEnv(New PrimitiveTypeEnv.Builder() _

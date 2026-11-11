@@ -10,6 +10,7 @@ Namespace HIR
             MyBase.New(Location)
             Me.ExpressionReturnType = ExpressionReturnType
         End Sub
+        Public MustOverride Function Accept(Of R)(Visitor As IHIRExpressionVisitor(Of R)) As R
 
     End Class
 End Namespace

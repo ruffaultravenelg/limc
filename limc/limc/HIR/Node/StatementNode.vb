@@ -6,5 +6,7 @@
             MyBase.New(Location)
         End Sub
 
+        Public MustOverride Sub Accept(Visitor As IHIRVisitor)
+
     End Class
 End Namespace

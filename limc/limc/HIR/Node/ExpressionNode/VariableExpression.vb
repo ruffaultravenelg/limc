@@ -11,9 +11,9 @@ Namespace HIR
             Me.VarSymbol = VarSymbol
         End Sub
 
-        Public Overrides Sub Accept(Visitor As IHIRVisitor)
-            Visitor.VisitVariableExpression(Me)
-        End Sub
+        Public Overrides Function Accept(Of R)(Visitor As IHIRExpressionVisitor(Of R)) As R
+            Return Visitor.VisitVariableExpression(Me)
+        End Function
 
     End Class
 End Namespace

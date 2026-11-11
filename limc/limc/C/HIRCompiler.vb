@@ -1,7 +1,12 @@
-﻿Imports System.Globalization
-Imports limc.HIR
+﻿Imports limc.HIR
 
 Namespace C
+    '
+    ' Compile a HIR to a C source file
+    ' Write directly to the source file, no other internal representation
+    ' 
+    ' Each expression is stored in a new variable. This ensure correct order, and is nessecary to allow direct write onto file stream
+    '
     Friend Class HIRCompiler
         Implements IHIRVisitor
 
@@ -9,10 +14,15 @@ Namespace C
         Private fs As WriterWrapper
         Private Namer As Naming.ISymbolNamer
 
+        Private ExprCom As ExpressionCompiler
+
+
         ' Constructor
         Public Sub New(fs As IO.StreamWriter, Namer As Naming.ISymbolNamer)
             Me.fs = New WriterWrapper(fs)
             Me.Namer = Namer
+
+            Me.ExprCom = New ExpressionCompiler(Me.fs, Namer)
         End Sub
 
         ' Fast access to CompiledName
@@ -20,25 +30,10 @@ Namespace C
             Return Namer.GetCompiledName(S)
         End Function
 
-        ' Macro to help writing ", " separated elements
-        Private Sub WriteListWithComa(Elements As IEnumerable(Of HIR.Node))
-            Dim First As Boolean = True
-            For Each Elm In Elements
-                If Not First Then
-                    fs.Write(", ")
-                End If
-                Elm.Accept(Me)
-                First = False
-            Next
-        End Sub
-
         ' ==== CONSTUCTS =====
         Public Sub VisitProgramNode(Program As ProgramNode) Implements IHIRVisitor.VisitProgramNode
 
             ' Write includes
-            'For Each core_header In RuntimeFiles.GetHeaders()
-            '    fs.Startline($"#include ""{core_header}""")
-            'Next
             fs.Startline($"#include ""{RuntimeFiles.LIM_CORE_H}""")
             fs.Startline()
 
@@ -60,6 +55,7 @@ Namespace C
             fs.Startline("lim_gc_start(&argc);")
             fs.Startline($"{N(Program.EntryFunction)}();") ' TODO: better this, currently assuming entry point has no args lol
             fs.Startline("lim_gc_stop();")
+            fs.Startline("return EXIT_SUCCESS;")
             fs.DecreaseIndentation()
             fs.Startline("}")
             fs.Startline()
@@ -124,125 +120,29 @@ Namespace C
         End Sub
 
         Public Sub VisitDeclareVariableStatement(Node As DeclareVariableStatement) Implements IHIRVisitor.VisitDeclareVariableStatement
-            fs.Startline($"{N(Node.VariableSymbol.VariableType)} {N(Node.VariableSymbol)} = ")
-            Node.Value.Accept(Me)
-            fs.Write(";")
+            Dim DefaultValue As String = ExprCom.CompileVal(Node.Value)
+            fs.Startline($"{N(Node.VariableSymbol.VariableType)} {N(Node.VariableSymbol)} = {DefaultValue};")
         End Sub
 
-        ' ==== EXPRESSIONS ====
-        Public Sub VisitIntExpression(Node As IntExpression) Implements IHIRVisitor.VisitIntExpression
-            fs.Write("((int)" & Node.Value.ToString() & ")")
-        End Sub
-
-        Public Sub VisitFloatExpression(Node As FloatExpression) Implements IHIRVisitor.VisitFloatExpression
-            fs.Write("((double)" & Node.Value.ToString("F", CultureInfo.InvariantCulture) & ")")
-        End Sub
-
-        Public Sub VisitBoolExpression(Node As BoolExpression) Implements IHIRVisitor.VisitBoolExpression
-            fs.Write(If(Node.Value, "true", "false"))
-        End Sub
-
-        Public Sub VisitRawStrExpression(Node As RawStrExpression) Implements IHIRVisitor.VisitRawStrExpression
-            fs.Write($"lim_literal2str(""{Node.Value}"")")
-        End Sub
-
-        Public Sub VisitFormattedStrExpression(Node As FormattedStrExpression) Implements IHIRVisitor.VisitFormattedStrExpression
-            Throw New NotImplementedException()
-        End Sub
-
-        Public Sub VisitProcedureCallExpression(Node As ProcedureCallExpression) Implements IHIRVisitor.VisitProcedureCallExpression
-
-            Select Case True 'short-circut => name of the function instead of compiling the function reference pointer
-
-                Case TypeOf Node.Procedure Is FunctionReferenceExpression
-                    fs.Write(N(DirectCast(Node.Procedure, FunctionReferenceExpression).FuncSymbol))
-
-                    ' Compile arguments
-                    fs.Write("(")
-                    WriteListWithComa(Node.PassedArguments)
-                    fs.Write(")")
-
-                Case TypeOf Node.Procedure Is ObjMethodReferenceExpression
-                    Dim Callable As ObjMethodReferenceExpression = Node.Procedure
-                    fs.Write(N(Callable.Method))
-
-                    ' Compile arguments
-                    fs.Write("(")
-                    Callable.Element.Accept(Me)
-                    If Node.PassedArguments.Any Then
-                        fs.Write(", ")
-                    End If
-                    WriteListWithComa(Node.PassedArguments)
-                    fs.Write(")")
-
-                Case Else
-                    Node.Procedure.Accept(Me)
-
-                    ' Compile arguments
-                    fs.Write("(")
-                    WriteListWithComa(Node.PassedArguments)
-                    fs.Write(")")
-
-            End Select
-
+        Public Sub VisitVariableAssignStatement(Node As VariableAssignStatement) Implements IHIRVisitor.VisitVariableAssignStatement
+            Dim NewValue As String = ExprCom.CompileVal(Node.NewValue)
+            fs.Startline($"{N(Node.Variable)} = {NewValue};")
         End Sub
 
         Public Sub VisitProcedureCallStatement(Node As ProcedureCallStatement) Implements IHIRVisitor.VisitProcedureCallStatement
 
-            ' Write function reference
-            fs.Startline()
-            Select Case True 'short-circut => name of the function instead of compiling the function reference pointer
+            ' Compile arguments
+            Dim Arguments As New List(Of String)(Node.PassedArguments.Count + 1) ' reserve arg count + 1 for self if necessary
+            For Each PassedArg In Node.PassedArguments
+                Arguments.Add(ExprCom.CompileVal(PassedArg))
+            Next
 
-                Case TypeOf Node.Procedure Is FunctionReferenceExpression
-                    fs.Write(N(DirectCast(Node.Procedure, FunctionReferenceExpression).FuncSymbol))
+            ' Compile procedure expr
+            Dim CallableExpr As String = CallableShortcutResolver.ResolveCallable(Node.Procedure, Arguments, fs, Namer, ExprCom)
 
-                    ' Compile arguments
-                    fs.Write("(")
-                    WriteListWithComa(Node.PassedArguments)
-                    fs.Write(");")
+            ' Compile
+            fs.Startline($"{CallableExpr}({String.Join(", ", Arguments)});")
 
-                Case TypeOf Node.Procedure Is ObjMethodReferenceExpression
-                    Dim Callable As ObjMethodReferenceExpression = Node.Procedure
-                    fs.Write(N(Callable.Method))
-
-                    ' Compile arguments
-                    fs.Write("(")
-                    Callable.Element.Accept(Me)
-                    If Node.PassedArguments.Any Then
-                        fs.Write(", ")
-                    End If
-                    WriteListWithComa(Node.PassedArguments)
-                    fs.Write(");")
-
-                Case Else
-                    Node.Procedure.Accept(Me)
-
-                    ' Compile arguments
-                    fs.Write("(")
-                    WriteListWithComa(Node.PassedArguments)
-                    fs.Write(");")
-
-            End Select
-
-        End Sub
-
-        Public Sub VisitVariableExpression(Node As VariableExpression) Implements IHIRVisitor.VisitVariableExpression
-            fs.Write(N(Node.VarSymbol))
-        End Sub
-
-        Public Sub VisitFunctionReferenceExpression(Node As FunctionReferenceExpression) Implements IHIRVisitor.VisitFunctionReferenceExpression
-            Throw New NotImplementedException()
-        End Sub
-
-        Public Sub VisitMethodReferenceExpression(Node As ObjMethodReferenceExpression) Implements IHIRVisitor.VisitMethodReferenceExpression
-            Throw New NotImplementedException()
-        End Sub
-
-        Public Sub VisitVariableAssignStatement(Node As VariableAssignStatement) Implements IHIRVisitor.VisitVariableAssignStatement
-            fs.Startline(N(Node.Variable))
-            fs.Write(" = ")
-            Node.NewValue.Accept(Me)
-            fs.Write(";")
         End Sub
 
     End Class

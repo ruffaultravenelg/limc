@@ -1,6 +1,4 @@
-﻿Imports limc.Environment
-
-Namespace C.Naming
+﻿Namespace C.Naming
     Friend Class ManglerNamer
         Implements ISymbolNamer
 
@@ -43,6 +41,12 @@ Namespace C.Naming
                 Map(Symbol) = CompiledName
                 Return CompiledName
             End If
+        End Function
+
+        ' Get a temp var
+        Public Function GetTemp() As String Implements ISymbolNamer.GetTemp
+            AtomicCounter += 1
+            Return "ltmp" & AtomicCounter.ToString()
         End Function
 
     End Class

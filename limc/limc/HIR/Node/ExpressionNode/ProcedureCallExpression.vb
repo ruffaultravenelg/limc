@@ -13,9 +13,9 @@ Namespace HIR
             Me.PassedArguments = PassedArguments.ToList()
         End Sub
 
-        Public Overrides Sub Accept(Visitor As IHIRVisitor)
-            Visitor.VisitProcedureCallExpression(Me)
-        End Sub
+        Public Overrides Function Accept(Of R)(Visitor As IHIRExpressionVisitor(Of R)) As R
+            Return Visitor.VisitProcedureCallExpression(Me)
+        End Function
 
     End Class
 End Namespace
